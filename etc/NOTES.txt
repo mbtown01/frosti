@@ -1,0 +1,16 @@
+# Update the pi
+sudo apt update
+
+# use raspi-config to enable the i2c interface
+raspi-config 
+
+# install the bmp280 library (on the pi)
+sudo pip3 install adafruit-circuitpython-bme280
+
+# Install Packages
+sudo apt install vim wiringpi python3-pip i2ctools python3-smbus
+
+# Install debugger on both computers
+sudo python3 -m pip install --upgrade ptvsd
+ssh pi@pi-dev python3 -m ptvsd --host 192.168.8.187 --port 3000 --wait /home/pi/thermostat/test.py
+
