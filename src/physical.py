@@ -41,5 +41,3 @@ class PhysicalHardware(Hardware):
     # Set the underlying hardware to fan only operation
     def setModeFan(self):
         print("Setting fan mode")
-
-

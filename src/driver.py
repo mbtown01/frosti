@@ -12,7 +12,7 @@ def exec(hardware: Hardware, settings: Settings, sampleWait=1, sampleCount=16):
         time.sleep(sampleWait)
 
         # Get the latest temperature reading and push it into the queue we're
-        # using to measure in a rolling time window.  If there aren't enough 
+        # using to measure in a rolling time window.  If there aren't enough
         # samples in the window, move on to the next sample
         temperature = hardware.getTemperature()
         readings.put(temperature)
@@ -23,7 +23,7 @@ def exec(hardware: Hardware, settings: Settings, sampleWait=1, sampleCount=16):
         temperature = sum(readings) / len(readings)
         readings.get()
 
-        # If we are over the temperature goal, enable the fan 
+        # If we are over the temperature goal, enable the fan
         if temperature > settings.getCoolThreshold():
             hardware.setModeCool()
 
