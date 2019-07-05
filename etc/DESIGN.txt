@@ -1,0 +1,20 @@
+Hardware
+    * externally exposes sensor information
+    * provide realonly data
+    * internally exposes relay toggle capability
+
+Settings
+    * holds all the user-provided settings 
+
+Driver 
+    * uses Sensor to monitor temperature
+    * uses Hardware to toggle relays
+    * uses Display to reflect current state
+    * uses Settings to get the temperature targets
+    * runs the loop and responds to changes in temperature
+    * publically exposes Thermostat informaiton
+        * get() for all sensors
+        * get()/set() for temperature targets
+
+Display
+    * 
