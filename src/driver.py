@@ -4,7 +4,8 @@ from collections import deque
 import time
 from queue import Queue
 
-def exec(hardware:Hardware, settings:Settings, sampleWait=1, sampleCount=16):
+
+def exec(hardware: Hardware, settings: Settings, sampleWait=1, sampleCount=16):
     readings = Queue(0)
 
     while 1:

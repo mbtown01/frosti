@@ -1,11 +1,20 @@
 
-class Hardware:
-
+class Interface:
     def __init__(self, name):
         self.__name = name
 
     def getName(self):
         return self.__name
+
+
+class Display(Interface):
+    def __init__(self, name):
+        super().__init__(name)
+
+
+class Hardware(Interface):
+    def __init__(self, name):
+        super().__init__(name)
 
     # Returns temperature in degF
     def getTemperature(self):
