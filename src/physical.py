@@ -11,31 +11,35 @@ from interfaces import EventType
 from interfaces import FloatEvent
 
 
-def driver(controlQueue: Queue, eventQueue: Queue):
-    wait = 0.05
-    sampleInterval = int(5/wait)
-    counter = 0
+class PhysicalDriver:
+    def __init__(self):
+        pass
 
-    i2c = busio.I2C(board.SCL, board.SDA)
-    bme280 = \
-        adafruit_bme280.Adafruit_BME280_I2C(i2c, address=0x76)
+    def exec(self, controlQueue: Queue, eventQueue: Queue):
+        wait = 0.05
+        sampleInterval = int(5/wait)
+        counter = 0
 
-    while 0 == controlQueue.qsize():
-        sleep(wait)
-        counter += 1
+        i2c = busio.I2C(board.SCL, board.SDA)
+        bme280 = \
+            adafruit_bme280.Adafruit_BME280_I2C(i2c, address=0x76)
 
-        if 0 == counter % sampleInterval:
-            eventQueue.put(
-                FloatEvent(
-                    EventType.TEMPERATURE,
-                    bme280.temperature*9.0/5.0+32.0))
-            eventQueue.put(
-                FloatEvent(
-                    EventType.PRESSURE,
-                    bme280.pressure))
-            eventQueue.put(
-                FloatEvent(
-                    EventType.HUMIDITY,
-                    bme280.humidity))
+        while 0 == controlQueue.qsize():
+            sleep(wait)
+            counter += 1
 
-        # Additional scanning should be done for user buttons here
+            if 0 == counter % sampleInterval:
+                eventQueue.put(
+                    FloatEvent(
+                        EventType.TEMPERATURE,
+                        bme280.temperature*9.0/5.0+32.0))
+                eventQueue.put(
+                    FloatEvent(
+                        EventType.PRESSURE,
+                        bme280.pressure))
+                eventQueue.put(
+                    FloatEvent(
+                        EventType.HUMIDITY,
+                        bme280.humidity))
+
+            # Additional scanning should be done for user buttons here

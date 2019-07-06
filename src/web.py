@@ -2,10 +2,10 @@ from flask import Flask
 from queue import Queue
 from threading import Thread
 
-from physical import driver as physicalDriver
+from physical import PhysicalDriver
 from settings import Settings
 from interfaces import FloatEvent, EventType
-from driver import Driver
+from driver import LogicDriver
 
 app = Flask(__name__)
 
@@ -33,23 +33,19 @@ if __name__ == '__main__':
     eventQueue = Queue()
 
     settings = Settings()
-    driver = Driver(settings)
-
-    eventQueue.put(
-        FloatEvent(
-            EventType.PRESSURE,
-            1.0))
+    logicDriver = LogicDriver(settings)
+    physicalDriver = PhysicalDriver()
 
     hardwareThread = Thread(
-        target=physicalDriver,
-        name='Hardware Monitor',
+        target=physicalDriver.exec,
+        name='Physical Driver',
         args=(contolQueue, eventQueue))
     hardwareThread.daemon = True
     hardwareThread.start()
 
     driverThread = Thread(
-        target=driver.exec,
-        name='Driver',
+        target=logicDriver.exec,
+        name='Logic Driver',
         args=(contolQueue, eventQueue))
     driverThread.daemon = True
     driverThread.start()

@@ -7,13 +7,13 @@ from settings import Settings
 from interfaces import Event, EventType, FloatEvent
 
 
-class Driver:
+class LogicDriver:
     def __init__(self, settings: Settings):
         self.__settings = settings
-
         self.__eventHandlers = {}
         for eventType in EventType:
             self.__eventHandlers[eventType] = self.processUnhandled
+
         self.__eventHandlers[EventType.TEMPERATURE] = self.processTemperature
         self.__eventHandlers[EventType.PRESSURE] = self.processFloat
         self.__eventHandlers[EventType.HUMIDITY] = self.processFloat
