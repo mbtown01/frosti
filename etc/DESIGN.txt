@@ -1,10 +1,12 @@
-Hardware
-    * externally exposes sensor information
-    * provide realonly data
-    * internally exposes relay toggle capability
-
+Physical
+    * All implementations of interfaces with physical associations to Hardware
+         -- hated to call this 'hardware' because it was too generic
+         -- naming things is hard
+    * Should be kept very simple, difficult to test this layer
+ 
 Settings
     * holds all the user-provided settings 
+    * available to testing
 
 Driver 
     * uses Sensor to monitor temperature

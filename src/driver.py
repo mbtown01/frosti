@@ -1,32 +1,43 @@
-from interfaces import Hardware
-from settings import Settings
 from collections import deque
-import time
+from time import sleep
 from queue import Queue
+from threading import Thread
+
+from settings import Settings
+from interfaces import Event, EventType, FloatEvent
 
 
-def exec(hardware: Hardware, settings: Settings, sampleWait=1, sampleCount=16):
-    readings = Queue(0)
+class Driver:
+    def __init__(self, settings: Settings):
+        self.__settings = settings
 
-    while 1:
-        time.sleep(sampleWait)
+        self.__eventHandlers = {}
+        for eventType in EventType:
+            self.__eventHandlers[eventType] = self.processUnhandled
+        self.__eventHandlers[EventType.TEMPERATURE] = self.processTemperature
+        self.__eventHandlers[EventType.PRESSURE] = self.processFloat
+        self.__eventHandlers[EventType.HUMIDITY] = self.processFloat
 
-        # Get the latest temperature reading and push it into the queue we're
-        # using to measure in a rolling time window.  If there aren't enough
-        # samples in the window, move on to the next sample
-        temperature = hardware.getTemperature()
-        readings.put(temperature)
-        if len(readings) < sampleCount:
-            continue
+    def processUnhandled(self, event: Event):
+        print(f'Received unhandled {event.getType()}')
 
-        # Treat the list like a queue of readings to get a rolling average
-        temperature = sum(readings) / len(readings)
-        readings.get()
+    def processFloat(self, event: FloatEvent):
+        value = event.getValue()
+        print(f'Received {event.getType()} {value}')
+
+    def processTemperature(self, event: FloatEvent):
+        temperature = event.getValue()
+        print(f'Received {event.getType()} {temperature}')
 
         # If we are over the temperature goal, enable the fan
-        if temperature > settings.getCoolThreshold():
-            hardware.setModeCool()
+        if temperature > self.__settings.getCoolThreshold():
+            pass
 
         # If we are under the min temperature, disable the fan
-        if temperature <= settings.getHeatThreshold():
-            hardware.setModeHeat()
+        if temperature <= self.__settings.getHeatThreshold():
+            pass
+
+    def exec(self, controlQueue: Queue, eventQueue: Queue):
+        while True:
+            event = eventQueue.get()
+            self.__eventHandlers[event.getType()](event)

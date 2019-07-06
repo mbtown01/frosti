@@ -1,41 +1,36 @@
-
-class Interface:
-    def __init__(self, name):
-        self.__name = name
-
-    def getName(self):
-        return self.__name
+from enum import Enum
 
 
-class Display(Interface):
-    def __init__(self, name):
-        super().__init__(name)
+class Display:
+    pass
 
 
-class Hardware(Interface):
-    def __init__(self, name):
-        super().__init__(name)
+class EventType(Enum):
+    BUTTON_1 = 1
+    BUTTON_2 = 2
+    BUTTON_3 = 3
+    BUTTON_4 = 4
+    TEMPERATURE = 5
+    PRESSURE = 6
+    HUMIDITY = 7
 
-    # Returns temperature in degF
-    def getTemperature(self):
-        raise NotImplementedError()
 
-    # Returns pressure in hPa
-    def getPressure(self):
-        raise NotImplementedError()
+class Event:
+    def __init__(self, type: EventType, data: dict={}):
+        self.__type = type
+        self.__data = data
 
-    # Returns humidity in relative %
-    def getHumidity(self):
-        raise NotImplementedError()
+    def getType(self):
+        return self.__type
 
-    # Set the underlying hardware heating mode
-    def setModeHeat(self):
-        raise NotImplementedError()
+    def getData(self):
+        return self.__data.copy()
 
-    # Set the underlying hardware to cooling
-    def setModeCool(self):
-        raise NotImplementedError()
 
-    # Set the underlying hardware to fan only operation
-    def setModeFan(self):
-        raise NotImplementedError()
+class FloatEvent(Event):
+    def __init__(self, type: EventType, value: float):
+        self.__value = value
+        super().__init__(type, {'value': value})
+
+    def getValue(self):
+        return self.__value
