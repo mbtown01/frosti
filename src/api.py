@@ -13,8 +13,6 @@ app = Flask(__name__)
 
 
 class ApiEventHandler(EventHandler):
-    __staticInstance = None
-
     def __init__(self, eventBus: EventBus):
         super().__init__(eventBus)
 
@@ -35,6 +33,29 @@ class ApiEventHandler(EventHandler):
     def getValue(self, eventType: EventType):
         return self.__values[eventType]
 
+    @staticmethod
+    @app.route('/api/version')
+    def api_version():
+        return "rpt-0.1"
+
+    @staticmethod
+    @app.route('/api/sensors/temperature')
+    def api_sensor_temperature():
+        apiEventHandler = ApiEventHandler.getInstance()
+        return f"{apiEventHandler.getValue(EventType.TEMPERATURE)}"
+
+    @staticmethod
+    @app.route('/api/sensors/pressure')
+    def api_sensor_pressure():
+        apiEventHandler = ApiEventHandler.getInstance()
+        return f"{apiEventHandler.getValue(EventType.PRESSURE)}"
+
+    @staticmethod
+    @app.route('/api/sensors/humidity')
+    def api_sensor_humidity():
+        apiEventHandler = ApiEventHandler.getInstance()
+        return f"{apiEventHandler.getValue(EventType.HUMIDITY)}"
+
     def exec(self):
         flaskThread = Thread(
             target=app.run,
@@ -46,34 +67,3 @@ class ApiEventHandler(EventHandler):
         while True:
             sleep(1)
             super()._processEvents()
-
-    @classmethod
-    def getEventHandler(cls):
-        return cls.__staticInstance
-
-    @classmethod
-    def setEventHandler(cls, handler: EventHandler):
-        cls.__staticInstance = handler
-
-
-@app.route('/api/version')
-def api_version():
-    return "rpt-0.1"
-
-
-@app.route('/api/sensors/temperature')
-def api_sensor_temperature():
-    apiEventHandler = ApiEventHandler.getEventHandler()
-    return f"{apiEventHandler.getValue(EventType.TEMPERATURE)}"
-
-
-@app.route('/api/sensors/pressure')
-def api_sensor_pressure():
-    apiEventHandler = ApiEventHandler.getEventHandler()
-    return f"{apiEventHandler.getValue(EventType.PRESSURE)}"
-
-
-@app.route('/api/sensors/humidity')
-def api_sensor_humidity():
-    apiEventHandler = ApiEventHandler.getEventHandler()
-    return f"{apiEventHandler.getValue(EventType.HUMIDITY)}"

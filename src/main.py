@@ -1,10 +1,10 @@
 from flask import Flask
 from queue import Queue
-from threading import Thread
 
 from hardware import SensorDriver
+from time import sleep
 from settings import Settings
-from interfaces import FloatEvent, EventType, EventBus
+from interfaces import FloatEvent, EventType, EventBus, EventHandler
 from thermostat import ThermostatDriver
 from api import ApiEventHandler
 
@@ -13,31 +13,13 @@ if __name__ == '__main__':
     eventBus = EventBus()
 
     sensorDriver = SensorDriver(eventBus)
-    sensorThread = Thread(
-        target=sensorDriver.exec,
-        name='Sensor Driver',
-        args=())
-    sensorThread.daemon = True
-    sensorThread.start()
+    EventHandler.startEventHandler(sensorDriver, 'Sensor Driver')
 
-    settings = Settings()
-    thermostat = ThermostatDriver(eventBus, settings)
-    thermostatThread = Thread(
-        target=thermostat.exec,
-        name='Thermostat Driver',
-        args=())
-    thermostatThread.daemon = True
-    thermostatThread.start()
+    thermostat = ThermostatDriver(eventBus)
+    EventHandler.startEventHandler(thermostat, 'Thermostat Driver')
 
     apiEventHandler = ApiEventHandler(eventBus)
-    ApiEventHandler.setEventHandler(apiEventHandler)
-    apiThread = Thread(
-        target=apiEventHandler.exec,
-        name='Api Event Handler',
-        args=())
-    apiThread.daemon = True
-    apiThread.start()
+    EventHandler.startEventHandler(apiEventHandler, 'API Event Driver')
 
-    thermostatThread.join()
-    sensorThread.join()
-    apiThread.join()
+    while(True):
+        sleep(1.0)

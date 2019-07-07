@@ -1,5 +1,6 @@
 from enum import Enum
 from queue import Queue
+from threading import Thread
 
 
 class EventType(Enum):
@@ -48,6 +49,8 @@ class EventBus:
 
 
 class EventHandler:
+    __staticInstance = None
+
     def __init__(self, eventBus: EventBus):
         self.__eventBus = eventBus
         self.__eventQueue = eventBus.subscribe()
@@ -69,3 +72,19 @@ class EventHandler:
 
     def _subscribe(self, eventType: EventType, handler):
         self.__eventHandlers[eventType] = handler
+
+    def exec(self):
+        raise NotImplementedError()
+
+    @classmethod
+    def getInstance(cls):
+        return cls.__staticInstance
+
+    @classmethod
+    def startEventHandler(cls, handler, threadName: str):
+        cls.__staticInstance = handler
+        handlerThread = Thread(
+            target=handler.exec,
+            name=threadName)
+        handlerThread.daemon = True
+        handlerThread.start()

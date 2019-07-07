@@ -8,10 +8,10 @@ from interfaces import Event, EventType, FloatEvent, EventBus, EventHandler
 
 
 class ThermostatDriver(EventHandler):
-    def __init__(self, eventBus: EventBus, settings: Settings):
+    def __init__(self, eventBus: EventBus):
         super().__init__(eventBus)
 
-        self.__settings = settings
+        self.__settings = Settings()
         super()._subscribe(EventType.TEMPERATURE, self.processTemperature)
         super()._subscribe(EventType.PRESSURE, self.processFloat)
         super()._subscribe(EventType.HUMIDITY, self.processFloat)
