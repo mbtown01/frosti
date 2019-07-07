@@ -10,7 +10,7 @@ RPT_RUN_USER=pi
 RPT_RUN_HOSTNAME=pi-dev
 RPT_RUN_IPADDR=192.168.8.187
 RPT_RUN_PORT=3000
-RPT_RUN_ENTRYPOINT=src/web.py
+RPT_RUN_ENTRYPOINT=src/main.py
 
 # Shutdown any previously running interpreters
 ssh ${RPT_RUN_USER}@${RPT_RUN_HOSTNAME} killall python3

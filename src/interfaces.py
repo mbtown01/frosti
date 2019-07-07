@@ -1,8 +1,5 @@
 from enum import Enum
-
-
-class Display:
-    pass
+from queue import Queue
 
 
 class EventType(Enum):
@@ -34,3 +31,41 @@ class FloatEvent(Event):
 
     def getValue(self):
         return self.__value
+
+
+class EventBus:
+    def __init__(self):
+        self.__queueList = []
+
+    def subscribe(self):
+        queue = Queue()
+        self.__queueList.append(queue)
+        return queue
+
+    def put(self, event: Event):
+        for queue in self.__queueList:
+            queue.put(event)
+
+
+class EventHandler:
+    def __init__(self, eventBus: EventBus):
+        self.__eventBus = eventBus
+        self.__eventQueue = eventBus.subscribe()
+
+        self.__eventHandlers = {}
+        for eventType in EventType:
+            self.__eventHandlers[eventType] = self.processUnhandled
+
+    def processUnhandled(self, event: Event):
+        pass
+
+    def _processEvents(self):
+        while self.__eventQueue.qsize():
+            event = self.__eventQueue.get()
+            self.__eventHandlers[event.getType()](event)
+
+    def _putEvent(self, event: Event):
+        self.__eventBus.put(event)
+
+    def _subscribe(self, eventType: EventType, handler):
+        self.__eventHandlers[eventType] = handler

@@ -6,16 +6,21 @@ import adafruit_bme280
 
 from queue import Queue
 from time import sleep
-from interfaces import Event
-from interfaces import EventType
-from interfaces import FloatEvent
+from interfaces import Event, EventType, EventBus, FloatEvent, EventHandler
 
 
-class PhysicalDriver:
-    def __init__(self):
-        pass
+# This class shoud be the combination of both button sensing as well
+# as display since these are very likely related
+class UserInterfaceDriver(EventHandler):
+    def __init__(self, eventBus: EventBus):
+        super().__init__(eventBus)
 
-    def exec(self, controlQueue: Queue, eventQueue: Queue):
+
+class SensorDriver(EventHandler):
+    def __init__(self, eventBus: EventBus):
+        super().__init__(eventBus)
+
+    def exec(self):
         wait = 0.05
         sampleInterval = int(5/wait)
         counter = 0
@@ -24,20 +29,21 @@ class PhysicalDriver:
         bme280 = \
             adafruit_bme280.Adafruit_BME280_I2C(i2c, address=0x76)
 
-        while 0 == controlQueue.qsize():
+        while True:
             sleep(wait)
-            counter += 1
+            super()._processEvents()
 
+            counter += 1
             if 0 == counter % sampleInterval:
-                eventQueue.put(
+                super()._putEvent(
                     FloatEvent(
                         EventType.TEMPERATURE,
                         bme280.temperature*9.0/5.0+32.0))
-                eventQueue.put(
+                super()._putEvent(
                     FloatEvent(
                         EventType.PRESSURE,
                         bme280.pressure))
-                eventQueue.put(
+                super()._putEvent(
                     FloatEvent(
                         EventType.HUMIDITY,
                         bme280.humidity))
