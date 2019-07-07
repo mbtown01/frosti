@@ -18,3 +18,7 @@ ssh pi@pi-dev python3 -m ptvsd --host 192.168.8.187 --port 3000 --wait /home/pi/
 # Install homebrew
 brew install python3
 brew install coreutils
+
+# More Packages
+requests
+pytest

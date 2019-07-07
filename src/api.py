@@ -3,10 +3,7 @@ from queue import Queue
 from threading import Thread
 from time import sleep
 
-from hardware import SensorDriver
-from settings import Settings
 from interfaces import FloatEvent, EventType, EventBus, EventHandler
-from thermostat import ThermostatDriver
 
 
 app = Flask(__name__)
@@ -65,5 +62,5 @@ class ApiEventHandler(EventHandler):
         flaskThread.start()
 
         while True:
-            sleep(1)
             super()._processEvents()
+            sleep(1)

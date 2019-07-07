@@ -34,5 +34,5 @@ class ThermostatDriver(EventHandler):
 
     def exec(self):
         while True:
-            sleep(1)
             super()._processEvents()
+            sleep(1)
