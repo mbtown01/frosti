@@ -27,15 +27,15 @@ class SensorDriver(EventHandler):
         if 0 == self.__counter % self.__sampleInterval:
             super()._putEvent(
                 FloatEvent(
-                    EventType.TEMPERATURE,
+                    EventType.READING_TEMPERATURE,
                     self.__bme280.temperature*9.0/5.0+32.0))
             super()._putEvent(
                 FloatEvent(
-                    EventType.PRESSURE,
+                    EventType.READING_PRESSURE,
                     self.__bme280.pressure))
             super()._putEvent(
                 FloatEvent(
-                    EventType.HUMIDITY,
+                    EventType.READING_HUMIDITY,
                     self.__bme280.humidity))
 
         # Additional scanning should be done for user buttons here

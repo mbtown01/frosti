@@ -5,9 +5,11 @@ from time import sleep
 
 
 class EventType(Enum):
-    TEMPERATURE = 5
-    PRESSURE = 6
-    HUMIDITY = 7
+    IGNORE = 0x00
+    SETTINGS_CHANGED = 0x01
+    READING_TEMPERATURE = 0x10
+    READING_PRESSURE = 0x11
+    READING_HUMIDITY = 0x12
 
 
 class Event:
@@ -46,7 +48,6 @@ class EventBus:
 
 
 class EventHandler:
-    __staticInstance = None
 
     def __init__(self, eventBus: EventBus, loopSleep: float=1.0):
         self.__eventBus = eventBus
@@ -55,15 +56,17 @@ class EventHandler:
 
         self.__eventHandlers = {}
         for eventType in EventType:
-            self.__eventHandlers[eventType] = self.processUnhandled
-
-    def processUnhandled(self, event: Event):
-        pass
+            self.__eventHandlers[eventType] = self.__processUnhandled
 
     def processEvents(self):
         while self.__eventQueue.qsize():
             event = self.__eventQueue.get()
             self.__eventHandlers[event.getType()](event)
+
+    def exec(self):
+        while True:
+            self.processEvents()
+            sleep(self.__loopSleep)
 
     def _putEvent(self, event: Event):
         self.__eventBus.put(event)
@@ -71,18 +74,11 @@ class EventHandler:
     def _subscribe(self, eventType: EventType, handler):
         self.__eventHandlers[eventType] = handler
 
-    @classmethod
-    def getInstance(cls):
-        return cls.__staticInstance
-
-    def exec(self):
-        while True:
-            self.processEvents()
-            sleep(self.__loopSleep)
+    def __processUnhandled(self, event: Event):
+        pass
 
     @classmethod
     def startEventHandler(cls, handler, threadName: str):
-        cls.__staticInstance = handler
         handlerThread = Thread(
             target=handler.exec,
             name=threadName)

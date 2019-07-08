@@ -10,8 +10,11 @@ app = Flask(__name__)
 
 
 class ApiEventHandler(EventHandler):
+    __staticInstance = None
+
     def __init__(self, eventBus: EventBus):
         super().__init__(eventBus)
+        ApiEventHandler.__staticInstance = self
 
         self.__flaskThread = Thread(
             target=app.run,
@@ -21,14 +24,14 @@ class ApiEventHandler(EventHandler):
         self.__flaskThread.start()
 
         self.__values = {
-            EventType.TEMPERATURE: 0,
-            EventType.PRESSURE: 0,
-            EventType.HUMIDITY: 0
+            EventType.READING_TEMPERATURE: 0,
+            EventType.READING_PRESSURE: 0,
+            EventType.READING_HUMIDITY: 0
         }
 
-        super()._subscribe(EventType.TEMPERATURE, self.__processFloat)
-        super()._subscribe(EventType.PRESSURE, self.__processFloat)
-        super()._subscribe(EventType.HUMIDITY, self.__processFloat)
+        super()._subscribe(EventType.READING_TEMPERATURE, self.__processFloat)
+        super()._subscribe(EventType.READING_PRESSURE, self.__processFloat)
+        super()._subscribe(EventType.READING_HUMIDITY, self.__processFloat)
 
     def __processFloat(self, event: FloatEvent):
         self.__values[event.getType()] = event.getValue()
@@ -36,6 +39,10 @@ class ApiEventHandler(EventHandler):
 
     def getValue(self, eventType: EventType):
         return self.__values[eventType]
+
+    @classmethod
+    def getInstance(cls):
+        return ApiEventHandler.__staticInstance
 
     @staticmethod
     @app.route('/api/version')
@@ -46,16 +53,16 @@ class ApiEventHandler(EventHandler):
     @app.route('/api/sensors/temperature')
     def api_sensor_temperature():
         apiEventHandler = ApiEventHandler.getInstance()
-        return f"{apiEventHandler.getValue(EventType.TEMPERATURE)}"
+        return f"{apiEventHandler.getValue(EventType.READING_TEMPERATURE)}"
 
     @staticmethod
     @app.route('/api/sensors/pressure')
     def api_sensor_pressure():
         apiEventHandler = ApiEventHandler.getInstance()
-        return f"{apiEventHandler.getValue(EventType.PRESSURE)}"
+        return f"{apiEventHandler.getValue(EventType.READING_PRESSURE)}"
 
     @staticmethod
     @app.route('/api/sensors/humidity')
     def api_sensor_humidity():
         apiEventHandler = ApiEventHandler.getInstance()
-        return f"{apiEventHandler.getValue(EventType.HUMIDITY)}"
+        return f"{apiEventHandler.getValue(EventType.READING_HUMIDITY)}"

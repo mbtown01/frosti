@@ -12,11 +12,11 @@ class ThermostatDriver(EventHandler):
         super().__init__(eventBus)
 
         self.__settings = Settings()
-        super()._subscribe(EventType.TEMPERATURE, self.processTemperature)
+        super()._subscribe(
+            EventType.READING_TEMPERATURE, self.processTemperature)
 
     def processTemperature(self, event: FloatEvent):
         temperature = event.getValue()
-        print(f'Received {event.getType()} {temperature}')
 
         # If we are over the temperature goal, enable the fan
         if temperature > self.__settings.getCoolThreshold():

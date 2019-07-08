@@ -1,5 +1,8 @@
 [
   "test/test_api.py::Test_ApiEventHandler::test_humidity",
   "test/test_api.py::Test_ApiEventHandler::test_pressure",
-  "test/test_api.py::Test_ApiEventHandler::test_temperature"
+  "test/test_api.py::Test_ApiEventHandler::test_temperature",
+  "test/test_events.py::Test_EventBus::test_put",
+  "test/test_events.py::Test_EventHandler::test_processEvents",
+  "test/test_thermostat.py::Test_Thermostat::test_put"
 ]
