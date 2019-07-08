@@ -4,7 +4,7 @@ from queue import Queue
 from threading import Thread
 
 from src.settings import Settings
-from src.interfaces import Event, EventType, FloatEvent, EventBus, EventHandler
+from src.events import Event, EventType, FloatEvent, EventBus, EventHandler
 
 
 class ThermostatDriver(EventHandler):
@@ -13,12 +13,6 @@ class ThermostatDriver(EventHandler):
 
         self.__settings = Settings()
         super()._subscribe(EventType.TEMPERATURE, self.processTemperature)
-        super()._subscribe(EventType.PRESSURE, self.processFloat)
-        super()._subscribe(EventType.HUMIDITY, self.processFloat)
-
-    def processFloat(self, event: FloatEvent):
-        value = event.getValue()
-        print(f'Received {event.getType()} {value}')
 
     def processTemperature(self, event: FloatEvent):
         temperature = event.getValue()
@@ -31,8 +25,3 @@ class ThermostatDriver(EventHandler):
         # If we are under the min temperature, disable the fan
         if temperature <= self.__settings.getHeatThreshold():
             pass
-
-    def exec(self):
-        while True:
-            super()._processEvents()
-            sleep(1)

@@ -5,47 +5,37 @@ import adafruit_bme280
 # pylint: enable=import-error
 
 from queue import Queue
-from time import sleep
-from src.interfaces import Event, EventType, EventBus, FloatEvent, EventHandler
-
-
-# This class shoud be the combination of both button sensing as well
-# as display since these are very likely related
-class UserInterfaceDriver(EventHandler):
-    def __init__(self, eventBus: EventBus):
-        super().__init__(eventBus)
+from src.events import Event, EventType, EventBus, FloatEvent, EventHandler
 
 
 class SensorDriver(EventHandler):
     def __init__(self, eventBus: EventBus):
-        super().__init__(eventBus)
+        loopSleep = 0.05
+        self.__sampleInterval = int(5/loopSleep)
+        self.__counter = 0
+        self.__i2c = busio.I2C(board.SCL, board.SDA)
+        self.__bme280 = \
+            adafruit_bme280.Adafruit_BME280_I2C(self.__i2c, address=0x76)
 
-    def exec(self):
-        wait = 0.05
-        sampleInterval = int(5/wait)
-        counter = 0
+        super().__init__(eventBus, loopSleep)
 
-        i2c = busio.I2C(board.SCL, board.SDA)
-        bme280 = \
-            adafruit_bme280.Adafruit_BME280_I2C(i2c, address=0x76)
+    def processEvents(self):
+        super().processEvents()
 
-        while True:
-            sleep(wait)
-            super()._processEvents()
+        # Only update measurements at the sample interval
+        self.__counter += 1
+        if 0 == self.__counter % self.__sampleInterval:
+            super()._putEvent(
+                FloatEvent(
+                    EventType.TEMPERATURE,
+                    self.__bme280.temperature*9.0/5.0+32.0))
+            super()._putEvent(
+                FloatEvent(
+                    EventType.PRESSURE,
+                    self.__bme280.pressure))
+            super()._putEvent(
+                FloatEvent(
+                    EventType.HUMIDITY,
+                    self.__bme280.humidity))
 
-            counter += 1
-            if 0 == counter % sampleInterval:
-                super()._putEvent(
-                    FloatEvent(
-                        EventType.TEMPERATURE,
-                        bme280.temperature*9.0/5.0+32.0))
-                super()._putEvent(
-                    FloatEvent(
-                        EventType.PRESSURE,
-                        bme280.pressure))
-                super()._putEvent(
-                    FloatEvent(
-                        EventType.HUMIDITY,
-                        bme280.humidity))
-
-            # Additional scanning should be done for user buttons here
+        # Additional scanning should be done for user buttons here

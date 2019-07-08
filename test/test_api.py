@@ -4,7 +4,7 @@ import sys
 from time import sleep
 
 from src.api import ApiEventHandler
-from src.interfaces import EventBus, EventType, EventHandler, FloatEvent
+from src.events import EventBus, EventType, EventHandler, FloatEvent
 
 
 class Test_ApiEventHandler(unittest.TestCase):
@@ -25,7 +25,7 @@ class Test_ApiEventHandler(unittest.TestCase):
             FloatEvent(EventType.PRESSURE, cls.testValuePressure))
         cls.eventBus.put(
             FloatEvent(EventType.HUMIDITY, cls.testValueHumidity))
-        sleep(1)
+        cls.apiEventHandler.processEvents()
 
     def test_temperature(self):
         req = requests.get('http://localhost:5000/api/sensors/temperature')

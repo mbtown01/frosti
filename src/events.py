@@ -1,13 +1,10 @@
 from enum import Enum
 from queue import Queue
 from threading import Thread
+from time import sleep
 
 
 class EventType(Enum):
-    BUTTON_1 = 1
-    BUTTON_2 = 2
-    BUTTON_3 = 3
-    BUTTON_4 = 4
     TEMPERATURE = 5
     PRESSURE = 6
     HUMIDITY = 7
@@ -51,9 +48,10 @@ class EventBus:
 class EventHandler:
     __staticInstance = None
 
-    def __init__(self, eventBus: EventBus):
+    def __init__(self, eventBus: EventBus, loopSleep: float=1.0):
         self.__eventBus = eventBus
         self.__eventQueue = eventBus.subscribe()
+        self.__loopSleep = loopSleep
 
         self.__eventHandlers = {}
         for eventType in EventType:
@@ -62,7 +60,7 @@ class EventHandler:
     def processUnhandled(self, event: Event):
         pass
 
-    def _processEvents(self):
+    def processEvents(self):
         while self.__eventQueue.qsize():
             event = self.__eventQueue.get()
             self.__eventHandlers[event.getType()](event)
@@ -73,12 +71,14 @@ class EventHandler:
     def _subscribe(self, eventType: EventType, handler):
         self.__eventHandlers[eventType] = handler
 
-    def exec(self):
-        raise NotImplementedError()
-
     @classmethod
     def getInstance(cls):
         return cls.__staticInstance
+
+    def exec(self):
+        while True:
+            self.processEvents()
+            sleep(self.__loopSleep)
 
     @classmethod
     def startEventHandler(cls, handler, threadName: str):
