@@ -15,7 +15,7 @@
                     "localRoot": "${workspaceFolder}",
                     "remoteRoot": "/home/pi/rpt"
                 }
-            ]
+            ],
         },
         {
             "name": "Python: Current File",

@@ -1,5 +1,6 @@
 import unittest
 import requests
+import sys
 from time import sleep
 
 from src.api import ApiEventHandler
@@ -12,7 +13,8 @@ class Test_ApiEventHandler(unittest.TestCase):
     def setup_class(cls):
         cls.eventBus = EventBus()
         cls.apiEventHandler = ApiEventHandler(cls.eventBus)
-        EventHandler.startEventHandler(cls.apiEventHandler, 'API Event Driver')
+        EventHandler.startEventHandler(
+            cls.apiEventHandler, 'API Event Driver')
 
         cls.testValueTemperature = 72.5
         cls.testValuePressure = 1015.2
@@ -25,15 +27,15 @@ class Test_ApiEventHandler(unittest.TestCase):
             FloatEvent(EventType.HUMIDITY, cls.testValueHumidity))
         sleep(1)
 
-    def test_temperature(self):
+    def test_temperature2(self):
         req = requests.get('http://localhost:5000/api/sensors/temperature')
         self.assertEqual(req.text, f"{self.testValueTemperature}")
 
-    def test_pressure(self):
+    def test_pressure2(self):
         req = requests.get('http://localhost:5000/api/sensors/pressure')
         self.assertEqual(req.text, f"{self.testValuePressure}")
 
-    def test_humidity(self):
+    def test_humidity2(self):
         req = requests.get('http://localhost:5000/api/sensors/humidity')
         self.assertEqual(req.text, f"{self.testValueHumidity}")
 

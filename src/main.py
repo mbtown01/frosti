@@ -1,12 +1,12 @@
 from flask import Flask
 from queue import Queue
-
-from hardware import SensorDriver
 from time import sleep
-from settings import Settings
-from interfaces import FloatEvent, EventType, EventBus, EventHandler
-from thermostat import ThermostatDriver
-from api import ApiEventHandler
+
+from src.hardware import SensorDriver
+from src.settings import Settings
+from src.interfaces import FloatEvent, EventType, EventBus, EventHandler
+from src.thermostat import ThermostatDriver
+from src.api import ApiEventHandler
 
 
 if __name__ == '__main__':

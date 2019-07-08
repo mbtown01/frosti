@@ -3,7 +3,7 @@ from queue import Queue
 from threading import Thread
 from time import sleep
 
-from interfaces import FloatEvent, EventType, EventBus, EventHandler
+from src.interfaces import FloatEvent, EventType, EventBus, EventHandler
 
 
 app = Flask(__name__)

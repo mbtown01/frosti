@@ -6,7 +6,7 @@ import adafruit_bme280
 
 from queue import Queue
 from time import sleep
-from interfaces import Event, EventType, EventBus, FloatEvent, EventHandler
+from src.interfaces import Event, EventType, EventBus, FloatEvent, EventHandler
 
 
 # This class shoud be the combination of both button sensing as well

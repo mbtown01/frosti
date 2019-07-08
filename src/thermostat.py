@@ -3,8 +3,8 @@ from time import sleep
 from queue import Queue
 from threading import Thread
 
-from settings import Settings
-from interfaces import Event, EventType, FloatEvent, EventBus, EventHandler
+from src.settings import Settings
+from src.interfaces import Event, EventType, FloatEvent, EventBus, EventHandler
 
 
 class ThermostatDriver(EventHandler):
