@@ -27,15 +27,15 @@ class Test_ApiEventHandler(unittest.TestCase):
             FloatEvent(EventType.HUMIDITY, cls.testValueHumidity))
         sleep(1)
 
-    def test_temperature2(self):
+    def test_temperature(self):
         req = requests.get('http://localhost:5000/api/sensors/temperature')
         self.assertEqual(req.text, f"{self.testValueTemperature}")
 
-    def test_pressure2(self):
+    def test_pressure(self):
         req = requests.get('http://localhost:5000/api/sensors/pressure')
         self.assertEqual(req.text, f"{self.testValuePressure}")
 
-    def test_humidity2(self):
+    def test_humidity(self):
         req = requests.get('http://localhost:5000/api/sensors/humidity')
         self.assertEqual(req.text, f"{self.testValueHumidity}")
 

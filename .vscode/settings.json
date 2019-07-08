@@ -3,6 +3,9 @@
     "python.linting.pylintEnabled": true,
     "python.linting.enabled": true,
     "python.linting.pep8Enabled": true,
+    "python.testing.pytestArgs": [
+        "test"
+    ],
     "python.testing.unittestArgs": [
         "-v",
         "-s",
@@ -20,7 +23,5 @@
         "**/node_modules": true,
         "node_modules": true, 
     },
-    "python.testing.pytestArgs": [
-        "src"
-    ]
+
 }

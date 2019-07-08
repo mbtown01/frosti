@@ -1,5 +1,5 @@
 [
-  "src/test_api.py::Test_ApiEventHandler::test_humidity",
-  "src/test_api.py::Test_ApiEventHandler::test_pressure",
-  "src/test_api.py::Test_ApiEventHandler::test_temperature"
+  "test/test_api.py::Test_ApiEventHandler::test_humidity",
+  "test/test_api.py::Test_ApiEventHandler::test_pressure",
+  "test/test_api.py::Test_ApiEventHandler::test_temperature"
 ]
