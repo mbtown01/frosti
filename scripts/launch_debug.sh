@@ -10,13 +10,11 @@ RPT_RUN_USER=pi
 RPT_RUN_HOSTNAME=pi-dev
 RPT_RUN_IPADDR=192.168.8.187
 RPT_RUN_PORT=3000
-RPT_RUN_ENTRYPOINT=src/main.py
 
 # Shutdown any previously running interpreters
 ssh ${RPT_RUN_USER}@${RPT_RUN_HOSTNAME} killall python3
 
 # Sync the project and execute
 rsync -avz --delete "${RPT_HOME}/src" "${RPT_RUN_USER}@${RPT_RUN_HOSTNAME}:rpt"
-ssh ${RPT_RUN_USER}@${RPT_RUN_HOSTNAME} python3 -m ptvsd \
-    --host ${RPT_RUN_IPADDR} --port ${RPT_RUN_PORT} --wait \
-    "rpt/${RPT_RUN_ENTRYPOINT}"
+ssh ${RPT_RUN_USER}@${RPT_RUN_HOSTNAME} cd rpt \&\& python3 -m ptvsd \
+    --host ${RPT_RUN_IPADDR} --port ${RPT_RUN_PORT} --wait -m src
