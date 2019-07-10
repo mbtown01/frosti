@@ -1,33 +1,33 @@
 import unittest
 from queue import Queue
 
-from src.events import EventBus, EventType, EventHandler, FloatEvent
+from src.events import EventBus, Event, EventType, EventHandler, FloatEvent
 from src.thermostat import ThermostatDriver
 
 
 class Test_Thermostat(unittest.TestCase):
 
+    class DummyEventHandler(EventHandler):
+        def __init__(self, eventBus: EventBus):
+            super().__init__(eventBus)
+            self.eventCount = 0
+
+        def _processUnhandled(self, event: Event):
+            self.eventCount += 1
+
     @classmethod
     def setup_class(cls):
         cls.eventBus = EventBus()
+        cls.dummyEventHandler = Test_Thermostat.DummyEventHandler(cls.eventBus)
         cls.thermostatDriver = ThermostatDriver(cls.eventBus)
-        EventHandler.startEventHandler(
-            cls.thermostatDriver, 'API Event Driver')
-
-        cls.testValueTemperature = 72.5
-        cls.testValuePressure = 1015.2
-        cls.testValueHumidity = 42.4
-        cls.eventBus.put(
-            FloatEvent(
-                EventType.READING_TEMPERATURE, cls.testValueTemperature))
-        cls.eventBus.put(
-            FloatEvent(EventType.READING_PRESSURE, cls.testValuePressure))
-        cls.eventBus.put(
-            FloatEvent(EventType.READING_HUMIDITY, cls.testValueHumidity))
         cls.thermostatDriver.processEvents()
 
-    def test_put(self):
-        pass
+    def test_simple(self):
+        self.eventBus.put(Event(EventType.READING_TEMPERATURE, 68.0))
+        self.eventBus.put(Event(EventType.READING_TEMPERATURE, 69.0))
+        self.eventBus.put(Event(EventType.READING_TEMPERATURE, 70.0))
+        self.eventBus.put(Event(EventType.READING_TEMPERATURE, 71.0))
+        self.eventBus.put(Event(EventType.READING_TEMPERATURE, 72.0))
 
 
 if __name__ == '__main__':

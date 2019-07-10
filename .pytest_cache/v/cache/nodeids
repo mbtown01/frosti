@@ -4,5 +4,5 @@
   "test/test_api.py::Test_ApiEventHandler::test_temperature",
   "test/test_events.py::Test_EventBus::test_put",
   "test/test_events.py::Test_EventHandler::test_processEvents",
-  "test/test_thermostat.py::Test_Thermostat::test_put"
+  "test/test_thermostat.py::Test_Thermostat::test_simple"
 ]

@@ -23,10 +23,7 @@ class Test_EventHandler(unittest.TestCase):
             super().__init__(eventBus)
             self.eventCount = 0
 
-            for eventType in EventType:
-                super()._subscribe(eventType, self._processEvent)
-
-        def _processEvent(self, event: Event):
+        def _processUnhandled(self, event: Event):
             self.eventCount += 1
 
     @classmethod

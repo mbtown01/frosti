@@ -5,8 +5,6 @@ from time import sleep
 
 
 class EventType(Enum):
-    IGNORE = 0x00
-    SETTINGS_CHANGED = 0x01
     READING_TEMPERATURE = 0x10
     READING_PRESSURE = 0x11
     READING_HUMIDITY = 0x12
@@ -56,7 +54,7 @@ class EventHandler:
 
         self.__eventHandlers = {}
         for eventType in EventType:
-            self.__eventHandlers[eventType] = self.__processUnhandled
+            self.__eventHandlers[eventType] = self._processUnhandled
 
     def processEvents(self):
         while self.__eventQueue.qsize():
@@ -74,7 +72,7 @@ class EventHandler:
     def _subscribe(self, eventType: EventType, handler):
         self.__eventHandlers[eventType] = handler
 
-    def __processUnhandled(self, event: Event):
+    def _processUnhandled(self, event: Event):
         pass
 
     @classmethod
