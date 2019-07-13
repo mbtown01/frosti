@@ -4,31 +4,20 @@ from threading import Thread
 from time import sleep
 
 
-class EventType(Enum):
-    READING_TEMPERATURE = 0x10
-    READING_PRESSURE = 0x11
-    READING_HUMIDITY = 0x12
-
-
 class Event:
-    def __init__(self, type: EventType, data: dict={}):
-        self.__type = type
-        self.__data = data
-
-    def getType(self):
-        return self.__type
+    def __init__(self, data: dict={}):
+        self._data = data.copy()
 
     def getData(self):
-        return self.__data.copy()
+        return self._data.copy()
 
 
 class FloatEvent(Event):
-    def __init__(self, type: EventType, value: float):
-        self.__value = value
-        super().__init__(type, {'value': value})
+    def __init__(self, value: float):
+        super().__init__({'value': value})
 
     def getValue(self):
-        return self.__value
+        return float(self._data['value'])
 
 
 class EventBus:
@@ -51,15 +40,15 @@ class EventHandler:
         self.__eventBus = eventBus
         self.__eventQueue = eventBus.subscribe()
         self.__loopSleep = loopSleep
-
         self.__eventHandlers = {}
-        for eventType in EventType:
-            self.__eventHandlers[eventType] = self._processUnhandled
 
     def processEvents(self):
         while self.__eventQueue.qsize():
             event = self.__eventQueue.get()
-            self.__eventHandlers[event.getType()](event)
+            if type(event) in self.__eventHandlers:
+                self.__eventHandlers[type(event)](event)
+            else:
+                self._processUnhandled(event)
 
     def exec(self):
         while True:
@@ -69,7 +58,7 @@ class EventHandler:
     def _putEvent(self, event: Event):
         self.__eventBus.put(event)
 
-    def _subscribe(self, eventType: EventType, handler):
+    def _subscribe(self, eventType: type, handler):
         self.__eventHandlers[eventType] = handler
 
     def _processUnhandled(self, event: Event):

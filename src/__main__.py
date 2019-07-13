@@ -3,8 +3,7 @@ from queue import Queue
 from time import sleep
 
 from src.hardware import SensorDriver
-from src.settings import Settings
-from src.events import FloatEvent, EventType, EventBus, EventHandler
+from src.events import EventBus, EventHandler
 from src.thermostat import ThermostatDriver
 from src.api import ApiEventHandler
 

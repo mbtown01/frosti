@@ -1,8 +1,9 @@
 import unittest
 from queue import Queue
 
-from src.events import EventBus, Event, EventType, EventHandler, FloatEvent
-from src.thermostat import ThermostatDriver
+from src.events import Event, EventBus, EventHandler
+from src.thermostat import ThermostatDriver, \
+    TemperatureChangedEvent, PressureChangedEvent, HumidityChangedEvent
 
 
 class Test_Thermostat(unittest.TestCase):
@@ -23,11 +24,11 @@ class Test_Thermostat(unittest.TestCase):
         cls.thermostatDriver.processEvents()
 
     def test_simple(self):
-        self.eventBus.put(Event(EventType.READING_TEMPERATURE, 68.0))
-        self.eventBus.put(Event(EventType.READING_TEMPERATURE, 69.0))
-        self.eventBus.put(Event(EventType.READING_TEMPERATURE, 70.0))
-        self.eventBus.put(Event(EventType.READING_TEMPERATURE, 71.0))
-        self.eventBus.put(Event(EventType.READING_TEMPERATURE, 72.0))
+        self.eventBus.put(TemperatureChangedEvent(68.0))
+        self.eventBus.put(TemperatureChangedEvent(69.0))
+        self.eventBus.put(TemperatureChangedEvent(70.0))
+        self.eventBus.put(TemperatureChangedEvent(71.0))
+        self.eventBus.put(TemperatureChangedEvent(72.0))
 
 
 if __name__ == '__main__':

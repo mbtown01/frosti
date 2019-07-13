@@ -1,7 +1,9 @@
 import unittest
 from queue import Queue
 
-from src.events import EventBus, EventType, EventHandler, Event
+from src.events import Event, EventBus, EventHandler
+from src.thermostat import \
+    TemperatureChangedEvent, PressureChangedEvent, HumidityChangedEvent
 
 
 class Test_EventBus(unittest.TestCase):
@@ -9,11 +11,11 @@ class Test_EventBus(unittest.TestCase):
     def test_put(self):
         eventBus = EventBus()
         queue = eventBus.subscribe()
-        event = Event(EventType.READING_TEMPERATURE)
+        event = TemperatureChangedEvent(0.0)
         eventBus.put(event)
 
         self.assertEqual(1, queue.qsize())
-        self.assertEqual(event.getType(), EventType.READING_TEMPERATURE)
+        self.assertEqual(type(event), TemperatureChangedEvent)
 
 
 class Test_EventHandler(unittest.TestCase):
@@ -31,9 +33,9 @@ class Test_EventHandler(unittest.TestCase):
         cls.eventBus = EventBus()
         cls.eventHandler = Test_EventHandler.DummyEventHandler(cls.eventBus)
 
-        cls.eventBus.put(Event(EventType.READING_TEMPERATURE))
-        cls.eventBus.put(Event(EventType.READING_PRESSURE))
-        cls.eventBus.put(Event(EventType.READING_HUMIDITY))
+        cls.eventBus.put(TemperatureChangedEvent(0.0))
+        cls.eventBus.put(PressureChangedEvent(0.0))
+        cls.eventBus.put(HumidityChangedEvent(0.0))
 
     def test_processEvents(self):
         self.assertEqual(self.eventHandler.eventCount, 0)

@@ -4,7 +4,9 @@ import sys
 from time import sleep
 
 from src.api import ApiEventHandler
-from src.events import EventBus, EventType, EventHandler, FloatEvent
+from src.events import Event, EventBus, EventHandler
+from src.thermostat import \
+    TemperatureChangedEvent, PressureChangedEvent, HumidityChangedEvent
 
 
 class Test_ApiEventHandler(unittest.TestCase):
@@ -18,13 +20,9 @@ class Test_ApiEventHandler(unittest.TestCase):
         cls.testValueTemperature = 72.5
         cls.testValuePressure = 1015.2
         cls.testValueHumidity = 42.4
-        cls.eventBus.put(
-            FloatEvent(
-                EventType.READING_TEMPERATURE, cls.testValueTemperature))
-        cls.eventBus.put(
-            FloatEvent(EventType.READING_PRESSURE, cls.testValuePressure))
-        cls.eventBus.put(
-            FloatEvent(EventType.READING_HUMIDITY, cls.testValueHumidity))
+        cls.eventBus.put(TemperatureChangedEvent(cls.testValueTemperature))
+        cls.eventBus.put(PressureChangedEvent(cls.testValuePressure))
+        cls.eventBus.put(HumidityChangedEvent(cls.testValueHumidity))
         cls.apiEventHandler.processEvents()
 
     def test_temperature(self):
