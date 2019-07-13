@@ -1,6 +1,7 @@
 import unittest
 import requests
 import sys
+from time import sleep
 
 from src.api import ApiEventHandler
 from src.events import EventBus, EventType, EventHandler, FloatEvent
@@ -12,6 +13,7 @@ class Test_ApiEventHandler(unittest.TestCase):
     def setup_class(cls):
         cls.eventBus = EventBus()
         cls.apiEventHandler = ApiEventHandler(cls.eventBus)
+        sleep(0.1)
 
         cls.testValueTemperature = 72.5
         cls.testValuePressure = 1015.2
