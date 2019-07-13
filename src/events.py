@@ -8,16 +8,9 @@ class Event:
     def __init__(self, data: dict={}):
         self._data = data.copy()
 
-    def getData(self):
+    @property
+    def data(self):
         return self._data.copy()
-
-
-class FloatEvent(Event):
-    def __init__(self, value: float):
-        super().__init__({'value': value})
-
-    def getValue(self):
-        return float(self._data['value'])
 
 
 class EventBus:
@@ -40,7 +33,12 @@ class EventHandler:
         self.__eventBus = eventBus
         self.__eventQueue = eventBus.subscribe()
         self.__loopSleep = loopSleep
+        self.__shouldStop = False
         self.__eventHandlers = {}
+
+    @property
+    def loopSleep(self):
+        return self.__loopSleep
 
     def processEvents(self):
         while self.__eventQueue.qsize():
@@ -50,12 +48,15 @@ class EventHandler:
             else:
                 self._processUnhandled(event)
 
-    def exec(self):
-        while True:
-            self.processEvents()
-            sleep(self.__loopSleep)
+    def stop(self):
+        self.__shouldStop = True
 
-    def _putEvent(self, event: Event):
+    def exec(self):
+        while not self.__shouldStop:
+            self.processEvents()
+            sleep(self.loopSleep)
+
+    def _fireEvent(self, event: Event):
         self.__eventBus.put(event)
 
     def _subscribe(self, eventType: type, handler):

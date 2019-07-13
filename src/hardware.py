@@ -27,11 +27,11 @@ class SensorDriver(EventHandler):
         # Only update measurements at the sample interval
         self.__counter += 1
         if 0 == self.__counter % self.__sampleInterval:
-            super()._putEvent(TemperatureChangedEvent(
+            super()._fireEvent(TemperatureChangedEvent(
                 self.__bme280.temperature*9.0/5.0+32.0))
-            super()._putEvent(PressureChangedEvent(
+            super()._fireEvent(PressureChangedEvent(
                 self.__bme280.pressure))
-            super()._putEvent(HumidityChangedEvent(
+            super()._fireEvent(HumidityChangedEvent(
                 self.__bme280.humidity))
 
         # Additional scanning should be done for user buttons here

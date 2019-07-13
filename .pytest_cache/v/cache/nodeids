@@ -2,7 +2,15 @@
   "test/test_api.py::Test_ApiEventHandler::test_humidity",
   "test/test_api.py::Test_ApiEventHandler::test_pressure",
   "test/test_api.py::Test_ApiEventHandler::test_temperature",
+  "test/test_api.py::Test_ApiEventHandler::test_version",
   "test/test_events.py::Test_EventBus::test_put",
   "test/test_events.py::Test_EventHandler::test_processEvents",
-  "test/test_thermostat.py::Test_Thermostat::test_simple"
+  "test/test_events.py::Test_EventHandler::test_processEventsThreaded",
+  "test/test_events.py::Test_EventHandler::test_simpleEvent",
+  "test/test_thermostat.py::Test_Thermostat::test_noSettings",
+  "test/test_thermostat.py::Test_Thermostat::test_settings",
+  "test/test_thermostat.py::Test_Thermostat::test_simpleAuto",
+  "test/test_thermostat.py::Test_Thermostat::test_simpleCool",
+  "test/test_thermostat.py::Test_Thermostat::test_simpleHeat",
+  "test/test_thermostat.py::Test_Thermostat::test_stateEvent"
 ]

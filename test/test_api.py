@@ -11,19 +11,22 @@ from src.thermostat import \
 
 class Test_ApiEventHandler(unittest.TestCase):
 
-    @classmethod
-    def setup_class(cls):
-        cls.eventBus = EventBus()
-        cls.apiEventHandler = ApiEventHandler(cls.eventBus)
+    def setup_method(self, method):
+        self.eventBus = EventBus()
+        self.apiEventHandler = ApiEventHandler(self.eventBus)
         sleep(0.1)
 
-        cls.testValueTemperature = 72.5
-        cls.testValuePressure = 1015.2
-        cls.testValueHumidity = 42.4
-        cls.eventBus.put(TemperatureChangedEvent(cls.testValueTemperature))
-        cls.eventBus.put(PressureChangedEvent(cls.testValuePressure))
-        cls.eventBus.put(HumidityChangedEvent(cls.testValueHumidity))
-        cls.apiEventHandler.processEvents()
+        self.testValueTemperature = 72.5
+        self.testValuePressure = 1015.2
+        self.testValueHumidity = 42.4
+        self.eventBus.put(TemperatureChangedEvent(self.testValueTemperature))
+        self.eventBus.put(PressureChangedEvent(self.testValuePressure))
+        self.eventBus.put(HumidityChangedEvent(self.testValueHumidity))
+        self.apiEventHandler.processEvents()
+
+    def test_version(self):
+        req = requests.get('http://localhost:5000/api/version')
+        self.assertEqual(req.text, "rpt-0.1")
 
     def test_temperature(self):
         req = requests.get('http://localhost:5000/api/sensors/temperature')
@@ -36,7 +39,3 @@ class Test_ApiEventHandler(unittest.TestCase):
     def test_humidity(self):
         req = requests.get('http://localhost:5000/api/sensors/humidity')
         self.assertEqual(req.text, f"{self.testValueHumidity}")
-
-
-if __name__ == '__main__':
-    unittest.main()

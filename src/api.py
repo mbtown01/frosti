@@ -3,8 +3,8 @@ from queue import Queue
 from threading import Thread
 from time import sleep
 
-from src.events import Event, EventBus, FloatEvent, EventHandler
-from src.thermostat import \
+from src.events import Event, EventBus, EventHandler
+from src.thermostat import PropertyChangedEvent, \
     TemperatureChangedEvent, PressureChangedEvent, HumidityChangedEvent
 
 
@@ -35,9 +35,9 @@ class ApiEventHandler(EventHandler):
         super()._subscribe(PressureChangedEvent, self.__processFloat)
         super()._subscribe(HumidityChangedEvent, self.__processFloat)
 
-    def __processFloat(self, event: FloatEvent):
-        self.__values[type(event)] = event.getValue()
-        print(f'ApiEvevtHandler Received {type(event)} {event.getValue()}')
+    def __processFloat(self, event: PropertyChangedEvent):
+        self.__values[type(event)] = event.value
+        print(f'ApiEventHandler Received {type(event)} {event.value}')
 
     def getValue(self, eventType: type):
         return self.__values[eventType]

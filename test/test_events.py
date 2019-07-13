@@ -1,5 +1,6 @@
 import unittest
 from queue import Queue
+from time import sleep
 
 from src.events import Event, EventBus, EventHandler
 from src.thermostat import \
@@ -22,25 +23,40 @@ class Test_EventHandler(unittest.TestCase):
 
     class DummyEventHandler(EventHandler):
         def __init__(self, eventBus: EventBus):
-            super().__init__(eventBus)
+            super().__init__(eventBus, 0.1)
             self.eventCount = 0
 
         def _processUnhandled(self, event: Event):
             self.eventCount += 1
 
-    @classmethod
-    def setup_class(cls):
-        cls.eventBus = EventBus()
-        cls.eventHandler = Test_EventHandler.DummyEventHandler(cls.eventBus)
-
-        cls.eventBus.put(TemperatureChangedEvent(0.0))
-        cls.eventBus.put(PressureChangedEvent(0.0))
-        cls.eventBus.put(HumidityChangedEvent(0.0))
+    def test_simpleEvent(self):
+        event = Event({'foo': 'bar'})
+        self.assertEqual('bar', event.data['foo'])
 
     def test_processEvents(self):
+        self.eventBus = EventBus()
+        self.eventHandler = Test_EventHandler.DummyEventHandler(self.eventBus)
+        self.eventBus.put(TemperatureChangedEvent(0.0))
+        self.eventBus.put(PressureChangedEvent(0.0))
+        self.eventBus.put(HumidityChangedEvent(0.0))
+
         self.assertEqual(self.eventHandler.eventCount, 0)
         self.eventHandler.processEvents()
         self.assertEqual(self.eventHandler.eventCount, 3)
 
-if __name__ == '__main__':
-    unittest.main()
+    def test_processEventsThreaded(self):
+        self.eventBus = EventBus()
+        self.eventHandler = Test_EventHandler.DummyEventHandler(self.eventBus)
+        EventHandler.startEventHandler(self.eventHandler, 'Test Event Handler')
+
+        self.assertEqual(self.eventHandler.eventCount, 0)
+        self.eventBus.put(TemperatureChangedEvent(0.0))
+        self.eventBus.put(PressureChangedEvent(0.0))
+        self.eventBus.put(HumidityChangedEvent(0.0))
+
+        # Thread is sleeping loopSleep seconds, need to be sure we
+        # wait long enough for the events to have been processed
+        sleep(2*self.eventHandler.loopSleep)
+        self.eventHandler.stop()
+
+        self.assertEqual(self.eventHandler.eventCount, 3)
