@@ -3,6 +3,7 @@ from queue import Queue
 from threading import Thread
 from time import sleep
 
+from src.logging import log
 from src.events import Event, EventBus, EventHandler
 from src.thermostat import PropertyChangedEvent, \
     TemperatureChangedEvent, PressureChangedEvent, HumidityChangedEvent
@@ -37,7 +38,7 @@ class ApiEventHandler(EventHandler):
 
     def __processFloat(self, event: PropertyChangedEvent):
         self.__values[type(event)] = event.value
-        print(f'ApiEventHandler Received {type(event)} {event.value}')
+        log.debug(f'ApiEventHandler Received {event} {event.value}')
 
     def getValue(self, eventType: type):
         return self.__values[eventType]

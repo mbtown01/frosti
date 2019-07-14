@@ -30,8 +30,9 @@ class Test_EventHandler(unittest.TestCase):
             self.eventCount += 1
 
     def test_simpleEvent(self):
-        event = Event({'foo': 'bar'})
+        event = Event('test', {'foo': 'bar'})
         self.assertEqual('bar', event.data['foo'])
+        self.assertEqual('test', repr(event))
 
     def test_processEvents(self):
         self.eventBus = EventBus()

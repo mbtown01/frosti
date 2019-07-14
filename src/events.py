@@ -5,8 +5,12 @@ from time import sleep
 
 
 class Event:
-    def __init__(self, data: dict={}):
+    def __init__(self, name: str, data: dict={}):
         self._data = data.copy()
+        self.__name = name
+
+    def __repr__(self):
+        return self.__name
 
     @property
     def data(self):

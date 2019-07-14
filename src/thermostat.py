@@ -4,6 +4,7 @@ from queue import Queue
 from threading import Thread
 from enum import Enum
 
+from src.logging import log
 from src.settings import Settings, SettingsChangedEvent, Mode
 from src.events import Event, EventBus, EventHandler
 
@@ -17,7 +18,7 @@ class ThermostatState(Enum):
 
 class ThermostatStateChangedEvent(Event):
     def __init__(self, value: ThermostatState):
-        super().__init__({'state': value})
+        super().__init__('ThermostatStateChangedEvent', {'state': value})
 
     @property
     def state(self):
@@ -27,8 +28,8 @@ class ThermostatStateChangedEvent(Event):
 
 
 class PropertyChangedEvent(Event):
-    def __init__(self, value: float):
-        super().__init__({'value': value})
+    def __init__(self, name: str, value: float):
+        super().__init__(name, {'value': value})
 
     @property
     def value(self):
@@ -37,17 +38,17 @@ class PropertyChangedEvent(Event):
 
 class TemperatureChangedEvent(PropertyChangedEvent):
     def __init__(self, value: float):
-        super().__init__(value)
+        super().__init__('TemperatureChangedEvent', value)
 
 
 class PressureChangedEvent(PropertyChangedEvent):
     def __init__(self, value: float):
-        super().__init__(value)
+        super().__init__('PressureChangedEvent', value)
 
 
 class HumidityChangedEvent(PropertyChangedEvent):
     def __init__(self, value: float):
-        super().__init__(value)
+        super().__init__('HumidityChangedEvent', value)
 
 
 class ThermostatDriver(EventHandler):
@@ -73,7 +74,7 @@ class ThermostatDriver(EventHandler):
         return self.__settings
 
     def __processSettingsChanged(self, event: SettingsChangedEvent):
-        print(f"ThermostatDriver: new settings: {event.settings}")
+        log.debug(f"ThermostatDriver: new settings: {event.settings}")
         self.__settings = event.settings
 
     def __processTemperatureChanged(self, event: TemperatureChangedEvent):

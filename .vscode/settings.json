@@ -6,7 +6,8 @@
     "python.testing.pytestArgs": [
         "test",
         "--cov=src",
-        //"--no-cov",
+        // Uncomment the line below if you need to debug
+        "--no-cov",
     ],
     "python.testing.unittestArgs": [
         "-v",
@@ -28,7 +29,8 @@
     },
     // https://marketplace.visualstudio.com/items?itemName=rduldulao.py-coverage-view
     "python.coveragepy.file": ".coverage",
-    "python.coverageView.highlight": "rgba(255,55,55,0.3)",
+    // If you want to NOT see highlights on coverage, set the 4th value below to 0
+    "python.coverageView.highlight": "rgba(255,55,55,0)",
     "python.coverageView.highlightMode": "uncovered",
 
 }

@@ -40,7 +40,7 @@ class Settings:
 
 class SettingsChangedEvent(Event):
     def __init__(self, settings: Settings):
-        super().__init__({'settings': settings})
+        super().__init__('SettingsChangedEvent', {'settings': settings})
 
     @property
     def settings(self):
