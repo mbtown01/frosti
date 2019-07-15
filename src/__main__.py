@@ -3,7 +3,7 @@ from queue import Queue
 from time import sleep
 import logging
 
-from src.hardware import SensorDriver
+from src.hardware import HardwareDriver
 from src.events import EventBus, EventHandler
 from src.thermostat import ThermostatDriver
 from src.api import ApiEventHandler
@@ -18,8 +18,8 @@ if __name__ == '__main__':
     eventBus = EventBus()
 
     # Start all the event handlers
-    sensorDriver = SensorDriver(eventBus)
-    EventHandler.startEventHandler(sensorDriver, 'Sensor Driver')
+    hardwareDriver = HardwareDriver(eventBus)
+    EventHandler.startEventHandler(hardwareDriver, 'Hardware Driver')
 
     thermostat = ThermostatDriver(eventBus)
     EventHandler.startEventHandler(thermostat, 'Thermostat Driver')
