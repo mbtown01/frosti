@@ -13,6 +13,9 @@ app = Flask(__name__)
 
 
 class ApiEventHandler(EventHandler):
+    """ Event handler thread dedicated to responding to the REST API for
+    the thermostat.
+    """
     __staticInstance = None
 
     def __init__(self, eventBus: EventBus):
