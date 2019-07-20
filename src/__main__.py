@@ -11,25 +11,27 @@ from src.settings import SettingsChangedEvent, Settings
 from src.logging import log, setupLogging
 
 
-if __name__ == '__main__':
+def main():
     setupLogging()
     log.info('Initializing thermostat')
 
-    eventBus = EventBus()
-
     # Start all the event handlers
+    eventBus = EventBus()
     hardwareDriver = HardwareDriver(eventBus)
-    EventHandler.startEventHandler(hardwareDriver, 'Hardware Driver')
-
     thermostat = ThermostatDriver(eventBus)
-    EventHandler.startEventHandler(thermostat, 'Thermostat Driver')
-
     apiEventHandler = ApiEventHandler(eventBus)
-    EventHandler.startEventHandler(apiEventHandler, 'API Event Driver')
 
-    # Put the initial settings out to all participants
+    # Put the initial settings out to all participants so it's the
+    # first event they process
     eventBus.put(SettingsChangedEvent(Settings()))
 
+    # Start all handlers on their own theads
+    hardwareDriver.start('Hardware Driver')
+    thermostat.start('Thermostat Driver')
+    apiEventHandler.start('API Event Driver')
+
     log.info('Entering into standard operation')
-    while(True):
-        sleep(1.0)
+    hardwareDriver.join()
+
+if __name__ == '__main__':
+    main()

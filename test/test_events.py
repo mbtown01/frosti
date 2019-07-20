@@ -48,7 +48,7 @@ class Test_EventHandler(unittest.TestCase):
     def test_processEventsThreaded(self):
         self.eventBus = EventBus()
         self.eventHandler = Test_EventHandler.DummyEventHandler(self.eventBus)
-        EventHandler.startEventHandler(self.eventHandler, 'Test Event Handler')
+        self.eventHandler.start('Test Event Handler')
 
         self.assertEqual(self.eventHandler.eventCount, 0)
         self.eventBus.put(TemperatureChangedEvent(0.0))

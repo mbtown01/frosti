@@ -1,68 +1,170 @@
 # pylint: disable=import-error
 import board
+import smbus
 import busio
 import adafruit_bme280
-import adafruit_character_lcd.character_lcd_i2c as characterlcd
 import RPi.GPIO as GPIO
-
 # pylint: enable=import-error
 
 from queue import Queue
+from time import sleep
 
 from src.logging import log
-from src.events import EventBus, EventHandler
+from src.generic import GenericButton, GenericScreen
+from src.settings import Settings, SettingsChangedEvent
+from src.events import EventBus, EventHandler, Event
 from src.thermostat import \
     TemperatureChangedEvent, PressureChangedEvent, HumidityChangedEvent
 
 
+class LCD1602:
+
+    # Modified version of the driver from
+    # https://github.com/sunfounder/SunFounder_SensorKit_for_RPi2.git
+    def __init__(self, addr, width, height):
+        self.__smbus = smbus.SMBus(1)
+        self.__lcdAddr = addr
+        self.__width = width
+        self.__height = height
+        self.__blen = 1  # Hard-coding this, not sure what other options do
+
+        self.__send_command(0x33)  # Must initialize to 8-line mode at first
+        sleep(0.005)
+        self.__send_command(0x32)  # Then initialize to 4-line mode
+        sleep(0.005)
+        self.__send_command(0x28)  # 2 Lines & 5*7 dots
+        sleep(0.005)
+        self.__send_command(0x0C)  # Enable display without cursor
+        sleep(0.005)
+        self.__send_command(0x01)  # Clear Screen
+        self.__smbus.write_byte(self.__lcdAddr, 0x08)
+
+    def __write_word(self, addr, data):
+        temp = data
+        if self.__blen == 1:
+            temp |= 0x08
+        else:
+            temp &= 0xF7
+        self.__smbus.write_byte(addr, temp)
+
+    def __send_command(self, comm):
+        # Send bit7-4 firstly
+        buf = comm & 0xF0
+        buf |= 0x04               # RS = 0, RW = 0, EN = 1
+        self.__write_word(self.__lcdAddr, buf)
+        sleep(0.002)
+        buf &= 0xFB               # Make EN = 0
+        self.__write_word(self.__lcdAddr, buf)
+
+        # Send bit3-0 secondly
+        buf = (comm & 0x0F) << 4
+        buf |= 0x04               # RS = 0, RW = 0, EN = 1
+        self.__write_word(self.__lcdAddr, buf)
+        sleep(0.002)
+        buf &= 0xFB               # Make EN = 0
+        self.__write_word(self.__lcdAddr, buf)
+
+    def __send_data(self, data):
+        # Send bit7-4 firstly
+        buf = data & 0xF0
+        buf |= 0x05               # RS = 1, RW = 0, EN = 1
+        self.__write_word(self.__lcdAddr, buf)
+        sleep(0.002)
+        buf &= 0xFB               # Make EN = 0
+        self.__write_word(self.__lcdAddr, buf)
+
+        # Send bit3-0 secondly
+        buf = (data & 0x0F) << 4
+        buf |= 0x05               # RS = 1, RW = 0, EN = 1
+        self.__write_word(self.__lcdAddr, buf)
+        sleep(0.002)
+        buf &= 0xFB               # Make EN = 0
+        self.__write_word(self.__lcdAddr, buf)
+
+    def clear(self):
+        self.__send_command(0x01)  # Clear Screen
+
+    def openlight(self):  # Enable the backlight
+        self.__smbus.write_byte(0x27, 0x08)
+        self.__smbus.close()
+
+    def write(self, x, y, str):
+        x = min(self.__width-1, max(0, x))
+        y = min(self.__height-1, max(0, y))
+
+        # Move cursor
+        addr = 0x80 + 0x40 * y + x
+        self.__send_command(addr)
+
+        for chr in str:
+            self.__send_data(ord(chr))
+
+
 class HardwareDriver(EventHandler):
 
-    class Button:
+    class Button(GenericButton):
+        """ A physical button provided to the user """
+
         def __init__(self, name: str, pin: int):
-            self.__name = name
+            super().__init__(name)
             self.__pin = pin
             self.__isPressed = False
 
             GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
         def query(self):
+            """ Returns whether the button was pressed since the last
+            call to query() """
             isPressed = bool(GPIO.input(self.__pin))
             rtn = isPressed and not self.__isPressed
             self.__isPressed = isPressed
-            if rtn:
-                log.debug(f"Button '{self.__name}' pressed'")
-
             return rtn
+
+    class HomeScreen:
+        def __init__(self, ):
+            super().__init__("Home Screen")
+
+        def _redraw(self, lcd: LCD1602):
+            pass
+
+        def settingsChanged(self, settings: Settings):
+            pass
+
+        def buttonPressed(self, button: HardwareDriver.Button):
+            pass
 
     def __init__(self, eventBus: EventBus):
         GPIO.setmode(GPIO.BCM)
+
+        self.__buttons = (
+            HardwareDriver.Button('Mode', 16),
+            HardwareDriver.Button('Up', 20),
+            HardwareDriver.Button('Down', 21),
+            HardwareDriver.Button('Enter', 12),
+        )
 
         loopSleep = 0.05
         self.__sampleInterval = int(5/loopSleep)
         self.__counter = 0
         self.__i2c = busio.I2C(board.SCL, board.SDA)
-        self.__i2c2 = busio.I2C(board.SCL, board.SDA)
         self.__bme280 = \
             adafruit_bme280.Adafruit_BME280_I2C(self.__i2c, address=0x76)
-        self.__lcd = characterlcd.Character_LCD_I2C(self.__i2c2, 16, 2)
 
-        self.__lcd.clear()
-        self.__lcd.backlight = True
-        self.__lcd.message = "this is a test\nas you can see"
-
-        self.__buttons = {
-            'mode': HardwareDriver.Button('Mode', 16),
-            'up': HardwareDriver.Button('Up', 20),
-            'down': HardwareDriver.Button('Down', 21),
-        }
+        self.__lcd = LCD1602(0x27, 20, 2)
+        self.__lcd.write(0, 0, 'Greetings!!')
+        self.__lcd.write(1, 1, 'from Thermostat')
 
         super().__init__(eventBus, loopSleep)
+        super()._subscribe(
+            SettingsChangedEvent, self.__processSettingsChanged)
 
     def processEvents(self):
         super().processEvents()
 
-        for name, button in self.__buttons.items():
-            button.query()
+        # Always scan for button presses
+        for button in self.__buttons:
+            if button.query():
+                pass
 
         # Only update measurements at the sample interval
         self.__counter += 1
@@ -74,4 +176,6 @@ class HardwareDriver(EventHandler):
             super()._fireEvent(HumidityChangedEvent(
                 self.__bme280.humidity))
 
-        # Additional scanning should be done for user buttons here
+    def __processSettingsChanged(self, event: SettingsChangedEvent):
+        log.debug(f"HardwareDriver: new settings: {event.settings}")
+        self.__settings = event.settings
