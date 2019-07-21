@@ -13,6 +13,7 @@
   "test/test_generics.py::Test_Generics::test_row_update_too_long",
   "test/test_generics.py::Test_Generics::test_row_update_two_updates",
   "test/test_generics.py::Test_Generics::test_row_update_two_updates_no_finalize",
+  "test/test_generics.py::Test_Generics::test_screen_clear",
   "test/test_generics.py::Test_Generics::test_screen_simple",
   "test/test_generics.py::Test_Generics::test_screen_too_many_rows",
   "test/test_thermostat.py::Test_Thermostat::test_noSettings",

@@ -10,14 +10,14 @@ from queue import Queue
 from time import sleep
 
 from src.logging import log
-from src.generics import GenericButton, GenericScreen
+from src.generics import GenericLcdDisplay
 from src.settings import Settings, SettingsChangedEvent
 from src.events import EventBus, EventHandler, Event
 from src.thermostat import \
     TemperatureChangedEvent, PressureChangedEvent, HumidityChangedEvent
 
 
-class Lcd1602Display(GenericScreen):
+class Lcd1602Display(GenericLcdDisplay):
 
     # Modified version of the driver from
     # https://github.com/sunfounder/SunFounder_SensorKit_for_RPi2.git
@@ -113,56 +113,80 @@ class Lcd1602Display(GenericScreen):
         """ Commits all pending changes to the display """
         results = super().commit()
         for i in range(len(results)):
-            self.__write(results[i][0], i, results[i][1])
+            for change in results[i]:
+                self.__write(change[0], i, change[1])
+
+
+class Button:
+    """ A physical button provided to the user """
+
+    def __init__(self, name: str, pin: int):
+        self.__name = name
+        self.__pin = pin
+        self.__isPressed = False
+
+        GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+
+    @property
+    def name(self):
+        return self.__name
+
+    def query(self):
+        """ Returns whether the button was pressed since the last
+        call to query() """
+        isPressed = bool(GPIO.input(self.__pin))
+        rtn = isPressed and not self.__isPressed
+        self.__isPressed = isPressed
+        return rtn
+
+
+class StatusPage:
+
+    def __init__(self):
+        self.__lastTemperature = 0
+        self.__lastHumidity = 0
+        self.__lastPressure = 0
+
+    # 0123456789012345
+    # Now: ##.#   AUTO
+    # Target:  ## / ##
+
+    def updateTemperature(self, temperature: float):
+        self.__lastTemperature = temperature
+
+    def write(self, settings: Settings, lcd: Lcd1602Display):
+        now = self.__lastTemperature
+        mode = str(settings.mode).replace("Mode.", "")
+        heat = settings.comfortMin
+        cool = settings.comfortMax
+        lcd.update(0, 0, f'Now: {now:4.1f}{mode:>7s}')
+        lcd.update(1, 0, f'Target:  {heat:2.0f} / {cool:2.0f}')
+        lcd.commit()
 
 
 class HardwareDriver(EventHandler):
-
-    class Button(GenericButton):
-        """ A physical button provided to the user """
-
-        def __init__(self, name: str, pin: int):
-            super().__init__(name)
-            self.__pin = pin
-            self.__isPressed = False
-
-            GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-
-        def query(self):
-            """ Returns whether the button was pressed since the last
-            call to query() """
-            isPressed = bool(GPIO.input(self.__pin))
-            rtn = isPressed and not self.__isPressed
-            self.__isPressed = isPressed
-            return rtn
-
-    class BaseLcdScreen(GenericScreen):
-
-        def __init__(self, display: Lcd1602Display):
-            super().__init__(display.width, display.height)
-            self.__display = display
 
     def __init__(self, eventBus: EventBus):
         GPIO.setmode(GPIO.BCM)
 
         self.__buttons = (
-            HardwareDriver.Button('Mode', 16),
-            HardwareDriver.Button('Up', 20),
-            HardwareDriver.Button('Down', 21),
-            HardwareDriver.Button('Enter', 12),
+            Button('Mode', 16),
+            Button('Up', 20),
+            Button('Down', 21),
+            Button('Enter', 12),
         )
 
         loopSleep = 0.05
+        self.__statusPage = StatusPage()
+        self.__currentPage = self.__statusPage
         self.__sampleInterval = int(5/loopSleep)
+        self.__drawInterval = int(0.1/loopSleep)
+        self.__settings = Settings()
         self.__counter = 0
         self.__i2c = busio.I2C(board.SCL, board.SDA)
         self.__bme280 = \
             adafruit_bme280.Adafruit_BME280_I2C(self.__i2c, address=0x76)
-
         self.__lcd = Lcd1602Display(0x27, 20, 2)
-        self.__lcd.update(0, 0, 'Greetings!!')
-        self.__lcd.update(1, 0, 'from Thermostat')
-        self.__lcd.commit()
 
         super().__init__(eventBus, loopSleep)
         super()._subscribe(
@@ -176,15 +200,21 @@ class HardwareDriver(EventHandler):
             if button.query():
                 pass
 
-        # Only update measurements at the sample interval
         self.__counter += 1
+
+        # Update the LCD display with the current page's content
+        if 0 == self.__counter % self.__drawInterval:
+            self.__currentPage.write(self.__settings, self.__lcd)
+
+        # Only update measurements at the sample interval
         if 0 == self.__counter % self.__sampleInterval:
-            super()._fireEvent(TemperatureChangedEvent(
-                self.__bme280.temperature*9.0/5.0+32.0))
-            super()._fireEvent(PressureChangedEvent(
-                self.__bme280.pressure))
-            super()._fireEvent(HumidityChangedEvent(
-                self.__bme280.humidity))
+            temperature = self.__bme280.temperature*9.0/5.0+32.0
+            pressure = self.__bme280.pressure
+            humidity = self.__bme280.humidity
+            self.__statusPage.updateTemperature(temperature)
+            super()._fireEvent(TemperatureChangedEvent(temperature))
+            super()._fireEvent(PressureChangedEvent(pressure))
+            super()._fireEvent(HumidityChangedEvent(humidity))
 
     def __processSettingsChanged(self, event: SettingsChangedEvent):
         log.debug(f"HardwareDriver: new settings: {event.settings}")

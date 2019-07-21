@@ -1,1 +1,3 @@
-{}
+{
+  "test/test_generics.py::test_screen_too_many_rows": true
+}

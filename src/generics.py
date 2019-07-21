@@ -3,38 +3,27 @@ from src.settings import Settings, SettingsChangedEvent
 from src.events import EventBus, EventHandler, Event
 
 
-class GenericButton:
-    """ A physical button provided to the user """
-
-    def __init__(self, name: str):
-        self.__name = name
-
-    @property
-    def name(self):
-        return self.__name
-
-    def query(self):
-        return False
-
-
-class GenericScreen:
-    """ A specific screen on the LCD with draw and button logic """
+class GenericLcdDisplay:
+    """ Generic implementation of a multi-line LCD with a cursor-based
+    interface """
 
     class Row:
         """ A row of text on a generic cursor-based LCD display """
 
         def __init__(self, width: int):
-            self.__buffer = list()
-            self.__updates = list()
             self.__width = width
-            self.__isInvalid = False
-            for _ in range(self.__width):
-                self.__buffer.append(' ')
-                self.__updates.append(' ')
+            self.clear()
 
         @property
         def text(self):
             return ''.join(self.__buffer)
+
+        def clear(self):
+            self.__buffer = list()
+            self.__updates = list()
+            for _ in range(self.__width):
+                self.__buffer.append(' ')
+                self.__updates.append(' ')
 
         def update(self, offset: int, text: str):
             """ Write 'text' at the specified offset on the row """
@@ -65,7 +54,7 @@ class GenericScreen:
     def __init__(self, width: int, height: int):
         self.__rows = list()
         for _ in range(height):
-            self.__rows.append(GenericScreen.Row(width))
+            self.__rows.append(GenericLcdDisplay.Row(width))
 
     @property
     def text(self):
@@ -74,13 +63,21 @@ class GenericScreen:
             rowText.append(row.text)
         return '\n'.join(rowText)
 
+    def clear(self):
+        """ Clear all rows and pending updates """
+        for row in self.__rows:
+            row.clear()
+
     def update(self, row: int, col: int, text: str):
+        """ Add a pending change to the display """
         if row >= len(self.__rows):
             raise RuntimeError(
                 f"Row {row} is out of range, max={len(self.__rows)-1}")
         self.__rows[row].update(col, text)
 
     def commit(self):
+        """ Commit the set of pending changes and return the changes from
+        the previous compit """
         results = list()
         for row in self.__rows:
             results.append(row.commit())
