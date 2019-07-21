@@ -21,5 +21,9 @@
   "test/test_thermostat.py::Test_Thermostat::test_simpleAuto",
   "test/test_thermostat.py::Test_Thermostat::test_simpleCool",
   "test/test_thermostat.py::Test_Thermostat::test_simpleHeat",
-  "test/test_thermostat.py::Test_Thermostat::test_stateEvent"
+  "test/test_thermostat.py::Test_Thermostat::test_stateChangedCoolToHeat",
+  "test/test_thermostat.py::Test_Thermostat::test_stateChangedCooling",
+  "test/test_thermostat.py::Test_Thermostat::test_stateChangedHeatToCool",
+  "test/test_thermostat.py::Test_Thermostat::test_stateChangedHeatToOff",
+  "test/test_thermostat.py::Test_Thermostat::test_stateChangedHeating"
 ]

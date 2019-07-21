@@ -53,8 +53,19 @@ class GenericLcdDisplay:
 
     def __init__(self, width: int, height: int):
         self.__rows = list()
+        self.__width = width
+        self.__height = height
+
         for _ in range(height):
             self.__rows.append(GenericLcdDisplay.Row(width))
+
+    @property
+    def width(self):
+        return self.__width
+
+    @property
+    def height(self):
+        return self.__height
 
     @property
     def text(self):

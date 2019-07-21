@@ -73,6 +73,8 @@ class Test_Generics(unittest.TestCase):
         screen.update(1, 0, "01234567890123456789")
         screen.commit()
 
+        self.assertEqual(20, screen.width)
+        self.assertEqual(2, screen.height)
         self.assertEqual(
             "01234567890123456789\n01234567890123456789", screen.text)
 
