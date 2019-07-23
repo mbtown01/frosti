@@ -223,25 +223,20 @@ class HardwareDriver(EventHandler):
                 (int(self.__settings.mode.value)+1) % len(Settings.Mode)))
             super()._fireEvent(SettingsChangedEvent(self.__settings))
         elif 'Up' == button.name:
-            self.__drawRowTwoInvoker.reset(0)
-            if Settings.Mode.HEAT == self.__settings.mode:
-                self.__settings = self.__settings.clone(
-                    comfortMin=self.__settings.comfortMin + 1)
-                super()._fireEvent(SettingsChangedEvent(self.__settings))
-            if Settings.Mode.COOL == self.__settings.mode:
-                self.__settings = self.__settings.clone(
-                    comfortMax=self.__settings.comfortMax + 1)
-                super()._fireEvent(SettingsChangedEvent(self.__settings))
+            self.__modifyComfortSettings(1)
         elif 'Down' == button.name:
-            self.__drawRowTwoInvoker.reset(0)
-            if Settings.Mode.HEAT == self.__settings.mode:
-                self.__settings = self.__settings.clone(
-                    comfortMin=self.__settings.comfortMin - 1)
-                super()._fireEvent(SettingsChangedEvent(self.__settings))
-            if Settings.Mode.COOL == self.__settings.mode:
-                self.__settings = self.__settings.clone(
-                    comfortMax=self.__settings.comfortMax - 1)
-                super()._fireEvent(SettingsChangedEvent(self.__settings))
+            self.__modifyComfortSettings(-1)
+
+    def __modifyComfortSettings(self, increment: int):
+        self.__drawRowTwoInvoker.reset(0)
+        if Settings.Mode.HEAT == self.__settings.mode:
+            self.__settings = self.__settings.clone(
+                comfortMin=self.__settings.comfortMin + increment)
+            super()._fireEvent(SettingsChangedEvent(self.__settings))
+        if Settings.Mode.COOL == self.__settings.mode:
+            self.__settings = self.__settings.clone(
+                comfortMax=self.__settings.comfortMax + increment)
+            super()._fireEvent(SettingsChangedEvent(self.__settings))
 
     def __processButtons(self):
         for button in self.__buttons:
