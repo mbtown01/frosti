@@ -10,7 +10,8 @@ from queue import Queue
 from time import sleep
 
 from src.logging import log
-from src.generics import GenericLcdDisplay
+from src.generics import GenericLcdDisplay, GenericButton, \
+    CounterBasedInvoker, GenericHardwareDriver
 from src.settings import Settings, SettingsChangedEvent
 from src.events import EventBus, EventHandler, Event
 from src.thermostat import ThermostatStateChangedEvent, ThermostatState, \
@@ -90,19 +91,15 @@ class Lcd1602Display(GenericLcdDisplay):
                 self.__write(change[0], i, change[1])
 
 
-class Button:
+class SimplePushButton(GenericButton):
     """ A physical button provided to the user """
 
-    def __init__(self, name: str, pin: int):
-        self.__name = name
+    def __init__(self, action: GenericButton.Action, pin: int):
+        super.__init__(action)
         self.__pin = pin
         self.__isPressed = False
 
         GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-
-    @property
-    def name(self):
-        return self.__name
 
     def query(self):
         """ Returns whether the button was pressed since the last
@@ -115,29 +112,6 @@ class Button:
 
 class HardwareDriver(EventHandler):
 
-    class CounterBasedInvoker:
-
-        def __init__(self, ticks: int, handlers: list):
-            self.__ticks = ticks
-            self.__handlers = handlers
-            self.__lastHandler = 0
-            self.__counter = 0
-
-        def increment(self, execute=True):
-            if 0 == self.__counter % self.__ticks:
-                if execute:
-                    self.invokeCurrent()
-                self.__lastHandler = \
-                    (self.__lastHandler + 1) % len(self.__handlers)
-            self.__counter += 1
-
-        def invokeCurrent(self):
-            self.__handlers[self.__lastHandler]()
-
-        def reset(self, handler: int=None):
-            self.__lastHandler = handler or 0
-            self.__counter = 1
-
     def __init__(self, eventBus: EventBus):
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(5, GPIO.OUT)
@@ -146,10 +120,10 @@ class HardwareDriver(EventHandler):
         GPIO.setup(19, GPIO.OUT)
 
         self.__buttons = (
-            Button('Mode', 16),
-            Button('Up', 20),
-            Button('Down', 21),
-            Button('Enter', 12),
+            SimplePushButton(GenericButton.Action.MODE, 16),
+            SimplePushButton(GenericButton.Action.UP, 20),
+            SimplePushButton(GenericButton.Action.DOWN, 21),
+            SimplePushButton(GenericButton.Action.ENTER, 12),
         )
 
         loopSleep = 0.05
@@ -158,13 +132,13 @@ class HardwareDriver(EventHandler):
         self.__lastPressure = 0
         self.__lastState = ThermostatState.OFF
 
-        self.__sampleInvoker = HardwareDriver.CounterBasedInvoker(
+        self.__sampleInvoker = CounterBasedInvoker(
             ticks=int(5/loopSleep), handlers=[self.__sampleSensors])
-        self.__drawLcdInvoker = HardwareDriver.CounterBasedInvoker(
+        self.__drawLcdInvoker = CounterBasedInvoker(
             ticks=int(0.1/loopSleep), handlers=[self.__drawLcdDisplay])
-        self.__drawRowTwoInvoker = HardwareDriver.CounterBasedInvoker(
-            ticks=int(3/loopSleep),
-            handlers=[self.__drawRowTwoTarget, self.__drawRowTwoState])
+        self.__drawRowTwoInvoker = CounterBasedInvoker(
+            ticks=int(3/loopSleep), handlers=[
+                self.__drawRowTwoTarget, self.__drawRowTwoState])
 
         self.__rotateRowTwoInterval = int(3/loopSleep)
         self.__buttonHandler = self.__buttonHandlerDefault
@@ -215,16 +189,16 @@ class HardwareDriver(EventHandler):
         super()._fireEvent(PressureChangedEvent(self.__lastPressure))
         super()._fireEvent(HumidityChangedEvent(self.__lastHumidity))
 
-    def __buttonHandlerDefault(self, button: Button):
-        log.debug(f"DefaultButtonHandler saw {button.name}")
-        if 'Mode' == button.name:
+    def __buttonHandlerDefault(self, button: GenericButton):
+        log.debug(f"DefaultButtonHandler saw {button.action}")
+        if GenericButton.Action.MODE == button.action:
             self.__drawRowTwoInvoker.reset(1)
             self.__settings = self.__settings.clone(mode=Settings.Mode(
                 (int(self.__settings.mode.value)+1) % len(Settings.Mode)))
             super()._fireEvent(SettingsChangedEvent(self.__settings))
-        elif 'Up' == button.name:
+        elif GenericButton.Action.UP == button.action:
             self.__modifyComfortSettings(1)
-        elif 'Down' == button.name:
+        elif GenericButton.Action.DOWN == button.action:
             self.__modifyComfortSettings(-1)
 
     def __modifyComfortSettings(self, increment: int):

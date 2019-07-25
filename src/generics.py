@@ -1,6 +1,10 @@
+from enum import Enum
+
 from src.logging import log
 from src.settings import Settings, SettingsChangedEvent
 from src.events import EventBus, EventHandler, Event
+from src.thermostat import ThermostatState, ThermostatStateChangedEvent, \
+    PressureChangedEvent, HumidityChangedEvent, TemperatureChangedEvent
 
 
 class GenericLcdDisplay:
@@ -94,3 +98,215 @@ class GenericLcdDisplay:
             results.append(row.commit())
 
         return results
+
+
+class GenericButton:
+    """ A logical button provided to the user """
+
+    class Action(Enum):
+        MODE = 1
+        UP = 2
+        DOWN = 3
+        ENTER = 4
+
+    def __init__(self, action: Action):
+        self.__action = action
+
+    @property
+    def action(self):
+        return self.__action
+
+    def query(self):
+        raise NotImplementedError()
+
+
+class CounterBasedInvoker:
+    """ Invokes a handler based on a set number of ticks """
+
+    def __init__(self, ticks: int, handlers: list):
+        """ Creates a new CounterBasedInvoker
+
+        ticks: int
+            Number of calls to increment it takes to invoke the handler
+        handlers: list
+            List of handlers, called in sequential/rotating order
+        """
+        self.__ticks = ticks
+        self.__handlers = handlers
+        self.__lastHandler = 0
+        self.__counter = 0
+
+    def increment(self, execute=True):
+        """ Increments the counter and executes the next handler if it is
+        a harmonic of ticks
+
+        execute: bool
+            True if increment should execute the counter, false otherwise
+        """
+        self.__counter += 1
+        if 0 == self.__counter % self.__ticks:
+            if execute:
+                self.invokeCurrent()
+            self.__lastHandler = \
+                (self.__lastHandler + 1) % len(self.__handlers)
+
+    def invokeCurrent(self):
+        """ Force an invoke of the current handler, does not increment the
+        counter """
+        self.__handlers[self.__lastHandler]()
+
+    def reset(self, handler: int=None):
+        """ Resets the counter to zero and the next handler to be the first
+        in the list """
+        self.__lastHandler = handler or 0
+        self.__counter = 1
+
+
+class GenericEnvironmentSensor:
+
+    def getTemperature(self):
+        raise NotImplementedError()
+
+    def getPressure(self):
+        raise NotImplementedError()
+
+    def getHumidity(self):
+        raise NotImplementedError()
+
+
+class GenericHardwareDriver(EventHandler):
+
+    def __init__(self,
+                 lcd: GenericLcdDisplay,
+                 sensor: GenericEnvironmentSensor,
+                 buttons: list,
+                 eventBus: EventBus):
+        self.__lcd = lcd
+        self.__buttons = buttons
+        self.__sensor = sensor
+
+        # GPIO.setmode(GPIO.BCM)
+        # GPIO.setup(5, GPIO.OUT)
+        # GPIO.setup(6, GPIO.OUT)
+        # GPIO.setup(13, GPIO.OUT)
+        # GPIO.setup(19, GPIO.OUT)
+
+        # self.__buttons = (
+        #     SimplePushButton(GenericButton.Action.MODE, 16),
+        #     SimplePushButton(GenericButton.Action.UP, 20),
+        #     SimplePushButton(GenericButton.Action.DOWN, 21),
+        #     SimplePushButton(GenericButton.Action.ENTER, 12),
+        # )
+
+        loopSleep = 0.05
+        self.__lastTemperature = 0
+        self.__lastHumidity = 0
+        self.__lastPressure = 0
+        self.__lastState = ThermostatState.OFF
+
+        self.__sampleInvoker = CounterBasedInvoker(
+            ticks=int(5/loopSleep), handlers=[self.__sampleSensors])
+        self.__drawLcdInvoker = CounterBasedInvoker(
+            ticks=int(0.1/loopSleep), handlers=[self.__drawLcdDisplay])
+        self.__drawRowTwoInvoker = CounterBasedInvoker(
+            ticks=int(3/loopSleep), handlers=[
+                self.__drawRowTwoTarget, self.__drawRowTwoState])
+
+        self.__rotateRowTwoInterval = int(3/loopSleep)
+        self.__buttonHandler = self.__buttonHandlerDefault
+
+        self.__settings = Settings()
+        # self.__i2c = busio.I2C(board.SCL, board.SDA)
+        # self.__bme280 = \
+        #     adafruit_bme280.Adafruit_BME280_I2C(self.__i2c, address=0x76)
+        # self.__lcd = Lcd1602Display(0x27, 16, 2)
+
+        super().__init__(eventBus, loopSleep)
+        super()._subscribe(
+            SettingsChangedEvent, self.__processSettingsChanged)
+        super()._subscribe(
+            ThermostatStateChangedEvent, self.__processStateChanged)
+
+    def processEvents(self):
+        super().processEvents()
+
+        # Always scan for button presses
+        self.__processButtons()
+
+        # Update the LCD display with the current page's content
+        self.__drawLcdInvoker.increment()
+        self.__drawRowTwoInvoker.increment(execute=False)
+
+        # Only update measurements at the sample interval
+        self.__sampleInvoker.increment()
+
+    def __processSettingsChanged(self, event: SettingsChangedEvent):
+        log.debug(f"HardwareDriver: new settings: {event.settings}")
+        self.__settings = event.settings
+
+    def __processStateChanged(self, event: ThermostatStateChangedEvent):
+        log.debug(f"HardwareDriver: new state: {event.state}")
+        # GPIO.output(5, event.state == ThermostatState.FAN)
+        # GPIO.output(6, event.state == ThermostatState.HEATING)
+        # GPIO.output(13, event.state == ThermostatState.COOLING)
+        # GPIO.output(19, event.state == ThermostatState.OFF)
+        self.__lastState = event.state
+        self.__drawLcdInvoker.reset()
+
+    def __sampleSensors(self):
+        self.__lastTemperature = self.__sensor.getTemperature()
+        self.__lastPressure = self.__sensor.getPressure()
+        self.__lastHumidity = self.__sensor.getHumidity()
+        super()._fireEvent(TemperatureChangedEvent(self.__lastTemperature))
+        super()._fireEvent(PressureChangedEvent(self.__lastPressure))
+        super()._fireEvent(HumidityChangedEvent(self.__lastHumidity))
+
+    def __buttonHandlerDefault(self, button: GenericButton):
+        log.debug(f"DefaultButtonHandler saw {button.action}")
+        if GenericButton.Action.MODE == button.action:
+            self.__drawRowTwoInvoker.reset(1)
+            self.__settings = self.__settings.clone(mode=Settings.Mode(
+                (int(self.__settings.mode.value)+1) % len(Settings.Mode)))
+            super()._fireEvent(SettingsChangedEvent(self.__settings))
+        elif GenericButton.Action.UP == button.action:
+            self.__modifyComfortSettings(1)
+        elif GenericButton.Action.DOWN == button.action:
+            self.__modifyComfortSettings(-1)
+
+    def __modifyComfortSettings(self, increment: int):
+        self.__drawRowTwoInvoker.reset(0)
+        if Settings.Mode.HEAT == self.__settings.mode:
+            self.__settings = self.__settings.clone(
+                comfortMin=self.__settings.comfortMin + increment)
+            super()._fireEvent(SettingsChangedEvent(self.__settings))
+        if Settings.Mode.COOL == self.__settings.mode:
+            self.__settings = self.__settings.clone(
+                comfortMax=self.__settings.comfortMax + increment)
+            super()._fireEvent(SettingsChangedEvent(self.__settings))
+
+    def __processButtons(self):
+        for button in self.__buttons:
+            if button.query():
+                self.__buttonHandler(button)
+
+    def __drawRowTwoTarget(self):
+        # 0123456789012345
+        # Target:  ## / ##
+        heat = self.__settings.comfortMin
+        cool = self.__settings.comfortMax
+        self.__lcd.update(1, 0, f'Target:  {heat:2.0f} / {cool:2.0f}')
+
+    def __drawRowTwoState(self):
+        # 0123456789012345
+        # State:   COOLING
+        state = str(self.__lastState).replace('ThermostatState.', '')
+        self.__lcd.update(1, 0, f'State: {state:>9s}')
+
+    def __drawLcdDisplay(self):
+        # 0123456789012345
+        # Now: ##.#   AUTO
+        now = self.__lastTemperature
+        mode = str(self.__settings.mode).replace('Mode.', '')
+        self.__lcd.update(0, 0, f'Now: {now:4.1f}{mode:>7s}')
+        self.__drawRowTwoInvoker.invokeCurrent()
+        self.__lcd.commit()
