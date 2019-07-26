@@ -18,7 +18,7 @@
             ],
         },
         {
-            "name": "Python: Current File",
+            "name": "Python: Local Fake Hardware",
             "type": "python",
             "request": "launch",
             "cwd": "${workspaceFolder}",

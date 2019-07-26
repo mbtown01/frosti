@@ -66,19 +66,6 @@ class TerminalEnvironmentSensor(GenericEnvironmentSensor):
 class TerminalHardwareDriver(GenericHardwareDriver):
 
     def __init__(self, eventBus: EventBus):
-        super().__init__(
-            eventBus=eventBus,
-            loopSleep=0.25,
-            lcd=TerminalDisplay(0x27, 16, 2),
-            sensor=TerminalEnvironmentSensor(),
-            buttons=(
-                TerminalButton(GenericButton.Action.MODE),
-                TerminalButton(GenericButton.Action.UP),
-                TerminalButton(GenericButton.Action.DOWN),
-                TerminalButton(GenericButton.Action.ENTER),
-            ),
-        )
-
         fd = sys.stdin.fileno()
         newattr = termios.tcgetattr(fd)
         newattr[3] = newattr[3] & ~termios.ICANON
@@ -89,9 +76,27 @@ class TerminalHardwareDriver(GenericHardwareDriver):
         oldflags = fcntl.fcntl(fd, fcntl.F_GETFL)
         fcntl.fcntl(fd, fcntl.F_SETFL, oldflags | os.O_NONBLOCK)
 
+        self.__buttonMap = {
+            'k': TerminalButton(GenericButton.Action.UP),
+            'j': TerminalButton(GenericButton.Action.DOWN),
+            '\n': TerminalButton(GenericButton.Action.ENTER),
+            '\t': TerminalButton(GenericButton.Action.MODE),
+        }
+
+        super().__init__(
+            eventBus=eventBus,
+            loopSleep=0.25,
+            lcd=TerminalDisplay(0x27, 16, 2),
+            sensor=TerminalEnvironmentSensor(),
+            buttons=self.__buttonMap.values(),
+        )
+
     def processEvents(self):
         super().processEvents()
 
-        _, _, _ = select.select([sys.stdin], [], [])
-        c = sys.stdin.read()
-        print("-", c)
+        foo, _, _ = select.select([sys.stdin], [], [], 0)
+        if len(foo):
+            chars = sys.stdin.read()
+            for i in range(len(chars)):
+                if chars[i] in self.__buttonMap:
+                    self.__buttonMap[chars[i]].press()
