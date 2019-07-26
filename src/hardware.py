@@ -11,7 +11,7 @@ from time import sleep
 
 from src.logging import log
 from src.generics import GenericLcdDisplay, GenericButton, \
-    CounterBasedInvoker, GenericHardwareDriver
+    CounterBasedInvoker, GenericHardwareDriver, GenericEnvironmentSensor
 from src.settings import Settings, SettingsChangedEvent
 from src.events import EventBus, EventHandler, Event
 from src.thermostat import ThermostatStateChangedEvent, ThermostatState, \
@@ -95,7 +95,7 @@ class SimplePushButton(GenericButton):
     """ A physical button provided to the user """
 
     def __init__(self, action: GenericButton.Action, pin: int):
-        super.__init__(action)
+        super().__init__(action)
         self.__pin = pin
         self.__isPressed = False
 
@@ -110,131 +110,49 @@ class SimplePushButton(GenericButton):
         return rtn
 
 
-class HardwareDriver(EventHandler):
+class Bm280EnvironmentSensor(GenericEnvironmentSensor):
+
+    def __init__(self):
+        self.__i2c = busio.I2C(board.SCL, board.SDA)
+        self.__bme280 = \
+            adafruit_bme280.Adafruit_BME280_I2C(self.__i2c, address=0x76)
+
+    @property
+    def temperature(self):
+        return self.__bme280.temperature*9.0/5.0+32.0
+
+    @property
+    def pressure(self):
+        return self.__bme280.pressure
+
+    @property
+    def humidity(self):
+        return self.__bme280.humidity
+
+
+class HardwareDriver(GenericHardwareDriver):
 
     def __init__(self, eventBus: EventBus):
+        super().__init__(
+            eventBus=eventBus,
+            lcd=Lcd1602Display(0x27, 16, 2),
+            sensor=Bm280EnvironmentSensor(),
+            buttons=(
+                SimplePushButton(GenericButton.Action.MODE, 16),
+                SimplePushButton(GenericButton.Action.UP, 20),
+                SimplePushButton(GenericButton.Action.DOWN, 21),
+                SimplePushButton(GenericButton.Action.ENTER, 12),
+            ),
+        )
+
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(5, GPIO.OUT)
         GPIO.setup(6, GPIO.OUT)
         GPIO.setup(13, GPIO.OUT)
         GPIO.setup(19, GPIO.OUT)
 
-        self.__buttons = (
-            SimplePushButton(GenericButton.Action.MODE, 16),
-            SimplePushButton(GenericButton.Action.UP, 20),
-            SimplePushButton(GenericButton.Action.DOWN, 21),
-            SimplePushButton(GenericButton.Action.ENTER, 12),
-        )
-
-        loopSleep = 0.05
-        self.__lastTemperature = 0
-        self.__lastHumidity = 0
-        self.__lastPressure = 0
-        self.__lastState = ThermostatState.OFF
-
-        self.__sampleInvoker = CounterBasedInvoker(
-            ticks=int(5/loopSleep), handlers=[self.__sampleSensors])
-        self.__drawLcdInvoker = CounterBasedInvoker(
-            ticks=int(0.1/loopSleep), handlers=[self.__drawLcdDisplay])
-        self.__drawRowTwoInvoker = CounterBasedInvoker(
-            ticks=int(3/loopSleep), handlers=[
-                self.__drawRowTwoTarget, self.__drawRowTwoState])
-
-        self.__rotateRowTwoInterval = int(3/loopSleep)
-        self.__buttonHandler = self.__buttonHandlerDefault
-
-        self.__settings = Settings()
-        self.__i2c = busio.I2C(board.SCL, board.SDA)
-        self.__bme280 = \
-            adafruit_bme280.Adafruit_BME280_I2C(self.__i2c, address=0x76)
-        self.__lcd = Lcd1602Display(0x27, 16, 2)
-
-        super().__init__(eventBus, loopSleep)
-        super()._subscribe(
-            SettingsChangedEvent, self.__processSettingsChanged)
-        super()._subscribe(
-            ThermostatStateChangedEvent, self.__processStateChanged)
-
-    def processEvents(self):
-        super().processEvents()
-
-        # Always scan for button presses
-        self.__processButtons()
-
-        # Update the LCD display with the current page's content
-        self.__drawLcdInvoker.increment()
-        self.__drawRowTwoInvoker.increment(execute=False)
-
-        # Only update measurements at the sample interval
-        self.__sampleInvoker.increment()
-
-    def __processSettingsChanged(self, event: SettingsChangedEvent):
-        log.debug(f"HardwareDriver: new settings: {event.settings}")
-        self.__settings = event.settings
-
-    def __processStateChanged(self, event: ThermostatStateChangedEvent):
-        log.debug(f"HardwareDriver: new state: {event.state}")
+    def _processStateChanged(self, event: ThermostatStateChangedEvent):
         GPIO.output(5, event.state == ThermostatState.FAN)
         GPIO.output(6, event.state == ThermostatState.HEATING)
         GPIO.output(13, event.state == ThermostatState.COOLING)
         GPIO.output(19, event.state == ThermostatState.OFF)
-        self.__lastState = event.state
-        self.__drawLcdInvoker.reset()
-
-    def __sampleSensors(self):
-        self.__lastTemperature = self.__bme280.temperature*9.0/5.0+32.0
-        self.__lastPressure = self.__bme280.pressure
-        self.__lastHumidity = self.__bme280.humidity
-        super()._fireEvent(TemperatureChangedEvent(self.__lastTemperature))
-        super()._fireEvent(PressureChangedEvent(self.__lastPressure))
-        super()._fireEvent(HumidityChangedEvent(self.__lastHumidity))
-
-    def __buttonHandlerDefault(self, button: GenericButton):
-        log.debug(f"DefaultButtonHandler saw {button.action}")
-        if GenericButton.Action.MODE == button.action:
-            self.__drawRowTwoInvoker.reset(1)
-            self.__settings = self.__settings.clone(mode=Settings.Mode(
-                (int(self.__settings.mode.value)+1) % len(Settings.Mode)))
-            super()._fireEvent(SettingsChangedEvent(self.__settings))
-        elif GenericButton.Action.UP == button.action:
-            self.__modifyComfortSettings(1)
-        elif GenericButton.Action.DOWN == button.action:
-            self.__modifyComfortSettings(-1)
-
-    def __modifyComfortSettings(self, increment: int):
-        self.__drawRowTwoInvoker.reset(0)
-        if Settings.Mode.HEAT == self.__settings.mode:
-            self.__settings = self.__settings.clone(
-                comfortMin=self.__settings.comfortMin + increment)
-            super()._fireEvent(SettingsChangedEvent(self.__settings))
-        if Settings.Mode.COOL == self.__settings.mode:
-            self.__settings = self.__settings.clone(
-                comfortMax=self.__settings.comfortMax + increment)
-            super()._fireEvent(SettingsChangedEvent(self.__settings))
-
-    def __processButtons(self):
-        for button in self.__buttons:
-            if button.query():
-                self.__buttonHandler(button)
-
-    def __drawRowTwoTarget(self):
-        # 0123456789012345
-        # Target:  ## / ##
-        heat = self.__settings.comfortMin
-        cool = self.__settings.comfortMax
-        self.__lcd.update(1, 0, f'Target:  {heat:2.0f} / {cool:2.0f}')
-
-    def __drawRowTwoState(self):
-        # 0123456789012345
-        # State:   COOLING
-        state = str(self.__lastState).replace('ThermostatState.', '')
-        self.__lcd.update(1, 0, f'State: {state:>9s}')
-
-    def __drawLcdDisplay(self):
-        # 0123456789012345
-        # Now: ##.#   AUTO
-        now = self.__lastTemperature
-        mode = str(self.__settings.mode).replace('Mode.', '')
-        self.__lcd.update(0, 0, f'Now: {now:4.1f}{mode:>7s}')
-        self.__drawRowTwoInvoker.invokeCurrent()
-        self.__lcd.commit()

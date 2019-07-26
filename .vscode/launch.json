@@ -21,7 +21,8 @@
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
-            "program": "${file}",
+            "cwd": "${workspaceFolder}",
+            "module": "src",
             "console": "integratedTerminal",
             "stopOnEntry": true,
         }

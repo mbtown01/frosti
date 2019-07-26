@@ -164,13 +164,16 @@ class CounterBasedInvoker:
 
 class GenericEnvironmentSensor:
 
-    def getTemperature(self):
+    @property
+    def temperature(self):
         raise NotImplementedError()
 
-    def getPressure(self):
+    @property
+    def pressure(self):
         raise NotImplementedError()
 
-    def getHumidity(self):
+    @property
+    def humidity(self):
         raise NotImplementedError()
 
 
@@ -180,46 +183,28 @@ class GenericHardwareDriver(EventHandler):
                  lcd: GenericLcdDisplay,
                  sensor: GenericEnvironmentSensor,
                  buttons: list,
-                 eventBus: EventBus):
+                 eventBus: EventBus,
+                 loopSleep: int=0.05):
         self.__lcd = lcd
         self.__buttons = buttons
         self.__sensor = sensor
 
-        # GPIO.setmode(GPIO.BCM)
-        # GPIO.setup(5, GPIO.OUT)
-        # GPIO.setup(6, GPIO.OUT)
-        # GPIO.setup(13, GPIO.OUT)
-        # GPIO.setup(19, GPIO.OUT)
-
-        # self.__buttons = (
-        #     SimplePushButton(GenericButton.Action.MODE, 16),
-        #     SimplePushButton(GenericButton.Action.UP, 20),
-        #     SimplePushButton(GenericButton.Action.DOWN, 21),
-        #     SimplePushButton(GenericButton.Action.ENTER, 12),
-        # )
-
-        loopSleep = 0.05
+        self.__settings = Settings()
         self.__lastTemperature = 0
         self.__lastHumidity = 0
         self.__lastPressure = 0
         self.__lastState = ThermostatState.OFF
 
         self.__sampleInvoker = CounterBasedInvoker(
-            ticks=int(5/loopSleep), handlers=[self.__sampleSensors])
+            ticks=max(1, int(5/loopSleep)), handlers=[self.__sampleSensors])
         self.__drawLcdInvoker = CounterBasedInvoker(
-            ticks=int(0.1/loopSleep), handlers=[self.__drawLcdDisplay])
+            ticks=max(1, int(0.1/loopSleep)), handlers=[self.__drawLcdDisplay])
         self.__drawRowTwoInvoker = CounterBasedInvoker(
-            ticks=int(3/loopSleep), handlers=[
+            ticks=max(1, int(3/loopSleep)), handlers=[
                 self.__drawRowTwoTarget, self.__drawRowTwoState])
 
         self.__rotateRowTwoInterval = int(3/loopSleep)
         self.__buttonHandler = self.__buttonHandlerDefault
-
-        self.__settings = Settings()
-        # self.__i2c = busio.I2C(board.SCL, board.SDA)
-        # self.__bme280 = \
-        #     adafruit_bme280.Adafruit_BME280_I2C(self.__i2c, address=0x76)
-        # self.__lcd = Lcd1602Display(0x27, 16, 2)
 
         super().__init__(eventBus, loopSleep)
         super()._subscribe(
@@ -240,23 +225,23 @@ class GenericHardwareDriver(EventHandler):
         # Only update measurements at the sample interval
         self.__sampleInvoker.increment()
 
+    def _processStateChanged(self, event: ThermostatStateChangedEvent):
+        pass
+
     def __processSettingsChanged(self, event: SettingsChangedEvent):
         log.debug(f"HardwareDriver: new settings: {event.settings}")
         self.__settings = event.settings
 
     def __processStateChanged(self, event: ThermostatStateChangedEvent):
         log.debug(f"HardwareDriver: new state: {event.state}")
-        # GPIO.output(5, event.state == ThermostatState.FAN)
-        # GPIO.output(6, event.state == ThermostatState.HEATING)
-        # GPIO.output(13, event.state == ThermostatState.COOLING)
-        # GPIO.output(19, event.state == ThermostatState.OFF)
         self.__lastState = event.state
         self.__drawLcdInvoker.reset()
+        self._processStateChanged(event)
 
     def __sampleSensors(self):
-        self.__lastTemperature = self.__sensor.getTemperature()
-        self.__lastPressure = self.__sensor.getPressure()
-        self.__lastHumidity = self.__sensor.getHumidity()
+        self.__lastTemperature = self.__sensor.temperature
+        self.__lastPressure = self.__sensor.pressure
+        self.__lastHumidity = self.__sensor.humidity
         super()._fireEvent(TemperatureChangedEvent(self.__lastTemperature))
         super()._fireEvent(PressureChangedEvent(self.__lastPressure))
         super()._fireEvent(HumidityChangedEvent(self.__lastHumidity))

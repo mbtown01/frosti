@@ -3,12 +3,12 @@ from queue import Queue
 from time import sleep
 import logging
 
-from src.hardware import HardwareDriver
 from src.events import EventBus, EventHandler
 from src.thermostat import ThermostatDriver
 from src.api import ApiEventHandler
 from src.settings import SettingsChangedEvent, Settings
 from src.logging import log, setupLogging
+from src.terminal import TerminalHardwareDriver
 
 
 def main():
@@ -17,9 +17,13 @@ def main():
 
     # Start all the event handlers
     eventBus = EventBus()
-    hardwareDriver = HardwareDriver(eventBus)
     thermostat = ThermostatDriver(eventBus)
     apiEventHandler = ApiEventHandler(eventBus)
+    try:
+        from src.hardware import HardwareDriver
+        hardwareDriver = HardwareDriver(eventBus)
+    except ModuleNotFoundError:
+        hardwareDriver = TerminalHardwareDriver(eventBus)
 
     # Put the initial settings out to all participants so it's the
     # first event they process
