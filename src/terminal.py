@@ -55,10 +55,15 @@ class TerminalEnvironmentSensor(GenericEnvironmentSensor):
 
     def __init__(self):
         super().__init__()
+        self.__temperature = 72.0
 
     @property
     def temperature(self):
-        return 72.0
+        return self.__temperature
+
+    @temperature.setter
+    def temperature(self, value):
+        self.__temperature = value
 
     @property
     def pressure(self):
@@ -74,6 +79,7 @@ class TerminalHardwareDriver(GenericHardwareDriver):
     def __init__(self, stdscr, messageQueue: Queue, eventBus: EventBus):
         self.__stdscr = stdscr
         self.__messageQueue = messageQueue
+        self.__environmentSensor = TerminalEnvironmentSensor()
         self.__stdscr.nodelay(True)
 
         curses.noecho()
@@ -97,15 +103,16 @@ class TerminalHardwareDriver(GenericHardwareDriver):
 
         super().__init__(
             eventBus=eventBus,
-            loopSleep=0.25,
+            loopSleep=0.1,
             lcd=TerminalDisplay(self.__displayWin, 16, 2),
-            sensor=TerminalEnvironmentSensor(),
+            sensor=self.__environmentSensor,
             buttons=self.__buttonMap.values(),
         )
 
     def processEvents(self):
         super().processEvents()
 
+        # Update any pending log messages to the log window
         while self.__messageQueue.qsize():
             message = self.__messageQueue.get()
             y, x = self.__logWin.getmaxyx()
@@ -114,10 +121,22 @@ class TerminalHardwareDriver(GenericHardwareDriver):
             self.__logWin.insnstr(message.getMessage(), x)
             self.__logWin.refresh()
 
+        # Handle any key presses
         char = self.__stdscr.getch()
         if char >= 0:
+            if char == ord('l'):
+                self.__stdscr.clear()
+                self.__stdscr.refresh()
             if char in self.__buttonMap:
                 self.__buttonMap[char].press()
+            if char == curses.KEY_UP:
+                self.__environmentSensor.temperature += 1
+                self._fireEvent(TemperatureChangedEvent(
+                    self.__environmentSensor.temperature))
+            if char == curses.KEY_DOWN:
+                self.__environmentSensor.temperature -= 1
+                self._fireEvent(TemperatureChangedEvent(
+                    self.__environmentSensor.temperature))
             if char == curses.KEY_RESIZE:
                 y, x = self.__logWin.getmaxyx()
                 self.__logWin.resize(y, x)

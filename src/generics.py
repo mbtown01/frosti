@@ -194,8 +194,6 @@ class GenericHardwareDriver(EventHandler):
 
         self.__settings = Settings()
         self.__lastTemperature = 0
-        self.__lastHumidity = 0
-        self.__lastPressure = 0
         self.__lastState = ThermostatState.OFF
 
         self.__sampleInvoker = CounterBasedInvoker(
@@ -214,6 +212,8 @@ class GenericHardwareDriver(EventHandler):
             SettingsChangedEvent, self.__processSettingsChanged)
         super()._subscribe(
             ThermostatStateChangedEvent, self.__processStateChanged)
+        super()._subscribe(
+            TemperatureChangedEvent, self.__processTemperatureChanged)
 
     def processEvents(self):
         super().processEvents()
@@ -231,9 +231,14 @@ class GenericHardwareDriver(EventHandler):
     def _processStateChanged(self, event: ThermostatStateChangedEvent):
         pass
 
+    def __processTemperatureChanged(self, event: TemperatureChangedEvent):
+        self.__lastTemperature = event.value
+        self.__drawLcdInvoker.invokeCurrent()
+
     def __processSettingsChanged(self, event: SettingsChangedEvent):
         log.debug(f"HardwareDriver: new settings: {event.settings}")
         self.__settings = event.settings
+        self.__drawLcdInvoker.invokeCurrent()
 
     def __processStateChanged(self, event: ThermostatStateChangedEvent):
         log.debug(f"HardwareDriver: new state: {event.state}")
@@ -242,12 +247,9 @@ class GenericHardwareDriver(EventHandler):
         self._processStateChanged(event)
 
     def __sampleSensors(self):
-        self.__lastTemperature = self.__sensor.temperature
-        self.__lastPressure = self.__sensor.pressure
-        self.__lastHumidity = self.__sensor.humidity
-        super()._fireEvent(TemperatureChangedEvent(self.__lastTemperature))
-        super()._fireEvent(PressureChangedEvent(self.__lastPressure))
-        super()._fireEvent(HumidityChangedEvent(self.__lastHumidity))
+        super()._fireEvent(TemperatureChangedEvent(self.__sensor.temperature))
+        super()._fireEvent(PressureChangedEvent(self.__sensor.pressure))
+        super()._fireEvent(HumidityChangedEvent(self.__sensor.humidity))
 
     def __buttonHandlerDefault(self, button: GenericButton):
         log.debug(f"DefaultButtonHandler saw {button.action}")
@@ -282,7 +284,7 @@ class GenericHardwareDriver(EventHandler):
         # Target:  ## / ##
         heat = self.__settings.comfortMin
         cool = self.__settings.comfortMax
-        self.__lcd.update(1, 0, f'Target:  {heat:2.0f} / {cool:2.0f}')
+        self.__lcd.update(1, 0, f'Target:  {heat:<3.0f}/{cool:>3.0f}')
 
     def __drawRowTwoState(self):
         # 0123456789012345
@@ -292,9 +294,9 @@ class GenericHardwareDriver(EventHandler):
 
     def __drawLcdDisplay(self):
         # 0123456789012345
-        # Now: ##.#   AUTO
+        # Now: ###.#  AUTO
         now = self.__lastTemperature
         mode = str(self.__settings.mode).replace('Mode.', '')
-        self.__lcd.update(0, 0, f'Now: {now:4.1f}{mode:>7s}')
+        self.__lcd.update(0, 0, f'Now: {now:<5.1f}{mode:>6s}')
         self.__drawRowTwoInvoker.invokeCurrent()
         self.__lcd.commit()
