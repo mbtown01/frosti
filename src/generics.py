@@ -78,6 +78,9 @@ class GenericLcdDisplay:
             rowText.append(row.text)
         return '\n'.join(rowText)
 
+    def rowText(self, row: int):
+        return self.__rows[row].text
+
     def clear(self):
         """ Clear all rows and pending updates """
         for row in self.__rows:

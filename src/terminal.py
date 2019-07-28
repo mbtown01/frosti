@@ -3,6 +3,7 @@ import os
 import termios
 import fcntl
 import select
+import curses
 
 from queue import Queue
 from time import sleep
@@ -20,13 +21,18 @@ class TerminalDisplay(GenericLcdDisplay):
 
     # Modified version of the driver from
     # https://github.com/sunfounder/SunFounder_SensorKit_for_RPi2.git
-    def __init__(self, addr, width, height):
+    def __init__(self, window, width, height):
         super().__init__(width, height)
+        self.__window = window
 
     def commit(self):
         """ Commits all pending changes to the display """
         super().commit()
-        print(f"\n\n{super().text}")
+        self.__window.addstr(0, 0, super().rowText(0))
+        self.__window.addstr(1, 0, super().rowText(1))
+        self.__window.refresh()
+        # self.__window.addstr(1, 0, super().rowText(1))
+        # print(f"\n\n{super().text}")
 
 
 class TerminalButton(GenericButton):
@@ -65,28 +71,34 @@ class TerminalEnvironmentSensor(GenericEnvironmentSensor):
 
 class TerminalHardwareDriver(GenericHardwareDriver):
 
-    def __init__(self, eventBus: EventBus):
-        fd = sys.stdin.fileno()
-        newattr = termios.tcgetattr(fd)
-        newattr[3] = newattr[3] & ~termios.ICANON
-        newattr[3] = newattr[3] & ~termios.ECHO
-        termios.tcsetattr(fd, termios.TCSANOW, newattr)
+    def __init__(self, stdscr, messageQueue: Queue, eventBus: EventBus):
+        self.__stdscr = stdscr
+        self.__messageQueue = messageQueue
+        self.__stdscr.nodelay(True)
 
-        # oldterm = termios.tcgetattr(fd)
-        oldflags = fcntl.fcntl(fd, fcntl.F_GETFL)
-        fcntl.fcntl(fd, fcntl.F_SETFL, oldflags | os.O_NONBLOCK)
+        curses.noecho()
+        curses.cbreak()
+        curses.setupterm()
+        curses.curs_set(0)
+
+        lines, cols = self.__stdscr.getmaxyx()
+        self.__displayWin = curses.newwin(2, cols, 0, 0)
+        self.__logWin = curses.newwin(lines-3, cols, 3, 0)
+        self.__logWin.addstr(0, 0, 'start of messages\n')
+        self.__logWin.scrollok(True)
+        self.__stdscr.clear()
 
         self.__buttonMap = {
-            'k': TerminalButton(GenericButton.Action.UP),
-            'j': TerminalButton(GenericButton.Action.DOWN),
-            '\n': TerminalButton(GenericButton.Action.ENTER),
-            '\t': TerminalButton(GenericButton.Action.MODE),
+            ord('k'): TerminalButton(GenericButton.Action.UP),
+            ord('j'): TerminalButton(GenericButton.Action.DOWN),
+            ord('\n'): TerminalButton(GenericButton.Action.ENTER),
+            ord('\t'): TerminalButton(GenericButton.Action.MODE),
         }
 
         super().__init__(
             eventBus=eventBus,
             loopSleep=0.25,
-            lcd=TerminalDisplay(0x27, 16, 2),
+            lcd=TerminalDisplay(self.__displayWin, 16, 2),
             sensor=TerminalEnvironmentSensor(),
             buttons=self.__buttonMap.values(),
         )
@@ -94,9 +106,19 @@ class TerminalHardwareDriver(GenericHardwareDriver):
     def processEvents(self):
         super().processEvents()
 
-        foo, _, _ = select.select([sys.stdin], [], [], 0)
-        if len(foo):
-            chars = sys.stdin.read()
-            for i in range(len(chars)):
-                if chars[i] in self.__buttonMap:
-                    self.__buttonMap[chars[i]].press()
+        while self.__messageQueue.qsize():
+            message = self.__messageQueue.get()
+            y, x = self.__logWin.getmaxyx()
+            self.__logWin.scroll()
+            self.__logWin.move(y-1, 0)
+            self.__logWin.insnstr(message.getMessage(), x)
+            self.__logWin.refresh()
+
+        char = self.__stdscr.getch()
+        if char >= 0:
+            if char in self.__buttonMap:
+                self.__buttonMap[char].press()
+            if char == curses.KEY_RESIZE:
+                y, x = self.__logWin.getmaxyx()
+                self.__logWin.resize(y, x)
+                log.debug(f'window size is ({x},{y})')

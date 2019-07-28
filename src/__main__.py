@@ -1,6 +1,7 @@
 from flask import Flask
 from queue import Queue
 from time import sleep
+from curses import wrapper
 import logging
 
 from src.events import EventBus, EventHandler
@@ -11,19 +12,23 @@ from src.logging import log, setupLogging
 from src.terminal import TerminalHardwareDriver
 
 
-def main():
-    setupLogging()
-    log.info('Initializing thermostat')
-
+def main(stdscr):
     # Start all the event handlers
     eventBus = EventBus()
-    thermostat = ThermostatDriver(eventBus)
-    apiEventHandler = ApiEventHandler(eventBus)
+
     try:
         from src.hardware import HardwareDriver
         hardwareDriver = HardwareDriver(eventBus)
+        setupLogging(None)
     except ModuleNotFoundError:
-        hardwareDriver = TerminalHardwareDriver(eventBus)
+        messageQueue = Queue(128)
+        setupLogging(messageQueue)
+        hardwareDriver = TerminalHardwareDriver(
+            stdscr, messageQueue, eventBus)
+
+    log.info('Initializing thermostat')
+    thermostat = ThermostatDriver(eventBus)
+    apiEventHandler = ApiEventHandler(eventBus)
 
     # Put the initial settings out to all participants so it's the
     # first event they process
@@ -38,4 +43,4 @@ def main():
     hardwareDriver.join()
 
 if __name__ == '__main__':
-    main()
+    wrapper(main)

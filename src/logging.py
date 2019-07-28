@@ -1,22 +1,26 @@
 import logging
 
+from logging.handlers import QueueHandler
+from queue import Queue
+
 # create logger
 log = logging.getLogger('rpt')
 
 
-def setupLogging():
+def setupLogging(queue: Queue):
     log.setLevel(logging.DEBUG)
-
-    # create console handler and set level to debug
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
 
     # create formatter
     formatter = logging.Formatter(
         '[%(asctime)s] %(levelname)s - %(message)s')
 
-    # add formatter to ch
-    ch.setFormatter(formatter)
-
-    # add ch to logger
-    log.addHandler(ch)
+    if queue is None:
+        streamHandler = logging.StreamHandler()
+        streamHandler.setLevel(logging.DEBUG)
+        streamHandler.setFormatter(formatter)
+        log.addHandler(streamHandler)
+    else:
+        queueHandler = QueueHandler(queue)
+        queueHandler.setLevel(logging.DEBUG)
+        queueHandler.setFormatter(formatter)
+        log.addHandler(queueHandler)
