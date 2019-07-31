@@ -114,13 +114,19 @@ class GenericButton:
 
     def __init__(self, action: Action):
         self.__action = action
+        self.__isPressed = False
 
     @property
     def action(self):
         return self.__action
 
+    def press(self):
+        self.__isPressed = True
+
     def query(self):
-        raise NotImplementedError()
+        pressed = self.__isPressed
+        self.__isPressed = False
+        return pressed
 
 
 class CounterBasedInvoker:
@@ -167,17 +173,35 @@ class CounterBasedInvoker:
 
 class GenericEnvironmentSensor:
 
+    def __init__(self):
+        super().__init__()
+        self.__temperature = 72.0
+        self.__pressure = 1015.0
+        self.__humidity = 40.0
+
     @property
     def temperature(self):
-        raise NotImplementedError()
+        return self.__temperature
+
+    @temperature.setter
+    def temperature(self, value):
+        self.__temperature = value
 
     @property
     def pressure(self):
-        raise NotImplementedError()
+        return 1015.0
+
+    @pressure.setter
+    def pressure(self, value):
+        self.__pressure = value
 
     @property
     def humidity(self):
-        raise NotImplementedError()
+        return 40.0
+
+    @humidity.setter
+    def humidity(self, value):
+        self.__humidity = value
 
 
 class GenericHardwareDriver(EventHandler):

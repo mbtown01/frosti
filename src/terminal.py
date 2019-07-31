@@ -1,19 +1,13 @@
-import sys
-import os
-import termios
-import fcntl
 import select
 import curses
 
 from queue import Queue
-from time import sleep
 
 from src.logging import log
 from src.generics import GenericLcdDisplay, GenericButton, \
-    CounterBasedInvoker, GenericHardwareDriver, GenericEnvironmentSensor
-from src.settings import Settings, SettingsChangedEvent
-from src.events import EventBus, EventHandler, Event
-from src.thermostat import ThermostatStateChangedEvent, ThermostatState, \
+    GenericHardwareDriver, GenericEnvironmentSensor
+from src.events import EventBus
+from src.thermostat import \
     TemperatureChangedEvent, PressureChangedEvent, HumidityChangedEvent
 
 
@@ -31,47 +25,6 @@ class TerminalDisplay(GenericLcdDisplay):
         self.__window.addstr(0, 0, super().rowText(0))
         self.__window.addstr(1, 0, super().rowText(1))
         self.__window.refresh()
-        # self.__window.addstr(1, 0, super().rowText(1))
-        # print(f"\n\n{super().text}")
-
-
-class TerminalButton(GenericButton):
-    """ A physical button provided to the user """
-
-    def __init__(self, action: GenericButton.Action):
-        super().__init__(action)
-        self.__isPressed = False
-
-    def press(self):
-        self.__isPressed = True
-
-    def query(self):
-        pressed = self.__isPressed
-        self.__isPressed = False
-        return pressed
-
-
-class TerminalEnvironmentSensor(GenericEnvironmentSensor):
-
-    def __init__(self):
-        super().__init__()
-        self.__temperature = 72.0
-
-    @property
-    def temperature(self):
-        return self.__temperature
-
-    @temperature.setter
-    def temperature(self, value):
-        self.__temperature = value
-
-    @property
-    def pressure(self):
-        return 1015.0
-
-    @property
-    def humidity(self):
-        return 40.0
 
 
 class TerminalHardwareDriver(GenericHardwareDriver):
@@ -79,8 +32,9 @@ class TerminalHardwareDriver(GenericHardwareDriver):
     def __init__(self, stdscr, messageQueue: Queue, eventBus: EventBus):
         self.__stdscr = stdscr
         self.__messageQueue = messageQueue
-        self.__environmentSensor = TerminalEnvironmentSensor()
+        self.__environmentSensor = GenericEnvironmentSensor()
         self.__stdscr.nodelay(True)
+        self.__stdscr.clear()
 
         curses.noecho()
         curses.cbreak()
@@ -90,15 +44,12 @@ class TerminalHardwareDriver(GenericHardwareDriver):
         lines, cols = self.__stdscr.getmaxyx()
         self.__displayWin = curses.newwin(2, cols, 0, 0)
         self.__logWin = curses.newwin(lines-3, cols, 3, 0)
-        self.__logWin.addstr(0, 0, 'start of messages\n')
         self.__logWin.scrollok(True)
-        self.__stdscr.clear()
-
         self.__buttonMap = {
-            ord('k'): TerminalButton(GenericButton.Action.UP),
-            ord('j'): TerminalButton(GenericButton.Action.DOWN),
-            ord('\n'): TerminalButton(GenericButton.Action.ENTER),
-            ord('\t'): TerminalButton(GenericButton.Action.MODE),
+            ord('k'): GenericButton(GenericButton.Action.UP),
+            ord('j'): GenericButton(GenericButton.Action.DOWN),
+            ord('\n'): GenericButton(GenericButton.Action.ENTER),
+            ord('\t'): GenericButton(GenericButton.Action.MODE),
         }
 
         super().__init__(
@@ -140,4 +91,3 @@ class TerminalHardwareDriver(GenericHardwareDriver):
             if char == curses.KEY_RESIZE:
                 y, x = self.__logWin.getmaxyx()
                 self.__logWin.resize(y, x)
-                log.debug(f'window size is ({x},{y})')

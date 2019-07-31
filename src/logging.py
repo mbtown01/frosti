@@ -7,7 +7,7 @@ from queue import Queue
 log = logging.getLogger('rpt')
 
 
-def setupLogging(queue: Queue):
+def setupLogging(queue: Queue=None):
     log.setLevel(logging.DEBUG)
 
     # create formatter
