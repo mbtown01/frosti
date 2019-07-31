@@ -1,7 +1,5 @@
 from flask import Flask
-from queue import Queue
 from threading import Thread
-from time import sleep
 
 from src.logging import log
 from src.events import Event, EventBus, EventHandler

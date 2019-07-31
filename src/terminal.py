@@ -1,4 +1,3 @@
-import select
 import curses
 
 from queue import Queue
@@ -7,8 +6,7 @@ from src.logging import log
 from src.generics import GenericLcdDisplay, GenericButton, \
     GenericHardwareDriver, GenericEnvironmentSensor
 from src.events import EventBus
-from src.thermostat import \
-    TemperatureChangedEvent, PressureChangedEvent, HumidityChangedEvent
+from src.thermostat import TemperatureChangedEvent
 
 
 class TerminalDisplay(GenericLcdDisplay):

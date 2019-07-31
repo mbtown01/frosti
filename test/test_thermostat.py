@@ -1,8 +1,7 @@
 import unittest
-from queue import Queue
 
-from src.events import Event, EventBus, EventHandler
-from src.settings import Settings, SettingsChangedEvent
+from src.events import EventBus, EventHandler
+from src.settings import Settings
 from src.thermostat import ThermostatDriver, ThermostatState, \
     TemperatureChangedEvent, ThermostatStateChangedEvent
 
@@ -26,6 +25,12 @@ class Test_Thermostat(unittest.TestCase):
 
     def setup_method(self, method):
         self.eventBus = EventBus()
+        Settings.instance().mode = Settings.Mode.COOL
+        Settings.instance().comfortMin = 68.0
+        Settings.instance().comfortMax = 75.0
+        Settings.instance().delta = 1.0
+        Settings.instance().setEventBus(self.eventBus)
+
         self.dummyEventHandler = \
             Test_Thermostat.DummyEventHandler(self.eventBus)
         self.thermostatDriver = ThermostatDriver(self.eventBus)
@@ -36,18 +41,8 @@ class Test_Thermostat(unittest.TestCase):
         self.thermostatDriver.processEvents()
         self.assertEqual(self.thermostatDriver.state, state)
 
-    def test_settings(self):
-        settings = Settings(Settings.Mode.COOL, 68.0, 75.0, 1.0)
-
-        self.eventBus.put(SettingsChangedEvent(settings))
-        self.thermostatDriver.processEvents()
-
-        self.assertIsNotNone(self.thermostatDriver.settings)
-        self.assertEqual(settings.mode, self.thermostatDriver.settings.mode)
-
     def test_stateChangedCooling(self):
-        settings = Settings(Settings.Mode.COOL, 68.0, 75.0, 1.0)
-        self.eventBus.put(SettingsChangedEvent(settings))
+        Settings.instance().mode = Settings.Mode.COOL
 
         self.assertIsNone(self.dummyEventHandler.lastState)
         self.assertNextTemperature(78.0, ThermostatState.COOLING)
@@ -57,8 +52,7 @@ class Test_Thermostat(unittest.TestCase):
             self.dummyEventHandler.lastState, ThermostatState.COOLING)
 
     def test_stateChangedHeating(self):
-        settings = Settings(Settings.Mode.HEAT, 68.0, 75.0, 1.0)
-        self.eventBus.put(SettingsChangedEvent(settings))
+        Settings.instance().mode = Settings.Mode.HEAT
 
         self.assertIsNone(self.dummyEventHandler.lastState)
         self.assertNextTemperature(60.0, ThermostatState.HEATING)
@@ -68,35 +62,28 @@ class Test_Thermostat(unittest.TestCase):
             self.dummyEventHandler.lastState, ThermostatState.HEATING)
 
     def test_stateChangedHeatToOff(self):
-        settings = Settings(Settings.Mode.HEAT, 68.0, 75.0, 1.0)
-        self.eventBus.put(SettingsChangedEvent(settings))
+        Settings.instance().mode = Settings.Mode.HEAT
         self.assertNextTemperature(60.0, ThermostatState.HEATING)
 
-        settings = Settings(Settings.Mode.OFF, 68.0, 75.0, 1.0)
-        self.eventBus.put(SettingsChangedEvent(settings))
+        Settings.instance().mode = Settings.Mode.OFF
         self.assertNextTemperature(60.0, ThermostatState.OFF)
 
     def test_stateChangedHeatToCool(self):
-        settings = Settings(Settings.Mode.HEAT, 68.0, 75.0, 1.0)
-        self.eventBus.put(SettingsChangedEvent(settings))
+        Settings.instance().mode = Settings.Mode.HEAT
         self.assertNextTemperature(60.0, ThermostatState.HEATING)
 
-        settings = Settings(Settings.Mode.COOL, 68.0, 75.0, 1.0)
-        self.eventBus.put(SettingsChangedEvent(settings))
+        Settings.instance().mode = Settings.Mode.COOL
         self.assertNextTemperature(60.0, ThermostatState.OFF)
 
     def test_stateChangedCoolToHeat(self):
-        settings = Settings(Settings.Mode.COOL, 68.0, 75.0, 1.0)
-        self.eventBus.put(SettingsChangedEvent(settings))
+        Settings.instance().mode = Settings.Mode.COOL
         self.assertNextTemperature(80.0, ThermostatState.COOLING)
 
-        settings = Settings(Settings.Mode.HEAT, 68.0, 75.0, 1.0)
-        self.eventBus.put(SettingsChangedEvent(settings))
+        Settings.instance().mode = Settings.Mode.HEAT
         self.assertNextTemperature(80.0, ThermostatState.OFF)
 
     def test_simpleCool(self):
-        settings = Settings(Settings.Mode.COOL, 68.0, 75.0, 1.0)
-        self.eventBus.put(SettingsChangedEvent(settings))
+        Settings.instance().mode = Settings.Mode.COOL
 
         self.assertNextTemperature(75.0, ThermostatState.OFF)
         self.assertNextTemperature(78.0, ThermostatState.COOLING)
@@ -104,8 +91,7 @@ class Test_Thermostat(unittest.TestCase):
         self.assertNextTemperature(73.0, ThermostatState.OFF)
 
     def test_simpleHeat(self):
-        settings = Settings(Settings.Mode.HEAT, 68.0, 75.0, 1.0)
-        self.eventBus.put(SettingsChangedEvent(settings))
+        Settings.instance().mode = Settings.Mode.HEAT
 
         self.assertNextTemperature(68.0, ThermostatState.OFF)
         self.assertNextTemperature(65.0, ThermostatState.HEATING)
@@ -113,8 +99,7 @@ class Test_Thermostat(unittest.TestCase):
         self.assertNextTemperature(70.0, ThermostatState.OFF)
 
     def test_simpleAuto(self):
-        settings = Settings(Settings.Mode.AUTO, 68.0, 75.0, 1.0)
-        self.eventBus.put(SettingsChangedEvent(settings))
+        Settings.instance().mode = Settings.Mode.AUTO
 
         self.assertNextTemperature(75.0, ThermostatState.OFF)
         self.assertNextTemperature(78.0, ThermostatState.COOLING)

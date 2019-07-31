@@ -1,6 +1,12 @@
 from enum import Enum
 
 from src.events import Event, EventBus, EventHandler
+from src.logging import log
+
+
+class SettingsChangedEvent(Event):
+    def __init__(self):
+        super().__init__('SettingsChangedEvent')
 
 
 class Settings:
@@ -8,6 +14,7 @@ class Settings:
     by the user during normal thermostat operation, and an event is
     fired when they are changed.
     """
+    __instance = None
 
     class Mode(Enum):
         OFF = 0
@@ -18,7 +25,7 @@ class Settings:
     def __init__(self, mode: Mode=None,
                  comfortMin: float=None, comfortMax: float=None,
                  delta: float=None):
-
+        self.__eventBus = None
         self.__comfortMin = comfortMin or 68.0
         self.__comfortMax = comfortMax or 75.0
         self.__delta = delta or 1.0
@@ -26,16 +33,16 @@ class Settings:
         if self.__comfortMax - self.__comfortMin < 2*self.__delta:
             self.__comfortMax = self.__comfortMin + 2*self.__delta
 
-    def clone(self, mode: Mode=None,
-              comfortMin: float=None, comfortMax: float=None,
-              delta: float=None):
+    # def clone(self, mode: Mode=None,
+    #           comfortMin: float=None, comfortMax: float=None,
+    #           delta: float=None):
 
-        return Settings(
-            comfortMin=comfortMin or self.__comfortMin,
-            comfortMax=comfortMax or self.__comfortMax,
-            delta=delta or self.__delta,
-            mode=mode or self.__mode
-        )
+    #     return Settings(
+    #         comfortMin=comfortMin or self.__comfortMin,
+    #         comfortMax=comfortMax or self.__comfortMax,
+    #         delta=delta or self.__delta,
+    #         mode=mode or self.__mode
+    #     )
 
     def __repr__(self):
         return f"[{self.__mode}] heatAt: {self.__comfortMin} " + \
@@ -48,12 +55,24 @@ class Settings:
         """
         return self.__comfortMin
 
+    @comfortMin.setter
+    def comfortMin(self, value):
+        self.__comfortMin = value
+        if self.__eventBus is not None:
+            self.__eventBus.put(SettingsChangedEvent())
+
     @property
     def comfortMax(self):
         """ Maximum temperature that is comfortable, anything higher
         and outside the delta needs the thermostat to cool
         """
         return self.__comfortMax
+
+    @comfortMax.setter
+    def comfortMax(self, value):
+        self.__comfortMax = value
+        if self.__eventBus is not None:
+            self.__eventBus.put(SettingsChangedEvent())
 
     @property
     def delta(self):
@@ -62,17 +81,34 @@ class Settings:
         """
         return self.__delta
 
+    @delta.setter
+    def delta(self, value):
+        self.__delta = value
+        if self.__eventBus is not None:
+            self.__eventBus.put(SettingsChangedEvent())
+
     @property
     def mode(self):
         """ The current mode the thermostat is in
         """
         return self.__mode
 
+    @mode.setter
+    def mode(self, value):
+        self.__mode = value
+        if self.__eventBus is not None:
+            self.__eventBus.put(SettingsChangedEvent())
 
-class SettingsChangedEvent(Event):
-    def __init__(self, settings: Settings):
-        super().__init__('SettingsChangedEvent', {'settings': settings})
+    def setEventBus(self, eventBus: EventBus):
+        """ Send SettingsChangedEvent notifications to the provided event bus,
+        or nowhere if eventBus is None
+        """
+        self.__eventBus = eventBus
 
-    @property
-    def settings(self):
-        return self._data['settings']
+    @staticmethod
+    def instance():
+        """ Returns the global instance
+        """
+        if __class__.__instance is None:
+            __class__.__instance = Settings()
+        return __class__.__instance

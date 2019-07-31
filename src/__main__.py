@@ -6,7 +6,7 @@ import logging
 from src.events import EventBus
 from src.thermostat import ThermostatDriver
 from src.api import ApiEventHandler
-from src.settings import SettingsChangedEvent, Settings
+from src.settings import Settings
 from src.logging import log, setupLogging
 from src.terminal import TerminalHardwareDriver
 
@@ -14,12 +14,12 @@ from src.terminal import TerminalHardwareDriver
 def main(stdscr):
     # Start all the event handlers
     eventBus = EventBus()
+    Settings.instance().setEventBus(eventBus)
     apiEventHandler = ApiEventHandler(eventBus)
     thermostat = ThermostatDriver(eventBus)
 
     # Put the initial settings out to all participants so it's the
     # first event they process
-    eventBus.put(SettingsChangedEvent(Settings()))
     apiEventHandler.start('API Event Driver')
     thermostat.start('Thermostat Driver')
 

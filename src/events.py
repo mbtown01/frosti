@@ -1,4 +1,3 @@
-from enum import Enum
 from queue import Queue
 from threading import Thread
 from time import sleep
@@ -29,6 +28,13 @@ class EventBus:
     def put(self, event: Event):
         for queue in self.__queueList:
             queue.put(event)
+
+    @classmethod
+    def instance(cls):
+        """ Returns the global instance """
+        if cls.__instance is None:
+            cls.__instance = EventBus()
+        return cls.__instance
 
 
 class EventHandler:
