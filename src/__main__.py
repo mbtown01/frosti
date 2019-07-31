@@ -1,10 +1,9 @@
-from flask import Flask
 from queue import Queue
 from time import sleep
 from curses import wrapper
 import logging
 
-from src.events import EventBus, EventHandler
+from src.events import EventBus
 from src.thermostat import ThermostatDriver
 from src.api import ApiEventHandler
 from src.settings import SettingsChangedEvent, Settings

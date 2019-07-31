@@ -63,7 +63,7 @@ class ThermostatDriver(EventHandler):
             TemperatureChangedEvent, self.__processTemperatureChanged)
 
         self.__state = ThermostatState.OFF
-        self.__settings = None
+        self.__settings = Settings()
 
     @property
     def state(self):
@@ -80,9 +80,6 @@ class ThermostatDriver(EventHandler):
             self.__changeState(ThermostatState.OFF)
 
     def __processTemperatureChanged(self, event: TemperatureChangedEvent):
-        if self.__settings is None:
-            raise RuntimeError("Temperature event received before settings")
-
         if self.__settings.mode == Settings.Mode.COOL:
             self.__processCooling(event.value)
         elif self.__settings.mode == Settings.Mode.HEAT:

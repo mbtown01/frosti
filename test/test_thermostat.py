@@ -39,16 +39,11 @@ class Test_Thermostat(unittest.TestCase):
     def test_settings(self):
         settings = Settings(Settings.Mode.COOL, 68.0, 75.0, 1.0)
 
-        self.assertIsNone(self.thermostatDriver.settings)
         self.eventBus.put(SettingsChangedEvent(settings))
         self.thermostatDriver.processEvents()
 
         self.assertIsNotNone(self.thermostatDriver.settings)
         self.assertEqual(settings.mode, self.thermostatDriver.settings.mode)
-
-    def test_noSettings(self):
-        with self.assertRaises(RuntimeError):
-            self.assertNextTemperature(78.0, ThermostatState.COOLING)
 
     def test_stateChangedCooling(self):
         settings = Settings(Settings.Mode.COOL, 68.0, 75.0, 1.0)
