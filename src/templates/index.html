@@ -17,19 +17,66 @@
 }
 </style>
 </head>
-<meta http-equiv="refresh" content="5"/>
 <body>
 
-<h2>CSS Button</h2>
+<script src="./js/index.js"></script> 
+<table>
+  <tr>
+    <th colspan="3">Status</th>
+    <th></th>
+    <th colspan="3">Settings</th>
+  </tr>
+  <tr>
+    <td></td>
+    <td>Temperature</td>
+    <td id=temperature></td>
+    <td rowspan="3"><span style="font-weight:bold">72</span></td>
+    <td></td>
+    <td>CoolAt:</td>
+    <td id=comfortMax></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td>Pressure</td>
+    <td id=pressure></td>
+    <td></td>
+    <td>HeatAt:</td>
+    <td id=comfortMin></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td>Humidity</td>
+    <td id=humidity></td>
+    <td></td>
+    <td>Mode:</td>
+    <td id=mode></td>
+  </tr>
+  <tr>
+    <td colspan="7"></td>
+  </tr>
+</table>
 
-<form action="/api/mode?foo=bar" method="POST">
-  <button type="submit" class="button">Styled Button</button>
-</form>
-<h1>Thermostat Status</h1>
-<h2>Current Temperature: {{ temperature }}</h2>
-<h2>Current Pressure: {{ pressure }}</h2>
-<h2>Current Humidity: {{ humidity }}</h2>
 <h4 id='temperature'></h4>
-<script src="./js/index.js"></script>
+
+<t2 id='test'></t2>
+<table>
+  <tr>
+    <td>
+      <button onclick="update()" class="button">Update</button>      
+    </td>
+    <td>
+      <button onclick="toggleMode()" class="button">Mode</button>      
+    </td>
+    <td>
+      <button class="button">Settings</button>      
+    </td>
+    <td>
+      <button class="button">Push me</button>      
+    </td>
+  </tr>
+</table>
+
+
+
 </body>
 </html>

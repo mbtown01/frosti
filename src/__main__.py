@@ -12,6 +12,8 @@ from src.terminal import TerminalHardwareDriver
 
 
 def main(stdscr):
+    log.info('Starting thermostat main thread')
+
     # Build the initial event bus and connect the settings instance
     eventBus = EventBus()
     Settings.instance().setEventBus(eventBus)
