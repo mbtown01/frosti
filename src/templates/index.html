@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+.button {
+  background-color: #4CAF50;
+  border: none;
+  color: white;
+  padding: 15px 25px;
+  text-align: center;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.button:hover {
+  background-color: green;
+}
+</style>
+</head>
+<meta http-equiv="refresh" content="5"/>
+<body>
+
+<h2>CSS Button</h2>
+
+<form action="/api/mode?foo=bar" method="POST">
+  <button type="submit" class="button">Styled Button</button>
+</form>
+<h1>Thermostat Status</h1>
+<h2>Current Temperature: {{ temperature }}</h2>
+<h2>Current Pressure: {{ pressure }}</h2>
+<h2>Current Humidity: {{ humidity }}</h2>
+<h4 id='temperature'></h4>
+<script src="./js/index.js"></script>
+</body>
+</html>

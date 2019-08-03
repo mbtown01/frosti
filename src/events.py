@@ -29,13 +29,6 @@ class EventBus:
         for queue in self.__queueList:
             queue.put(event)
 
-    @classmethod
-    def instance(cls):
-        """ Returns the global instance """
-        if cls.__instance is None:
-            cls.__instance = EventBus()
-        return cls.__instance
-
 
 class EventHandler:
     """ Sits on the event bus and can either consume or produce events. """

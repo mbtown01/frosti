@@ -13,7 +13,7 @@ class Test_ApiEventHandler(unittest.TestCase):
 
     def setup_method(self, method):
         self.eventBus = EventBus()
-        self.apiEventHandler = ApiEventHandler(self.eventBus)
+        ApiEventHandler.createInstance(self.eventBus)
         sleep(0.1)
 
         self.testValueTemperature = 72.5
@@ -22,7 +22,7 @@ class Test_ApiEventHandler(unittest.TestCase):
         self.eventBus.put(TemperatureChangedEvent(self.testValueTemperature))
         self.eventBus.put(PressureChangedEvent(self.testValuePressure))
         self.eventBus.put(HumidityChangedEvent(self.testValueHumidity))
-        self.apiEventHandler.processEvents()
+        ApiEventHandler.instance().processEvents()
 
     def test_version(self):
         req = requests.get('http://localhost:5000/api/version')

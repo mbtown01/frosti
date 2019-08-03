@@ -8,19 +8,19 @@ log = logging.getLogger('rpt')
 
 
 def setupLogging(queue: Queue=None):
-    log.setLevel(logging.DEBUG)
+    # log.setLevel(logging.DEBUG)
 
-    # create formatter
-    formatter = logging.Formatter(
-        '[%(asctime)s] %(levelname)s - %(message)s')
+    # # create formatter
+    # formatter = logging.Formatter(
+    #     '[%(asctime)s] %(levelname)s - %(message)s')
 
     if queue is None:
-        streamHandler = logging.StreamHandler()
-        streamHandler.setLevel(logging.DEBUG)
-        streamHandler.setFormatter(formatter)
-        log.addHandler(streamHandler)
+        handler = logging.StreamHandler()
     else:
-        queueHandler = QueueHandler(queue)
-        queueHandler.setLevel(logging.DEBUG)
-        queueHandler.setFormatter(formatter)
-        log.addHandler(queueHandler)
+        handler = QueueHandler(queue)
+
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='[%(asctime)s] %(module)s %(levelname)s - %(message)s',
+        handlers=[handler],
+    )

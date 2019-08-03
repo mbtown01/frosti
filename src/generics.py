@@ -216,7 +216,7 @@ class GenericHardwareDriver(EventHandler):
         self.__buttons = buttons
         self.__sensor = sensor
 
-        self.__lastTemperature = 0
+        self.__lastTemperature = sensor.temperature
         self.__lastState = ThermostatState.OFF
 
         self.__sampleInvoker = CounterBasedInvoker(
@@ -319,3 +319,8 @@ class GenericHardwareDriver(EventHandler):
         self.__lcd.update(0, 0, f'Now: {now:<5.1f}{mode:>6s}')
         self.__drawRowTwoInvoker.invokeCurrent()
         self.__lcd.commit()
+
+    # 01234567890123456789
+    # Now: ###.#      AUTO
+    # Stat         COOLING
+    # UP  DOWN   SEL  MODE
