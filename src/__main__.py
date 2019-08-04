@@ -3,11 +3,11 @@ from time import sleep
 from curses import wrapper
 import logging
 
+from src.logging import log, setupLogging
 from src.events import EventBus
 from src.thermostat import ThermostatDriver
 from src.api import ApiEventHandler
 from src.settings import Settings, SettingsChangedEvent
-from src.logging import log, setupLogging
 from src.terminal import TerminalHardwareDriver
 
 

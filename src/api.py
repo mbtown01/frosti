@@ -77,6 +77,7 @@ class ApiEventHandler(EventHandler):
     def toggleMode(self):
         Settings.instance().mode = Settings.Mode(
             (int(Settings.instance().mode.value)+1) % len(Settings.Mode))
+        return f"Mode now {Settings.instance().mode}"
 
     def getStatusJson(self):
         response = {
@@ -128,9 +129,14 @@ class ApiEventHandler(EventHandler):
         )
 
     @staticmethod
-    @app.route('/js/<path:path>')
+    @app.route("/main.css")
+    def serve_css():
+        return render_template('main.css')
+
+    @staticmethod
+    @app.route('/include/<path:path>')
     def serve_static(path):
-        return send_from_directory('js', path)
+        return send_from_directory('include', path)
 
     @staticmethod
     @app.route('/api/version')
@@ -150,8 +156,7 @@ class ApiEventHandler(EventHandler):
     @staticmethod
     @app.route('/api/action/mode_toggle', methods=['POST'])
     def api_action_mode_toggle():
-        ApiEventHandler.instance().toggleMode()
-        return None
+        return ApiEventHandler.instance().toggleMode()
 
     @staticmethod
     @app.route('/api/sensors/temperature')
