@@ -78,6 +78,9 @@ class GenericLcdDisplay:
             rowText.append(row.text)
         return '\n'.join(rowText)
 
+    def rowText(self, row: int):
+        return self.__rows[row].text
+
     def clear(self):
         """ Clear all rows and pending updates """
         for row in self.__rows:
@@ -111,13 +114,19 @@ class GenericButton:
 
     def __init__(self, action: Action):
         self.__action = action
+        self.__isPressed = False
 
     @property
     def action(self):
         return self.__action
 
+    def press(self):
+        self.__isPressed = True
+
     def query(self):
-        raise NotImplementedError()
+        pressed = self.__isPressed
+        self.__isPressed = False
+        return pressed
 
 
 class CounterBasedInvoker:
@@ -164,17 +173,35 @@ class CounterBasedInvoker:
 
 class GenericEnvironmentSensor:
 
+    def __init__(self):
+        super().__init__()
+        self.__temperature = 72.0
+        self.__pressure = 1015.0
+        self.__humidity = 40.0
+
     @property
     def temperature(self):
-        raise NotImplementedError()
+        return self.__temperature
+
+    @temperature.setter
+    def temperature(self, value):
+        self.__temperature = value
 
     @property
     def pressure(self):
-        raise NotImplementedError()
+        return 1015.0
+
+    @pressure.setter
+    def pressure(self, value):
+        self.__pressure = value
 
     @property
     def humidity(self):
-        raise NotImplementedError()
+        return 40.0
+
+    @humidity.setter
+    def humidity(self, value):
+        self.__humidity = value
 
 
 class GenericHardwareDriver(EventHandler):
@@ -189,10 +216,7 @@ class GenericHardwareDriver(EventHandler):
         self.__buttons = buttons
         self.__sensor = sensor
 
-        self.__settings = Settings()
-        self.__lastTemperature = 0
-        self.__lastHumidity = 0
-        self.__lastPressure = 0
+        self.__lastTemperature = sensor.temperature
         self.__lastState = ThermostatState.OFF
 
         self.__sampleInvoker = CounterBasedInvoker(
@@ -211,6 +235,8 @@ class GenericHardwareDriver(EventHandler):
             SettingsChangedEvent, self.__processSettingsChanged)
         super()._subscribe(
             ThermostatStateChangedEvent, self.__processStateChanged)
+        super()._subscribe(
+            TemperatureChangedEvent, self.__processTemperatureChanged)
 
     def processEvents(self):
         super().processEvents()
@@ -228,9 +254,13 @@ class GenericHardwareDriver(EventHandler):
     def _processStateChanged(self, event: ThermostatStateChangedEvent):
         pass
 
+    def __processTemperatureChanged(self, event: TemperatureChangedEvent):
+        self.__lastTemperature = event.value
+        self.__drawLcdInvoker.invokeCurrent()
+
     def __processSettingsChanged(self, event: SettingsChangedEvent):
-        log.debug(f"HardwareDriver: new settings: {event.settings}")
-        self.__settings = event.settings
+        log.debug(f"HardwareDriver: new settings: {Settings.instance()}")
+        self.__drawLcdInvoker.invokeCurrent()
 
     def __processStateChanged(self, event: ThermostatStateChangedEvent):
         log.debug(f"HardwareDriver: new state: {event.state}")
@@ -239,20 +269,16 @@ class GenericHardwareDriver(EventHandler):
         self._processStateChanged(event)
 
     def __sampleSensors(self):
-        self.__lastTemperature = self.__sensor.temperature
-        self.__lastPressure = self.__sensor.pressure
-        self.__lastHumidity = self.__sensor.humidity
-        super()._fireEvent(TemperatureChangedEvent(self.__lastTemperature))
-        super()._fireEvent(PressureChangedEvent(self.__lastPressure))
-        super()._fireEvent(HumidityChangedEvent(self.__lastHumidity))
+        super()._fireEvent(TemperatureChangedEvent(self.__sensor.temperature))
+        super()._fireEvent(PressureChangedEvent(self.__sensor.pressure))
+        super()._fireEvent(HumidityChangedEvent(self.__sensor.humidity))
 
     def __buttonHandlerDefault(self, button: GenericButton):
         log.debug(f"DefaultButtonHandler saw {button.action}")
         if GenericButton.Action.MODE == button.action:
             self.__drawRowTwoInvoker.reset(1)
-            self.__settings = self.__settings.clone(mode=Settings.Mode(
-                (int(self.__settings.mode.value)+1) % len(Settings.Mode)))
-            super()._fireEvent(SettingsChangedEvent(self.__settings))
+            Settings.instance().mode = Settings.Mode(
+                (int(Settings.instance().mode.value)+1) % len(Settings.Mode))
         elif GenericButton.Action.UP == button.action:
             self.__modifyComfortSettings(1)
         elif GenericButton.Action.DOWN == button.action:
@@ -260,14 +286,12 @@ class GenericHardwareDriver(EventHandler):
 
     def __modifyComfortSettings(self, increment: int):
         self.__drawRowTwoInvoker.reset(0)
-        if Settings.Mode.HEAT == self.__settings.mode:
-            self.__settings = self.__settings.clone(
-                comfortMin=self.__settings.comfortMin + increment)
-            super()._fireEvent(SettingsChangedEvent(self.__settings))
-        if Settings.Mode.COOL == self.__settings.mode:
-            self.__settings = self.__settings.clone(
-                comfortMax=self.__settings.comfortMax + increment)
-            super()._fireEvent(SettingsChangedEvent(self.__settings))
+        if Settings.Mode.HEAT == Settings.instance().mode:
+            Settings.instance().comfortMin = \
+                Settings.instance().comfortMin + increment
+        if Settings.Mode.COOL == Settings.instance().mode:
+            Settings.instance().comfortMax = \
+                Settings.instance().comfortMax + increment
 
     def __processButtons(self):
         for button in self.__buttons:
@@ -277,9 +301,9 @@ class GenericHardwareDriver(EventHandler):
     def __drawRowTwoTarget(self):
         # 0123456789012345
         # Target:  ## / ##
-        heat = self.__settings.comfortMin
-        cool = self.__settings.comfortMax
-        self.__lcd.update(1, 0, f'Target:  {heat:2.0f} / {cool:2.0f}')
+        heat = Settings.instance().comfortMin
+        cool = Settings.instance().comfortMax
+        self.__lcd.update(1, 0, f'Target:  {heat:<3.0f}/{cool:>3.0f}')
 
     def __drawRowTwoState(self):
         # 0123456789012345
@@ -289,9 +313,14 @@ class GenericHardwareDriver(EventHandler):
 
     def __drawLcdDisplay(self):
         # 0123456789012345
-        # Now: ##.#   AUTO
+        # Now: ###.#  AUTO
         now = self.__lastTemperature
-        mode = str(self.__settings.mode).replace('Mode.', '')
-        self.__lcd.update(0, 0, f'Now: {now:4.1f}{mode:>7s}')
+        mode = str(Settings.instance().mode).replace('Mode.', '')
+        self.__lcd.update(0, 0, f'Now: {now:<5.1f}{mode:>6s}')
         self.__drawRowTwoInvoker.invokeCurrent()
         self.__lcd.commit()
+
+    # 01234567890123456789
+    # Now: ###.#      AUTO
+    # Stat         COOLING
+    # UP  DOWN   SEL  MODE

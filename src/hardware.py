@@ -6,16 +6,13 @@ import adafruit_bme280
 import RPi.GPIO as GPIO
 # pylint: enable=import-error
 
-from queue import Queue
 from time import sleep
 
 from src.logging import log
 from src.generics import GenericLcdDisplay, GenericButton, \
     CounterBasedInvoker, GenericHardwareDriver, GenericEnvironmentSensor
-from src.settings import Settings, SettingsChangedEvent
-from src.events import EventBus, EventHandler, Event
-from src.thermostat import ThermostatStateChangedEvent, ThermostatState, \
-    TemperatureChangedEvent, PressureChangedEvent, HumidityChangedEvent
+from src.events import EventBus
+from src.thermostat import ThermostatStateChangedEvent, ThermostatState
 
 
 class Lcd1602Display(GenericLcdDisplay):

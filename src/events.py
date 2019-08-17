@@ -1,4 +1,3 @@
-from enum import Enum
 from queue import Queue
 from threading import Thread
 from time import sleep
