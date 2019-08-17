@@ -7,6 +7,7 @@ function update() {
         document.getElementById('temperature').innerHTML = myJson.sensors.temperature
         document.getElementById('pressure').innerHTML = myJson.sensors.pressure
         document.getElementById('humidity').innerHTML = myJson.sensors.humidity
+        document.getElementById('state').innerHTML = myJson.state
     })
 
     fetch('/api/settings').then(function(response) {

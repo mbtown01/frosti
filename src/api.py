@@ -87,7 +87,7 @@ class ApiEventHandler(EventHandler):
                 'pressure': self.pressure,
                 'humidity': self.humidity,
             },
-            'state': str(self.__lastState),
+            'state': str(self.__lastState).replace('ThermostatState.', ''),
         }
         return json.dumps(response, indent=4)
 
@@ -96,7 +96,7 @@ class ApiEventHandler(EventHandler):
             'version': self.version,
             'comfortMin': Settings.instance().comfortMin,
             'comfortMax': Settings.instance().comfortMax,
-            'mode': str(Settings.instance().mode),
+            'mode': str(Settings.instance().mode).replace('Mode.', ''),
             'delta': Settings.instance().delta,
         }
         return json.dumps(response, indent=4)

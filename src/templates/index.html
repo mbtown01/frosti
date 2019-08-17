@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Thermostat Interface</title>
+    <title>temperature Interface</title>
     <link rel="stylesheet" type="text/css" href="./include/main.css"/>
   </head>
   <body>
     <script src="./include/main.js"></script> 
-    <table>
+    <table class="info">
       <tr>
         <th colspan="3">Status</th>
         <th></th>
@@ -16,7 +16,7 @@
         <td></td>
         <td>Temperature</td>
         <td id=temperature></td>
-        <td class="status" rowspan="3"><span style="font-weight:bold">72</span></td>
+        <td class="status" rowspan="3">72</td>
         <td></td>
         <td>CoolAt:</td>
         <td id=comfortMax></td>
@@ -38,8 +38,13 @@
         <td id=mode></td>
       </tr>
       <tr>
-        <td colspan="7"></td>
-      </tr>
+          <td></td>
+          <td>State</td>
+          <td id=state></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
     </table>
     <table>
       <tr>
