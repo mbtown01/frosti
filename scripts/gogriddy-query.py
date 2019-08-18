@@ -4,8 +4,30 @@ import os
 import configparser
 import requests
 import json
+import serial
+import time
+from xml.etree import ElementTree
 from influxdb import InfluxDBClient
 
+def get_simple_element(ser, elementName, attrName, command):
+    ser.write(command)
+    ser.flush()
+   
+    time.sleep(1)
+    xml_text = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<data>\n"
+    for line in ser.readlines():
+        xml_text += str(line)
+    xml_text += "</data>"
+
+    parser = ElementTree.XMLParser(encoding="utf-8")
+    root = ElementTree.fromstring(xml_text, parser=parser)
+    element = root.find(elementName)
+    value = int(element.find(attrName).text, 16)
+    multiplier = max(1, int(element.find("Multiplier").text, 16))
+    divisor = max(1, int(element.find("Divisor").text, 16))
+    value = value * multiplier / float(divisor)
+
+    return value
 
 dir_name = os.path.dirname(os.path.realpath(__file__))
 conf = dir_name + '/../etc/gogriddy-config.conf'
@@ -51,4 +73,23 @@ influxdb_entry = \
     f'future_wstd_dev_ckwh={future_wstd_dev_ckwh},' + \
     f'seconds_until_refresh={seconds_until_refresh}'
 
+# Connect and reuse the serial interface until complete
+ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
+
+# Request that the device synchronize and not send update fragments and
+# then clear out any pending lines in the input buffer
+ser.write(b"<Command><Name>initialize</Name></Command>")
+ser.readlines()
+
+# Issue the command to request demand/meter and then store for later
+demand = get_simple_element(ser, "InstantaneousDemand", "Demand",
+    b"<Command><Name>get_instantaneous_demand</Name><Refresh>Y</Refresh></Command>")
+meter = get_simple_element(ser, "CurrentSummationDelivered", "SummationDelivered",
+    b"<Command><Name>get_current_summation_delivered</Name><Refresh>Y</Refresh></Command>")
+ser.close()
+
+influxdb_entry += f',demand={demand},meter={meter}'
+
+print(influxdb_entry)
 client.write_points(influxdb_entry, protocol=influxdb_protocol)
+
