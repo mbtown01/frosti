@@ -5,15 +5,17 @@ import configparser
 import requests
 import json
 import serial
-import time
+
+from time import sleep
 from xml.etree import ElementTree
 from influxdb import InfluxDBClient
+
 
 def get_simple_element(ser, elementName, attrName, command):
     ser.write(command)
     ser.flush()
-   
-    time.sleep(1)
+
+    sleep(1)
     xml_text = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<data>\n"
     for line in ser.readlines():
         xml_text += str(line)
@@ -82,9 +84,11 @@ ser.write(b"<Command><Name>initialize</Name></Command>")
 ser.readlines()
 
 # Issue the command to request demand/meter and then store for later
-demand = get_simple_element(ser, "InstantaneousDemand", "Demand",
+demand = get_simple_element(
+    ser, "InstantaneousDemand", "Demand",
     b"<Command><Name>get_instantaneous_demand</Name><Refresh>Y</Refresh></Command>")
-meter = get_simple_element(ser, "CurrentSummationDelivered", "SummationDelivered",
+meter = get_simple_element(
+    ser, "CurrentSummationDelivered", "SummationDelivered",
     b"<Command><Name>get_current_summation_delivered</Name><Refresh>Y</Refresh></Command>")
 ser.close()
 
@@ -92,4 +96,3 @@ influxdb_entry += f',demand={demand},meter={meter}'
 
 print(influxdb_entry)
 client.write_points(influxdb_entry, protocol=influxdb_protocol)
-

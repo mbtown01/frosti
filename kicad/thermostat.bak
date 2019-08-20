@@ -1,6 +1,6 @@
 EESchema Schematic File Version 4
 LIBS:thermostat-cache
-EELAYER 29 0
+EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
@@ -325,15 +325,4 @@ Wire Wire Line
 	2100 4750 2500 4750
 Wire Wire Line
 	2100 4300 2500 4300
-$Comp
-L thermostat-rescue:PanasonicRelay U1
-U 1 1 5D5B9F71
-P 7800 1850
-F 0 "U1" H 7500 2050 50  0001 C CNN
-F 1 "PanasonicRelay" H 8228 1875 50  0000 L CNN
-F 2 "project_footprints:AGQ210A03" H 7500 2050 50  0001 C CNN
-F 3 "" H 7500 2050 50  0001 C CNN
-	1    7800 1850
-	1    0    0    -1  
-$EndComp
 $EndSCHEMATC
