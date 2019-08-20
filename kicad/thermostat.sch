@@ -1,6 +1,6 @@
 EESchema Schematic File Version 4
 LIBS:thermostat-cache
-EELAYER 29 0
+EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
@@ -326,14 +326,41 @@ Wire Wire Line
 Wire Wire Line
 	2100 4300 2500 4300
 $Comp
+L Connector:Screw_Terminal_01x04 THERM_CONN
+U 1 1 5D5B6FC9
+P 6300 1550
+F 0 "THERM_CONN" H 6380 1496 50  0000 L CNN
+F 1 "THERM_CONN" H 6380 1451 50  0001 L CNN
+F 2 "" H 6300 1550 50  0001 C CNN
+F 3 "~" H 6300 1550 50  0001 C CNN
+	1    6300 1550
+	1    0    0    -1  
+$EndComp
+Text Label 5300 1450 0    50   ~ 0
+HVAC_PWR(RED)
+Text Label 5300 1550 0    50   ~ 0
+HVAC_HEAT(WHITE)
+Text Label 5300 1650 0    50   ~ 0
+HVAC_AC(YELLOW)
+Text Label 5300 1750 0    50   ~ 0
+HVAC_FAN(GREEN)
+Wire Wire Line
+	5300 1450 6100 1450
+Wire Wire Line
+	6100 1550 5300 1550
+Wire Wire Line
+	5300 1650 6100 1650
+Wire Wire Line
+	5300 1750 6100 1750
+$Comp
 L thermostat-rescue:PanasonicRelay U1
 U 1 1 5D5B9F71
-P 7800 1850
-F 0 "U1" H 7500 2050 50  0001 C CNN
-F 1 "PanasonicRelay" H 8228 1875 50  0000 L CNN
-F 2 "project_footprints:AGQ210A03" H 7500 2050 50  0001 C CNN
-F 3 "" H 7500 2050 50  0001 C CNN
-	1    7800 1850
-	1    0    0    -1  
+P 4900 4300
+F 0 "U1" H 4600 4500 50  0001 C CNN
+F 1 "RELAY_HEAT" H 5328 4325 50  0000 L CNN
+F 2 "project_footprints:AGQ210A03" H 4600 4500 50  0001 C CNN
+F 3 "" H 4600 4500 50  0001 C CNN
+	1    4900 4300
+	0    -1   -1   0   
 $EndComp
 $EndSCHEMATC
