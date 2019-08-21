@@ -1,6 +1,6 @@
 EESchema Schematic File Version 4
 LIBS:thermostat-cache
-EELAYER 29 0
+EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
@@ -159,52 +159,6 @@ Connection ~ 3000 1700
 Text Notes 650  7600 0    50   ~ 0
 ID_SD and ID_SC PINS:\nThese pins are reserved for HAT ID EEPROM.\n\nAt boot time this I2C interface will be\ninterrogated to look for an EEPROM\nthat identifes the attached board and\nallows automagic setup of the GPIOs\n(and optionally, Linux drivers).\n\nDO NOT USE these pins for anything other\nthan attaching an I2C ID EEPROM. Leave\nunconnected if ID EEPROM not required.
 $Comp
-L thermostat-rescue:Mounting_Hole-Mechanical MK1
-U 1 1 5834FB2E
-P 3000 7200
-F 0 "MK1" H 3100 7246 50  0000 L CNN
-F 1 "M2.5" H 3100 7155 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 3000 7200 60  0001 C CNN
-F 3 "" H 3000 7200 60  0001 C CNN
-	1    3000 7200
-	1    0    0    -1  
-$EndComp
-$Comp
-L thermostat-rescue:Mounting_Hole-Mechanical MK3
-U 1 1 5834FBEF
-P 3450 7200
-F 0 "MK3" H 3550 7246 50  0000 L CNN
-F 1 "M2.5" H 3550 7155 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 3450 7200 60  0001 C CNN
-F 3 "" H 3450 7200 60  0001 C CNN
-	1    3450 7200
-	1    0    0    -1  
-$EndComp
-$Comp
-L thermostat-rescue:Mounting_Hole-Mechanical MK2
-U 1 1 5834FC19
-P 3000 7400
-F 0 "MK2" H 3100 7446 50  0000 L CNN
-F 1 "M2.5" H 3100 7355 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 3000 7400 60  0001 C CNN
-F 3 "" H 3000 7400 60  0001 C CNN
-	1    3000 7400
-	1    0    0    -1  
-$EndComp
-$Comp
-L thermostat-rescue:Mounting_Hole-Mechanical MK4
-U 1 1 5834FC4F
-P 3450 7400
-F 0 "MK4" H 3550 7446 50  0000 L CNN
-F 1 "M2.5" H 3550 7355 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 3450 7400 60  0001 C CNN
-F 3 "" H 3450 7400 60  0001 C CNN
-	1    3450 7400
-	1    0    0    -1  
-$EndComp
-Text Notes 3000 7050 0    50   ~ 0
-Mounting Holes
-$Comp
 L Connector_Generic:Conn_02x20_Odd_Even P1
 U 1 1 59AD464A
 P 2600 2000
@@ -278,11 +232,11 @@ $EndComp
 Text Label 850  4300 0    50   ~ 0
 GPIO16
 Text Label 850  4750 0    50   ~ 0
-GPIO17(GEN0)
+GPIO20(SPI1_MOSI)
 Text Label 850  5200 0    50   ~ 0
 GPIO21(SPI1_SCK)
 Text Label 850  5650 0    50   ~ 0
-GPIO22(GEN3)
+GPIO12(PWM0)
 Wire Wire Line
 	1700 4300 850  4300
 Wire Wire Line
@@ -326,14 +280,101 @@ Wire Wire Line
 Wire Wire Line
 	2100 4300 2500 4300
 $Comp
-L thermostat-rescue:PanasonicRelay U1
-U 1 1 5D5B9F71
-P 7800 1850
-F 0 "U1" H 7500 2050 50  0001 C CNN
-F 1 "PanasonicRelay" H 8228 1875 50  0000 L CNN
-F 2 "project_footprints:AGQ210A03" H 7500 2050 50  0001 C CNN
-F 3 "" H 7500 2050 50  0001 C CNN
-	1    7800 1850
+L Connector:Screw_Terminal_01x04 THERM_CONN1
+U 1 1 5D5B6FC9
+P 6300 1550
+F 0 "THERM_CONN1" H 6380 1496 50  0000 L CNN
+F 1 "THERM_CONN" H 6380 1451 50  0001 L CNN
+F 2 "" H 6300 1550 50  0001 C CNN
+F 3 "~" H 6300 1550 50  0001 C CNN
+	1    6300 1550
 	1    0    0    -1  
 $EndComp
+Text Label 5300 1450 0    50   ~ 0
+HVAC_PWR(RED)
+Text Label 5300 1550 0    50   ~ 0
+HVAC_HEAT(WHITE)
+Text Label 5300 1650 0    50   ~ 0
+HVAC_AC(YELLOW)
+Text Label 5300 1750 0    50   ~ 0
+HVAC_FAN(GREEN)
+Wire Wire Line
+	5300 1450 6100 1450
+Wire Wire Line
+	6100 1550 5300 1550
+Wire Wire Line
+	5300 1650 6100 1650
+Wire Wire Line
+	5300 1750 6100 1750
+$Comp
+L thermostat-rescue:Relay? U1
+U 1 1 5D5E9059
+P 5900 2600
+F 0 "U1" V 6050 2800 50  0001 C CNN
+F 1 "RELAY_HEAT" H 5900 2923 50  0000 C CNN
+F 2 "project_footprints:AGQ210A03" V 6050 2800 50  0001 C CNN
+F 3 "" V 6050 2800 50  0001 C CNN
+	1    5900 2600
+	1    0    0    -1  
+$EndComp
+$Comp
+L thermostat-rescue:Mounting_Hole-Mechanical MK1
+U 1 1 5D5E9722
+P 2950 6550
+F 0 "MK1" H 3050 6596 50  0000 L CNN
+F 1 "Mounting_Hole-Mechanical" H 3050 6505 50  0000 L CNN
+F 2 "Mounting_Holes:MountingHole_2.5mm_Pad" H 2950 6550 50  0001 C CNN
+F 3 "" H 2950 6550 50  0001 C CNN
+	1    2950 6550
+	1    0    0    -1  
+$EndComp
+$Comp
+L thermostat-rescue:Mounting_Hole-Mechanical MK2
+U 1 1 5D5F78A7
+P 2950 6800
+F 0 "MK2" H 3050 6846 50  0000 L CNN
+F 1 "Mounting_Hole-Mechanical" H 3050 6755 50  0000 L CNN
+F 2 "Mounting_Holes:MountingHole_2.5mm_Pad" H 2950 6800 50  0001 C CNN
+F 3 "" H 2950 6800 50  0001 C CNN
+	1    2950 6800
+	1    0    0    -1  
+$EndComp
+$Comp
+L thermostat-rescue:Mounting_Hole-Mechanical MK3
+U 1 1 5D5F9275
+P 2950 7050
+F 0 "MK3" H 3050 7096 50  0000 L CNN
+F 1 "Mounting_Hole-Mechanical" H 3050 7005 50  0000 L CNN
+F 2 "Mounting_Holes:MountingHole_2.5mm_Pad" H 2950 7050 50  0001 C CNN
+F 3 "" H 2950 7050 50  0001 C CNN
+	1    2950 7050
+	1    0    0    -1  
+$EndComp
+$Comp
+L thermostat-rescue:Mounting_Hole-Mechanical MK4
+U 1 1 5D5FAC9B
+P 2950 7300
+F 0 "MK4" H 3050 7346 50  0000 L CNN
+F 1 "Mounting_Hole-Mechanical" H 3050 7255 50  0000 L CNN
+F 2 "Mounting_Holes:MountingHole_2.5mm_Pad" H 2950 7300 50  0001 C CNN
+F 3 "" H 2950 7300 50  0001 C CNN
+	1    2950 7300
+	1    0    0    -1  
+$EndComp
+Text Label 5550 2650 2    50   ~ 0
+HVAC_PWR(RED)
+Text Label 5550 2550 2    50   ~ 0
+HVAC_HEAT(WHITE)
+Text Label 5550 2400 2    50   ~ 0
+GPIO5
+Text Label 6250 2400 0    50   ~ 0
+GPIO6
+Wire Wire Line
+	6250 2400 6050 2400
+Wire Wire Line
+	5750 2400 5550 2400
+Wire Wire Line
+	5750 2550 5550 2550
+Wire Wire Line
+	5750 2650 5550 2650
 $EndSCHEMATC
