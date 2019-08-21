@@ -4,11 +4,13 @@ import os
 import configparser
 import requests
 import json
-import serial
-
 from time import sleep
 from xml.etree import ElementTree
+
+# pylint: disable=import-error
 from influxdb import InfluxDBClient
+import serial
+# pylint: enable=import-error
 
 
 def get_simple_element(ser, elementName, attrName, command):
@@ -86,10 +88,12 @@ ser.readlines()
 # Issue the command to request demand/meter and then store for later
 demand = get_simple_element(
     ser, "InstantaneousDemand", "Demand",
-    b"<Command><Name>get_instantaneous_demand</Name><Refresh>Y</Refresh></Command>")
+    b"<Command><Name>get_instantaneous_demand</Name>" +
+    b"<Refresh>Y</Refresh></Command>")
 meter = get_simple_element(
     ser, "CurrentSummationDelivered", "SummationDelivered",
-    b"<Command><Name>get_current_summation_delivered</Name><Refresh>Y</Refresh></Command>")
+    b"<Command><Name>get_current_summation_delivered</Name>" +
+    b"<Refresh>Y</Refresh></Command>")
 ser.close()
 
 influxdb_entry += f',demand={demand},meter={meter}'
