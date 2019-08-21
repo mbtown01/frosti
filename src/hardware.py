@@ -132,7 +132,7 @@ class HardwareDriver(GenericHardwareDriver):
     def __init__(self, eventBus: EventBus):
         super().__init__(
             eventBus=eventBus,
-            lcd=Lcd1602Display(0x27, 16, 2),
+            lcd=Lcd1602Display(0x27, 20, 4),
             sensor=Bm280EnvironmentSensor(),
             buttons=(
                 SimplePushButton(GenericButton.Action.MODE, 16),

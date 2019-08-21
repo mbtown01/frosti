@@ -1,0 +1,4 @@
+{
+  "test/test_api.py::Test_ApiEventHandler::test_humidity": true,
+  "test/test_api.py::Test_ApiEventHandler::test_pressure": true
+}

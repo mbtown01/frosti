@@ -144,11 +144,11 @@ X 2 2 200 0 100 L 50 50 0 1 P
 ENDDRAW
 ENDDEF
 #
-# thermostat-rescue_Mounting_Hole-Mechanical
+# thermostat-rescue_Mounting_Hole-Mechanical-thermostat-rescue
 #
-DEF thermostat-rescue_Mounting_Hole-Mechanical MK 0 40 Y Y 1 F N
+DEF thermostat-rescue_Mounting_Hole-Mechanical-thermostat-rescue MK 0 40 Y Y 1 F N
 F0 "MK" 0 200 50 H V C CNN
-F1 "thermostat-rescue_Mounting_Hole-Mechanical" 0 125 50 H V C CNN
+F1 "thermostat-rescue_Mounting_Hole-Mechanical-thermostat-rescue" 0 125 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
@@ -160,11 +160,11 @@ C 0 0 50 0 1 50 N
 ENDDRAW
 ENDDEF
 #
-# thermostat-rescue_Relay?
+# thermostat-rescue_Relay?-thermostat-rescue
 #
-DEF thermostat-rescue_Relay? U 0 0 Y N 1 F N
+DEF thermostat-rescue_Relay?-thermostat-rescue U 0 0 Y N 1 F N
 F0 "U" 150 200 50 V I C CNN
-F1 "thermostat-rescue_Relay?" 0 350 50 H V C CNN
+F1 "thermostat-rescue_Relay?-thermostat-rescue" 0 350 50 H V C CNN
 F2 "" 150 200 50 V I C CNN
 F3 "" 150 200 50 V I C CNN
 DRAW

@@ -303,20 +303,20 @@ class GenericHardwareDriver(EventHandler):
         # Target:  ## / ##
         heat = Settings.instance().comfortMin
         cool = Settings.instance().comfortMax
-        self.__lcd.update(1, 0, f'Target:  {heat:<3.0f}/{cool:>3.0f}')
+        self.__lcd.update(1, 0, f'Target:      {heat:<3.0f}/{cool:>3.0f}')
 
     def __drawRowTwoState(self):
         # 0123456789012345
         # State:   COOLING
         state = str(self.__lastState).replace('ThermostatState.', '')
-        self.__lcd.update(1, 0, f'State: {state:>9s}')
+        self.__lcd.update(1, 0, f'State:     {state:>9s}')
 
     def __drawLcdDisplay(self):
         # 0123456789012345
         # Now: ###.#  AUTO
         now = self.__lastTemperature
         mode = str(Settings.instance().mode).replace('Mode.', '')
-        self.__lcd.update(0, 0, f'Now: {now:<5.1f}{mode:>6s}')
+        self.__lcd.update(0, 0, f'Now:     {now:<5.1f}{mode:>6s}')
         self.__drawRowTwoInvoker.invokeCurrent()
         self.__lcd.commit()
 

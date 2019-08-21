@@ -53,7 +53,7 @@ class TerminalHardwareDriver(GenericHardwareDriver):
         super().__init__(
             eventBus=eventBus,
             loopSleep=0.1,
-            lcd=TerminalDisplay(self.__displayWin, 16, 2),
+            lcd=TerminalDisplay(self.__displayWin, 20, 4),
             sensor=self.__environmentSensor,
             buttons=self.__buttonMap.values(),
         )
