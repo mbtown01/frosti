@@ -316,7 +316,8 @@ class GenericHardwareDriver(EventHandler):
         # Now: ###.#  AUTO
         now = self.__lastTemperature
         mode = str(Settings.instance().mode).replace('Mode.', '')
-        self.__lcd.update(0, 0, f'Now:     {now:<5.1f}{mode:>6s}')
+        self.__lcd.update(0, 0, f'Now: {now:<5.1f}    {mode:>6s}')
+        self.__lcd.update(3, 0, r'UP  DOWN   SEL  MODE')
         self.__drawRowTwoInvoker.invokeCurrent()
         self.__lcd.commit()
 

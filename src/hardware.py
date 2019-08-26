@@ -74,7 +74,10 @@ class Lcd1602Display(GenericLcdDisplay):
         y = min(self.height-1, max(0, y))
 
         # Move cursor
-        addr = 0x80 + 0x40 * y + x
+        if y < 2:
+            addr = 0x80 + 0x40 * y + x
+        else:
+            addr = 0x80 + self.width + 0x40 * (y-2) + x
         self.__send_command(addr)
 
         for chr in str:

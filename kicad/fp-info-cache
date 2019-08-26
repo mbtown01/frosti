@@ -1,4 +1,4 @@
-137845039836550
+148840800972550
 Battery_Holders
 Bulgin_BX0036_1xC
 
@@ -51051,6 +51051,13 @@ SolderWirePad_single_SMD_5x10mm
 0
 0
 project_footprints
+20X4_LCD
+
+
+0
+0
+0
+project_footprints
 AGQ210A03
 
 
@@ -51064,3 +51071,45 @@ LlamaHead
 0
 0
 0
+project_footprints
+RasperryPi_Zero
+
+
+0
+0
+0
+project_footprints
+SMA
+<b>SMA</b> CASE 403D-02<p>Source: http://www.onsemi.com/pub_link/Collateral/MBRA340T3-D.PDF
+
+0
+2
+2
+project_footprints
+SOD523
+<li><b>SOD523</b><hr> <ul><li>Plastic surface-mounted package; 2 leads<li><u>JEDEC</u>: -- <li><u>IEC</u>: -- <li><u>JEITA</u>: SC-79</ul>
+
+0
+2
+2
+project_footprints
+SOT23
+<b>SMALL OUTLINE TRANSISTOR</b><p>reflow soldering
+
+0
+3
+3
+project_footprints
+SSOP-16_GN
+
+
+0
+16
+16
+project_footprints
+TE_1827585-1
+
+
+0
+12
+12

@@ -1,6 +1,7 @@
 from queue import Queue
 from time import sleep
 from curses import wrapper
+from os import popen
 import logging
 
 from src.logging import log, setupLogging
@@ -27,15 +28,15 @@ def main(stdscr):
     ApiEventHandler.instance().start('API Event Driver')
     thermostat.start('Thermostat Driver')
 
-    try:
-        from src.hardware import HardwareDriver
-        hardwareDriver = HardwareDriver(eventBus)
-        setupLogging()
-    except ModuleNotFoundError:
+    if stdscr is not None:
         messageQueue = Queue(128)
         setupLogging(messageQueue)
         hardwareDriver = TerminalHardwareDriver(
             stdscr, messageQueue, eventBus)
+    else:
+        from src.hardware import HardwareDriver
+        hardwareDriver = HardwareDriver(eventBus)
+        setupLogging()
 
     # Start all handlers on their own theads
     hardwareDriver.start('Hardware Driver')
@@ -45,4 +46,8 @@ def main(stdscr):
     hardwareDriver.join()
 
 if __name__ == '__main__':
-    wrapper(main)
+    uname = popen('uname -a').read()
+    if uname.startswith('Darwin'):
+        wrapper(main)
+    else:
+        main(None)

@@ -5,10 +5,10 @@ EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
-Title ""
-Date "15 nov 2012"
-Rev ""
-Comp ""
+Title "PoE Thermostat"
+Date "2019-08-24"
+Rev "1"
+Comp "Madllama Electronics"
 Comment1 ""
 Comment2 ""
 Comment3 ""
@@ -156,15 +156,13 @@ GPIO14(TXD0)
 Wire Wire Line
 	3000 1300 2900 1300
 Connection ~ 3000 1700
-Text Notes 650  7600 0    50   ~ 0
-ID_SD and ID_SC PINS:\nThese pins are reserved for HAT ID EEPROM.\n\nAt boot time this I2C interface will be\ninterrogated to look for an EEPROM\nthat identifes the attached board and\nallows automagic setup of the GPIOs\n(and optionally, Linux drivers).\n\nDO NOT USE these pins for anything other\nthan attaching an I2C ID EEPROM. Leave\nunconnected if ID EEPROM not required.
 $Comp
-L Connector_Generic:Conn_02x20_Odd_Even P1
+L Connector_Generic:Conn_02x20_Odd_Even CONN1
 U 1 1 59AD464A
 P 2600 2000
-F 0 "P1" H 2650 3117 50  0000 C CNN
+F 0 "CONN1" H 2650 3117 50  0000 C CNN
 F 1 "Conn_02x20_Odd_Even" H 2650 3026 50  0000 C CNN
-F 2 "Connector_PinSocket_2.54mm:PinSocket_2x20_P2.54mm_Vertical" H -2250 1050 50  0001 C CNN
+F 2 "Socket_Strips:Socket_Strip_Straight_2x20_Pitch2.54mm" H -2250 1050 50  0001 C CNN
 F 3 "" H -2250 1050 50  0001 C CNN
 	1    2600 2000
 	1    0    0    -1  
@@ -185,66 +183,6 @@ Wire Wire Line
 	2300 2300 2300 3000
 Wire Wire Line
 	3000 1700 3000 2000
-$Comp
-L Switch:SW_Push SW_ENTER1
-U 1 1 5D5A1B56
-P 1900 5650
-F 0 "SW_ENTER1" H 1900 5843 50  0000 C CNN
-F 1 "SW_ENTER" H 1900 5844 50  0001 C CNN
-F 2 "Buttons_Switches_SMD:SW_SPST_EVPBF" H 1900 5850 50  0001 C CNN
-F 3 "~" H 1900 5850 50  0001 C CNN
-	1    1900 5650
-	1    0    0    -1  
-$EndComp
-$Comp
-L Switch:SW_Push SW_DOWN1
-U 1 1 5D5A0BE1
-P 1900 5200
-F 0 "SW_DOWN1" H 1900 5393 50  0000 C CNN
-F 1 "SW_DOWN" H 1900 5394 50  0001 C CNN
-F 2 "Buttons_Switches_SMD:SW_SPST_EVPBF" H 1900 5400 50  0001 C CNN
-F 3 "~" H 1900 5400 50  0001 C CNN
-	1    1900 5200
-	1    0    0    -1  
-$EndComp
-$Comp
-L Switch:SW_Push SW_MODE1
-U 1 1 5D59E237
-P 1900 4300
-F 0 "SW_MODE1" H 1900 4493 50  0000 C CNN
-F 1 "SW_MODE" H 1900 4494 50  0001 C CNN
-F 2 "Buttons_Switches_SMD:SW_SPST_EVPBF" H 1900 4500 50  0001 C CNN
-F 3 "~" H 1900 4500 50  0001 C CNN
-	1    1900 4300
-	1    0    0    -1  
-$EndComp
-$Comp
-L Switch:SW_Push SW_UP1
-U 1 1 5D59B864
-P 1900 4750
-F 0 "SW_UP1" H 1900 4943 50  0000 C CNN
-F 1 "SW_UP" H 1900 4944 50  0001 C CNN
-F 2 "Buttons_Switches_SMD:SW_SPST_EVPBF" H 1900 4950 50  0001 C CNN
-F 3 "~" H 1900 4950 50  0001 C CNN
-	1    1900 4750
-	1    0    0    -1  
-$EndComp
-Text Label 850  4300 0    50   ~ 0
-GPIO16
-Text Label 850  4750 0    50   ~ 0
-GPIO20(SPI1_MOSI)
-Text Label 850  5200 0    50   ~ 0
-GPIO21(SPI1_SCK)
-Text Label 850  5650 0    50   ~ 0
-GPIO12(PWM0)
-Wire Wire Line
-	1700 4300 850  4300
-Wire Wire Line
-	1700 4750 850  4750
-Wire Wire Line
-	1700 5200 850  5200
-Wire Wire Line
-	1700 5650 850  5650
 Text Label 3100 750  0    50   ~ 0
 PWR_5V
 Text Label 2200 750  0    50   ~ 0
@@ -263,22 +201,6 @@ Wire Wire Line
 	2300 3000 2300 3200
 Wire Wire Line
 	2300 3200 3000 3200
-Text Label 2500 4300 0    50   ~ 0
-PWR_3.3V
-Text Label 2500 4750 0    50   ~ 0
-PWR_3.3V
-Text Label 2500 5200 0    50   ~ 0
-PWR_3.3V
-Text Label 2500 5650 0    50   ~ 0
-PWR_3.3V
-Wire Wire Line
-	2100 5650 2500 5650
-Wire Wire Line
-	2100 5200 2500 5200
-Wire Wire Line
-	2100 4750 2500 4750
-Wire Wire Line
-	2100 4300 2500 4300
 $Comp
 L Connector:Screw_Terminal_01x04 THERM_CONN1
 U 1 1 5D5B6FC9
@@ -307,58 +229,61 @@ Wire Wire Line
 Wire Wire Line
 	8850 1350 9650 1350
 $Comp
-L thermostat-rescue:Relay?-thermostat-rescue RELAY_FAN1
+L thermostat-rescue:Relay?-thermostat-rescue RELAY1
 U 1 1 5D5E9059
 P 6200 1250
-F 0 "RELAY_FAN1" V 6350 1450 50  0001 C CNN
+F 0 "RELAY1" V 6350 1450 50  0001 C CNN
 F 1 "RELAY_FAN" H 6200 1573 50  0000 C CNN
 F 2 "project_footprints:AGQ210A03" V 6350 1450 50  0001 C CNN
 F 3 "" V 6350 1450 50  0001 C CNN
+F 4 "AGQ210A03" H 6200 1250 50  0001 C CNN "MPN"
+F 5 "1" H 6200 1250 50  0001 C CNN "Populate"
+F 6 "AGQ210A03" H 6200 1250 50  0001 C CNN "Package"
 	1    6200 1250
 	1    0    0    -1  
 $EndComp
 $Comp
 L thermostat-rescue:Mounting_Hole-Mechanical-thermostat-rescue MK1
 U 1 1 5D5E9722
-P 2950 6550
-F 0 "MK1" H 3050 6596 50  0000 L CNN
-F 1 "Mounting_Hole-Mechanical" H 3050 6505 50  0000 L CNN
-F 2 "Mounting_Holes:MountingHole_2.5mm_Pad" H 2950 6550 50  0001 C CNN
-F 3 "" H 2950 6550 50  0001 C CNN
-	1    2950 6550
+P 800 6800
+F 0 "MK1" H 900 6846 50  0000 L CNN
+F 1 "Mounting_Hole-Mechanical" H 900 6755 50  0000 L CNN
+F 2 "Mounting_Holes:MountingHole_2.5mm_Pad" H 800 6800 50  0001 C CNN
+F 3 "" H 800 6800 50  0001 C CNN
+	1    800  6800
 	1    0    0    -1  
 $EndComp
 $Comp
 L thermostat-rescue:Mounting_Hole-Mechanical-thermostat-rescue MK2
 U 1 1 5D5F78A7
-P 2950 6800
-F 0 "MK2" H 3050 6846 50  0000 L CNN
-F 1 "Mounting_Hole-Mechanical" H 3050 6755 50  0000 L CNN
-F 2 "Mounting_Holes:MountingHole_2.5mm_Pad" H 2950 6800 50  0001 C CNN
-F 3 "" H 2950 6800 50  0001 C CNN
-	1    2950 6800
+P 800 7050
+F 0 "MK2" H 900 7096 50  0000 L CNN
+F 1 "Mounting_Hole-Mechanical" H 900 7005 50  0000 L CNN
+F 2 "Mounting_Holes:MountingHole_2.5mm_Pad" H 800 7050 50  0001 C CNN
+F 3 "" H 800 7050 50  0001 C CNN
+	1    800  7050
 	1    0    0    -1  
 $EndComp
 $Comp
 L thermostat-rescue:Mounting_Hole-Mechanical-thermostat-rescue MK3
 U 1 1 5D5F9275
-P 2950 7050
-F 0 "MK3" H 3050 7096 50  0000 L CNN
-F 1 "Mounting_Hole-Mechanical" H 3050 7005 50  0000 L CNN
-F 2 "Mounting_Holes:MountingHole_2.5mm_Pad" H 2950 7050 50  0001 C CNN
-F 3 "" H 2950 7050 50  0001 C CNN
-	1    2950 7050
+P 800 7300
+F 0 "MK3" H 900 7346 50  0000 L CNN
+F 1 "Mounting_Hole-Mechanical" H 900 7255 50  0000 L CNN
+F 2 "Mounting_Holes:MountingHole_2.5mm_Pad" H 800 7300 50  0001 C CNN
+F 3 "" H 800 7300 50  0001 C CNN
+	1    800  7300
 	1    0    0    -1  
 $EndComp
 $Comp
 L thermostat-rescue:Mounting_Hole-Mechanical-thermostat-rescue MK4
 U 1 1 5D5FAC9B
-P 2950 7300
-F 0 "MK4" H 3050 7346 50  0000 L CNN
-F 1 "Mounting_Hole-Mechanical" H 3050 7255 50  0000 L CNN
-F 2 "Mounting_Holes:MountingHole_2.5mm_Pad" H 2950 7300 50  0001 C CNN
-F 3 "" H 2950 7300 50  0001 C CNN
-	1    2950 7300
+P 800 7550
+F 0 "MK4" H 900 7596 50  0000 L CNN
+F 1 "Mounting_Hole-Mechanical" H 900 7505 50  0000 L CNN
+F 2 "Mounting_Holes:MountingHole_2.5mm_Pad" H 800 7550 50  0001 C CNN
+F 3 "" H 800 7550 50  0001 C CNN
+	1    800  7550
 	1    0    0    -1  
 $EndComp
 Text Label 6550 1050 0    50   ~ 0
@@ -378,13 +303,15 @@ HVAC_FAN(GREEN)
 Text Label 5850 1300 2    50   ~ 0
 HVAC_PWR(RED)
 $Comp
-L thermostat-rescue:Relay?-thermostat-rescue RELAY_HEAT1
+L thermostat-rescue:Relay?-thermostat-rescue RELAY2
 U 1 1 5D5EC4AE
 P 6200 1950
-F 0 "RELAY_HEAT1" V 6350 2150 50  0001 C CNN
+F 0 "RELAY2" V 6350 2150 50  0001 C CNN
 F 1 "RELAY_HEAT" H 6200 2273 50  0000 C CNN
 F 2 "project_footprints:AGQ210A03" V 6350 2150 50  0001 C CNN
 F 3 "" V 6350 2150 50  0001 C CNN
+F 4 "AGQ210A03" H 6200 1950 50  0001 C CNN "MPN"
+F 5 "1" H 6200 1950 50  0001 C CNN "Populate"
 	1    6200 1950
 	1    0    0    -1  
 $EndComp
@@ -405,13 +332,16 @@ HVAC_HEAT(WHITE)
 Text Label 5850 2000 2    50   ~ 0
 HVAC_PWR(RED)
 $Comp
-L thermostat-rescue:Relay?-thermostat-rescue RELAY_COOL1
+L thermostat-rescue:Relay?-thermostat-rescue RELAY3
 U 1 1 5D5EE68E
 P 6200 2650
-F 0 "RELAY_COOL1" V 6350 2850 50  0001 C CNN
+F 0 "RELAY3" V 6350 2850 50  0001 C CNN
 F 1 "RELAY_COOL" H 6200 2973 50  0000 C CNN
 F 2 "project_footprints:AGQ210A03" V 6350 2850 50  0001 C CNN
 F 3 "" V 6350 2850 50  0001 C CNN
+F 4 "" H 6200 2650 50  0001 C CNN "TEST"
+F 5 "AGQ210A03" H 6200 2650 50  0001 C CNN "MPN"
+F 6 "1" H 6200 2650 50  0001 C CNN "Populate"
 	1    6200 2650
 	1    0    0    -1  
 $EndComp
@@ -431,4 +361,177 @@ Text Label 5850 2600 2    50   ~ 0
 HVAC_COOL(YELLOW)
 Text Label 5850 2700 2    50   ~ 0
 HVAC_PWR(RED)
+Wire Wire Line
+	2100 4300 2500 4300
+Wire Wire Line
+	2100 4750 2500 4750
+Wire Wire Line
+	2100 5200 2500 5200
+Wire Wire Line
+	2100 5650 2500 5650
+Text Label 2500 5650 0    50   ~ 0
+PWR_3.3V
+Text Label 2500 5200 0    50   ~ 0
+PWR_3.3V
+Text Label 2500 4750 0    50   ~ 0
+PWR_3.3V
+Text Label 2500 4300 0    50   ~ 0
+PWR_3.3V
+Wire Wire Line
+	1700 5650 850  5650
+Wire Wire Line
+	1700 5200 850  5200
+Wire Wire Line
+	1700 4750 850  4750
+Wire Wire Line
+	1700 4300 850  4300
+Text Label 850  5650 0    50   ~ 0
+GPIO12(PWM0)
+Text Label 850  5200 0    50   ~ 0
+GPIO21(SPI1_SCK)
+Text Label 850  4750 0    50   ~ 0
+GPIO20(SPI1_MOSI)
+Text Label 850  4300 0    50   ~ 0
+GPIO16
+$Comp
+L Switch:SW_Push SW_UP1
+U 1 1 5D59B864
+P 1900 4750
+F 0 "SW_UP1" H 1900 4943 50  0000 C CNN
+F 1 "SW_UP" H 1900 4944 50  0001 C CNN
+F 2 "Buttons_Switches_SMD:SW_SPST_EVPBF" H 1900 4950 50  0001 C CNN
+F 3 "~" H 1900 4950 50  0001 C CNN
+	1    1900 4750
+	1    0    0    -1  
+$EndComp
+$Comp
+L Switch:SW_Push SW_MODE1
+U 1 1 5D59E237
+P 1900 4300
+F 0 "SW_MODE1" H 1900 4493 50  0000 C CNN
+F 1 "SW_MODE" H 1900 4494 50  0001 C CNN
+F 2 "Buttons_Switches_SMD:SW_SPST_EVPBF" H 1900 4500 50  0001 C CNN
+F 3 "~" H 1900 4500 50  0001 C CNN
+	1    1900 4300
+	1    0    0    -1  
+$EndComp
+$Comp
+L Switch:SW_Push SW_DOWN1
+U 1 1 5D5A0BE1
+P 1900 5200
+F 0 "SW_DOWN1" H 1900 5393 50  0000 C CNN
+F 1 "SW_DOWN" H 1900 5394 50  0001 C CNN
+F 2 "Buttons_Switches_SMD:SW_SPST_EVPBF" H 1900 5400 50  0001 C CNN
+F 3 "~" H 1900 5400 50  0001 C CNN
+	1    1900 5200
+	1    0    0    -1  
+$EndComp
+$Comp
+L Switch:SW_Push SW_ENTER1
+U 1 1 5D5A1B56
+P 1900 5650
+F 0 "SW_ENTER1" H 1900 5843 50  0000 C CNN
+F 1 "SW_ENTER" H 1900 5844 50  0001 C CNN
+F 2 "Buttons_Switches_SMD:SW_SPST_EVPBF" H 1900 5850 50  0001 C CNN
+F 3 "~" H 1900 5850 50  0001 C CNN
+	1    1900 5650
+	1    0    0    -1  
+$EndComp
+Text HLabel 3800 750  0    50   Input ~ 0
+TEST
+$Comp
+L Connector_Generic:Conn_01x04 J1
+U 1 1 5D66FD1D
+P 9500 3100
+F 0 "J1" H 9580 3092 50  0000 L CNN
+F 1 "Display i2c" H 9580 3001 50  0000 L CNN
+F 2 "Socket_Strips:Socket_Strip_Angled_1x04_Pitch2.54mm" H 9500 3100 50  0001 C CNN
+F 3 "~" H 9500 3100 50  0001 C CNN
+	1    9500 3100
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector_Generic:Conn_01x04 J2
+U 1 1 5D67AFA8
+P 9500 3600
+F 0 "J2" H 9580 3592 50  0000 L CNN
+F 1 "Sensor i2c" H 9580 3501 50  0000 L CNN
+F 2 "Socket_Strips:Socket_Strip_Straight_1x04_Pitch2.54mm" H 9500 3600 50  0001 C CNN
+F 3 "~" H 9500 3600 50  0001 C CNN
+	1    9500 3600
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector_Generic:Conn_01x04 J3
+U 1 1 5D685426
+P 4850 5700
+F 0 "J3" H 4930 5692 50  0000 L CNN
+F 1 "PoE Input" H 4930 5601 50  0000 L CNN
+F 2 "Socket_Strips:Socket_Strip_Angled_1x04_Pitch2.54mm" H 4850 5700 50  0001 C CNN
+F 3 "~" H 4850 5700 50  0001 C CNN
+	1    4850 5700
+	-1   0    0    1   
+$EndComp
+$Comp
+L Connector_Generic:Conn_01x04 J4
+U 1 1 5D687A2E
+P 4850 5100
+F 0 "J4" H 4930 5092 50  0000 L CNN
+F 1 "PoE Output" H 4930 5001 50  0000 L CNN
+F 2 "Socket_Strips:Socket_Strip_Angled_1x04_Pitch2.54mm" H 4850 5100 50  0001 C CNN
+F 3 "~" H 4850 5100 50  0001 C CNN
+	1    4850 5100
+	-1   0    0    1   
+$EndComp
+$Comp
+L thermostat:1827585-1 J5
+U 1 1 5D644363
+P 5750 5350
+F 0 "J5" H 6029 5363 50  0000 L CNN
+F 1 "1827585-1" H 6029 5272 50  0000 L CNN
+F 2 "TE_1827585-1" H 5750 5350 50  0001 L BNN
+F 3 "Compliant" H 5750 5350 50  0001 L BNN
+F 4 "1827585-1" H 5750 5350 50  0001 L BNN "Field4"
+F 5 "https://www.te.com/usa-en/product-1827585-1.html?te_bu=Cor&te_type=disp&te_campaign=seda_glo_cor-seda-global-disp-prtnr-fy19-seda-model-bom-cta_sma-317_1&elqCampaignId=32493" H 5750 5350 50  0001 L BNN "Field5"
+F 6 "Conn RJ-45 F 8 POS 2.04mm Solder RA Thru-Hole 8 Terminal 1 Port Tray" H 5750 5350 50  0001 L BNN "Field6"
+F 7 "1827585-1" H 5750 5350 50  0001 L BNN "Field7"
+F 8 "Unavailable" H 5750 5350 50  0001 L BNN "Field8"
+F 9 "TE Connectivity" H 5750 5350 50  0001 L BNN "Field9"
+F 10 "None" H 5750 5350 50  0001 L BNN "Field10"
+F 11 "None" H 5750 5350 50  0001 L BNN "Field11"
+	1    5750 5350
+	1    0    0    -1  
+$EndComp
+Text Label 9100 3000 2    50   ~ 0
+GND
+Text Label 9100 3100 2    50   ~ 0
+PWR_5V
+Text Label 9100 3200 2    50   ~ 0
+GPIO2(SDA1)
+Text Label 9100 3300 2    50   ~ 0
+GPIO3(SCL1)
+Text Label 9100 3500 2    50   ~ 0
+GPIO2(SDA1)
+Text Label 9100 3600 2    50   ~ 0
+GPIO3(SCL1)
+Text Label 9100 3700 2    50   ~ 0
+GND
+Text Label 9100 3800 2    50   ~ 0
+PWR_5V
+Wire Wire Line
+	9100 3000 9300 3000
+Wire Wire Line
+	9100 3100 9300 3100
+Wire Wire Line
+	9300 3200 9100 3200
+Wire Wire Line
+	9100 3300 9300 3300
+Wire Wire Line
+	9300 3500 9100 3500
+Wire Wire Line
+	9300 3600 9100 3600
+Wire Wire Line
+	9100 3700 9300 3700
+Wire Wire Line
+	9300 3800 9100 3800
 $EndSCHEMATC
