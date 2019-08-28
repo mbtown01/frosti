@@ -7,6 +7,14 @@ AdaFruit PoE module https://www.adafruit.com/product/3847
 AdaFruit PoE datasheet https://cdn-shop.adafruit.com/product-files/3847/C11556-001+WC-PD13C050S.pdf
 RPi 3B+ Layout https://www.raspberrypi-spy.co.uk/2018/03/introducing-raspberry-pi-3-b-plus-computer/
 Article on Pi3B+ PoE pinouts https://hackaday.com/2018/06/01/raspberry-pis-power-over-ethernet-hardware-sparks-false-spying-hubub/
+
+Below is ~$9 and we only need the 4 power pins from it, but will have to CAD a footprint manually
 RJ45 Header https://www.digikey.com/product-detail/en/molex/0857891001/WM6354-ND/2754303
+
+Looking at the pi vertically with the jacks at the bottom, the 4-pin PoE header starting at midnight
+and going clockwise is TR00, TR02, TR03, TR01 orderd just like at
+https://www.electronicdesign.com/embedded-revolution/raspberry-pi-3-b-adds-poe-support
+Orange TR00, Yellow TR02, Blue TR03, Green TR01
+
 
 M2 screws for standoffs

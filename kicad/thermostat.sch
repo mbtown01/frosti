@@ -1,6 +1,6 @@
 EESchema Schematic File Version 4
 LIBS:thermostat-cache
-EELAYER 30 0
+EELAYER 29 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
@@ -370,13 +370,13 @@ Wire Wire Line
 Wire Wire Line
 	2100 5650 2500 5650
 Text Label 2500 5650 0    50   ~ 0
-PWR_3.3V
+PWR_5V
 Text Label 2500 5200 0    50   ~ 0
-PWR_3.3V
+PWR_5V
 Text Label 2500 4750 0    50   ~ 0
-PWR_3.3V
+PWR_5V
 Text Label 2500 4300 0    50   ~ 0
-PWR_3.3V
+PWR_5V
 Wire Wire Line
 	1700 5650 850  5650
 Wire Wire Line
@@ -445,7 +445,7 @@ U 1 1 5D66FD1D
 P 9500 3100
 F 0 "J1" H 9580 3092 50  0000 L CNN
 F 1 "Display i2c" H 9580 3001 50  0000 L CNN
-F 2 "Socket_Strips:Socket_Strip_Angled_1x04_Pitch2.54mm" H 9500 3100 50  0001 C CNN
+F 2 "Pin_Headers:Pin_Header_Angled_1x04_Pitch2.54mm" H 9500 3100 50  0001 C CNN
 F 3 "~" H 9500 3100 50  0001 C CNN
 	1    9500 3100
 	1    0    0    -1  
@@ -459,47 +459,6 @@ F 1 "Sensor i2c" H 9580 3501 50  0000 L CNN
 F 2 "Socket_Strips:Socket_Strip_Straight_1x04_Pitch2.54mm" H 9500 3600 50  0001 C CNN
 F 3 "~" H 9500 3600 50  0001 C CNN
 	1    9500 3600
-	1    0    0    -1  
-$EndComp
-$Comp
-L Connector_Generic:Conn_01x04 J3
-U 1 1 5D685426
-P 4850 5700
-F 0 "J3" H 4930 5692 50  0000 L CNN
-F 1 "PoE Input" H 4930 5601 50  0000 L CNN
-F 2 "Socket_Strips:Socket_Strip_Angled_1x04_Pitch2.54mm" H 4850 5700 50  0001 C CNN
-F 3 "~" H 4850 5700 50  0001 C CNN
-	1    4850 5700
-	-1   0    0    1   
-$EndComp
-$Comp
-L Connector_Generic:Conn_01x04 J4
-U 1 1 5D687A2E
-P 4850 5100
-F 0 "J4" H 4930 5092 50  0000 L CNN
-F 1 "PoE Output" H 4930 5001 50  0000 L CNN
-F 2 "Socket_Strips:Socket_Strip_Angled_1x04_Pitch2.54mm" H 4850 5100 50  0001 C CNN
-F 3 "~" H 4850 5100 50  0001 C CNN
-	1    4850 5100
-	-1   0    0    1   
-$EndComp
-$Comp
-L thermostat:1827585-1 J5
-U 1 1 5D644363
-P 5750 5350
-F 0 "J5" H 6029 5363 50  0000 L CNN
-F 1 "1827585-1" H 6029 5272 50  0000 L CNN
-F 2 "TE_1827585-1" H 5750 5350 50  0001 L BNN
-F 3 "Compliant" H 5750 5350 50  0001 L BNN
-F 4 "1827585-1" H 5750 5350 50  0001 L BNN "Field4"
-F 5 "https://www.te.com/usa-en/product-1827585-1.html?te_bu=Cor&te_type=disp&te_campaign=seda_glo_cor-seda-global-disp-prtnr-fy19-seda-model-bom-cta_sma-317_1&elqCampaignId=32493" H 5750 5350 50  0001 L BNN "Field5"
-F 6 "Conn RJ-45 F 8 POS 2.04mm Solder RA Thru-Hole 8 Terminal 1 Port Tray" H 5750 5350 50  0001 L BNN "Field6"
-F 7 "1827585-1" H 5750 5350 50  0001 L BNN "Field7"
-F 8 "Unavailable" H 5750 5350 50  0001 L BNN "Field8"
-F 9 "TE Connectivity" H 5750 5350 50  0001 L BNN "Field9"
-F 10 "None" H 5750 5350 50  0001 L BNN "Field10"
-F 11 "None" H 5750 5350 50  0001 L BNN "Field11"
-	1    5750 5350
 	1    0    0    -1  
 $EndComp
 Text Label 9100 3000 2    50   ~ 0
@@ -534,4 +493,51 @@ Wire Wire Line
 	9100 3700 9300 3700
 Wire Wire Line
 	9300 3800 9100 3800
+$Comp
+L Connector_Generic:Conn_01x04 J4
+U 1 1 5D687A2E
+P 4850 5100
+F 0 "J4" H 4930 5092 50  0000 L CNN
+F 1 "PoE Output" H 4930 5001 50  0000 L CNN
+F 2 "Socket_Strips:Socket_Strip_Angled_1x04_Pitch2.54mm" H 4850 5100 50  0001 C CNN
+F 3 "~" H 4850 5100 50  0001 C CNN
+	1    4850 5100
+	-1   0    0    1   
+$EndComp
+$Comp
+L Connector_Generic:Conn_01x04 J3
+U 1 1 5D685426
+P 4850 5700
+F 0 "J3" H 4930 5692 50  0000 L CNN
+F 1 "PoE Input" H 4930 5601 50  0000 L CNN
+F 2 "Socket_Strips:Socket_Strip_Angled_1x04_Pitch2.54mm" H 4850 5700 50  0001 C CNN
+F 3 "~" H 4850 5700 50  0001 C CNN
+	1    4850 5700
+	-1   0    0    1   
+$EndComp
+$Comp
+L thermostat:0857891001 J5
+U 1 1 5D6600E3
+P 5950 5350
+F 0 "J5" H 5950 4635 50  0000 C CNN
+F 1 "0857891001" H 5950 4726 50  0000 C CNN
+F 2 "project_footprints:0857891001" H 5300 5100 50  0001 C CNN
+F 3 "" H 5300 5100 50  0001 C CNN
+	1    5950 5350
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	5550 5500 5300 5500
+Wire Wire Line
+	5300 5500 5300 5800
+Wire Wire Line
+	5300 5800 5050 5800
+Text Label 5200 5200 0    50   ~ 0
+GND
+Text Label 5200 5100 0    50   ~ 0
+PWR_5V
+Wire Wire Line
+	5050 5200 5200 5200
+Wire Wire Line
+	5050 5100 5200 5100
 $EndSCHEMATC
