@@ -445,7 +445,7 @@ U 1 1 5D66FD1D
 P 9500 3100
 F 0 "J1" H 9580 3092 50  0000 L CNN
 F 1 "Display i2c" H 9580 3001 50  0000 L CNN
-F 2 "Pin_Headers:Pin_Header_Angled_1x04_Pitch2.54mm" H 9500 3100 50  0001 C CNN
+F 2 "Pin_Headers:Pin_Header_Straight_1x04_Pitch2.54mm" H 9500 3100 50  0001 C CNN
 F 3 "~" H 9500 3100 50  0001 C CNN
 	1    9500 3100
 	1    0    0    -1  
@@ -499,7 +499,7 @@ U 1 1 5D687A2E
 P 4850 5100
 F 0 "J4" H 4930 5092 50  0000 L CNN
 F 1 "PoE Output" H 4930 5001 50  0000 L CNN
-F 2 "Socket_Strips:Socket_Strip_Angled_1x04_Pitch2.54mm" H 4850 5100 50  0001 C CNN
+F 2 "Pin_Headers:Pin_Header_Straight_1x04_Pitch2.54mm" H 4850 5100 50  0001 C CNN
 F 3 "~" H 4850 5100 50  0001 C CNN
 	1    4850 5100
 	-1   0    0    1   
@@ -510,7 +510,7 @@ U 1 1 5D685426
 P 4850 5700
 F 0 "J3" H 4930 5692 50  0000 L CNN
 F 1 "PoE Input" H 4930 5601 50  0000 L CNN
-F 2 "Socket_Strips:Socket_Strip_Angled_1x04_Pitch2.54mm" H 4850 5700 50  0001 C CNN
+F 2 "Pin_Headers:Pin_Header_Straight_1x04_Pitch2.54mm" H 4850 5700 50  0001 C CNN
 F 3 "~" H 4850 5700 50  0001 C CNN
 	1    4850 5700
 	-1   0    0    1   
