@@ -163,7 +163,8 @@ P 2600 2000
 F 0 "CONN1" H 2650 3117 50  0000 C CNN
 F 1 "Conn_02x20_Odd_Even" H 2650 3026 50  0000 C CNN
 F 2 "Socket_Strips:Socket_Strip_Straight_2x20_Pitch2.54mm" H -2250 1050 50  0001 C CNN
-F 3 "" H -2250 1050 50  0001 C CNN
+F 3 "https://www.mouser.com/datasheet/2/418/NG_CD_534998_P7-1253073.pdf" H -2250 1050 50  0001 C CNN
+F 4 "571-7-534998-0" H 2600 2000 50  0001 C CNN "Mouser"
 	1    2600 2000
 	1    0    0    -1  
 $EndComp
