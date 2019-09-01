@@ -494,23 +494,23 @@ Wire Wire Line
 Wire Wire Line
 	9300 3800 9100 3800
 $Comp
-L Connector_Generic:Conn_01x04 J4
+L Connector_Generic:Conn_01x05 J4
 U 1 1 5D687A2E
 P 4850 5100
 F 0 "J4" H 4930 5092 50  0000 L CNN
 F 1 "PoE Output" H 4930 5001 50  0000 L CNN
-F 2 "Pin_Headers:Pin_Header_Straight_1x04_Pitch2.54mm" H 4850 5100 50  0001 C CNN
+F 2 "project_footprints:M20-7910542R" H 4850 5100 50  0001 C CNN
 F 3 "~" H 4850 5100 50  0001 C CNN
 	1    4850 5100
 	-1   0    0    1   
 $EndComp
 $Comp
-L Connector_Generic:Conn_01x04 J3
+L Connector_Generic:Conn_01x05 J3
 U 1 1 5D685426
 P 4850 5700
 F 0 "J3" H 4930 5692 50  0000 L CNN
 F 1 "PoE Input" H 4930 5601 50  0000 L CNN
-F 2 "Pin_Headers:Pin_Header_Straight_1x04_Pitch2.54mm" H 4850 5700 50  0001 C CNN
+F 2 "project_footprints:M20-7910542R" H 4850 5700 50  0001 C CNN
 F 3 "~" H 4850 5700 50  0001 C CNN
 	1    4850 5700
 	-1   0    0    1   

@@ -201,33 +201,22 @@ Wire Wire Line
 	2300 3000 2300 3200
 Wire Wire Line
 	2300 3200 3000 3200
-$Comp
-L Connector:Screw_Terminal_01x04 THERM_CONN1
-U 1 1 5D5B6FC9
-P 9850 1150
-F 0 "THERM_CONN1" H 9930 1096 50  0000 L CNN
-F 1 "THERM_CONN" H 9930 1051 50  0001 L CNN
-F 2 "TerminalBlocks_Phoenix:TerminalBlock_Phoenix_MPT-2.54mm_4pol" H 9850 1150 50  0001 C CNN
-F 3 "~" H 9850 1150 50  0001 C CNN
-	1    9850 1150
-	1    0    0    -1  
-$EndComp
-Text Label 8850 1050 0    50   ~ 0
+Text Label 8700 1950 0    50   ~ 0
 HVAC_PWR(RED)
-Text Label 8850 1150 0    50   ~ 0
+Text Label 8700 2050 0    50   ~ 0
 HVAC_HEAT(WHITE)
-Text Label 8850 1250 0    50   ~ 0
+Text Label 8700 2150 0    50   ~ 0
 HVAC_COOL(YELLOW)
-Text Label 8850 1350 0    50   ~ 0
+Text Label 8700 2250 0    50   ~ 0
 HVAC_FAN(GREEN)
 Wire Wire Line
-	8850 1050 9650 1050
+	8700 1950 9500 1950
 Wire Wire Line
-	9650 1150 8850 1150
+	9500 2050 8700 2050
 Wire Wire Line
-	8850 1250 9650 1250
+	8700 2150 9500 2150
 Wire Wire Line
-	8850 1350 9650 1350
+	8700 2250 9500 2250
 $Comp
 L thermostat-rescue:Relay?-thermostat-rescue RELAY1
 U 1 1 5D5E9059
@@ -442,102 +431,282 @@ TEST
 $Comp
 L Connector_Generic:Conn_01x04 J1
 U 1 1 5D66FD1D
-P 9500 3100
-F 0 "J1" H 9580 3092 50  0000 L CNN
-F 1 "Display i2c" H 9580 3001 50  0000 L CNN
-F 2 "Pin_Headers:Pin_Header_Straight_1x04_Pitch2.54mm" H 9500 3100 50  0001 C CNN
-F 3 "~" H 9500 3100 50  0001 C CNN
-	1    9500 3100
+P 4950 6500
+F 0 "J1" H 5030 6492 50  0000 L CNN
+F 1 "Display i2c" H 5030 6401 50  0000 L CNN
+F 2 "Pin_Headers:Pin_Header_Straight_1x04_Pitch2.54mm" H 4950 6500 50  0001 C CNN
+F 3 "~" H 4950 6500 50  0001 C CNN
+	1    4950 6500
 	1    0    0    -1  
 $EndComp
 $Comp
 L Connector_Generic:Conn_01x04 J2
 U 1 1 5D67AFA8
-P 9500 3600
-F 0 "J2" H 9580 3592 50  0000 L CNN
-F 1 "Sensor i2c" H 9580 3501 50  0000 L CNN
-F 2 "Socket_Strips:Socket_Strip_Straight_1x04_Pitch2.54mm" H 9500 3600 50  0001 C CNN
-F 3 "~" H 9500 3600 50  0001 C CNN
-	1    9500 3600
+P 4950 7000
+F 0 "J2" H 5030 6992 50  0000 L CNN
+F 1 "Sensor i2c" H 5030 6901 50  0000 L CNN
+F 2 "Socket_Strips:Socket_Strip_Straight_1x04_Pitch2.54mm" H 4950 7000 50  0001 C CNN
+F 3 "~" H 4950 7000 50  0001 C CNN
+	1    4950 7000
 	1    0    0    -1  
 $EndComp
-Text Label 9100 3000 2    50   ~ 0
+Text Label 4550 6400 2    50   ~ 0
 GND
-Text Label 9100 3100 2    50   ~ 0
+Text Label 4550 6500 2    50   ~ 0
 PWR_5V
-Text Label 9100 3200 2    50   ~ 0
+Text Label 4550 6600 2    50   ~ 0
 GPIO2(SDA1)
-Text Label 9100 3300 2    50   ~ 0
+Text Label 4550 6700 2    50   ~ 0
 GPIO3(SCL1)
-Text Label 9100 3500 2    50   ~ 0
+Text Label 4550 6900 2    50   ~ 0
 GPIO2(SDA1)
-Text Label 9100 3600 2    50   ~ 0
+Text Label 4550 7000 2    50   ~ 0
 GPIO3(SCL1)
-Text Label 9100 3700 2    50   ~ 0
+Text Label 4550 7100 2    50   ~ 0
 GND
-Text Label 9100 3800 2    50   ~ 0
+Text Label 4550 7200 2    50   ~ 0
 PWR_5V
 Wire Wire Line
-	9100 3000 9300 3000
+	4550 6400 4750 6400
 Wire Wire Line
-	9100 3100 9300 3100
+	4550 6500 4750 6500
 Wire Wire Line
-	9300 3200 9100 3200
+	4750 6600 4550 6600
 Wire Wire Line
-	9100 3300 9300 3300
+	4550 6700 4750 6700
 Wire Wire Line
-	9300 3500 9100 3500
+	4750 6900 4550 6900
 Wire Wire Line
-	9300 3600 9100 3600
+	4750 7000 4550 7000
 Wire Wire Line
-	9100 3700 9300 3700
+	4550 7100 4750 7100
 Wire Wire Line
-	9300 3800 9100 3800
+	4750 7200 4550 7200
 $Comp
 L Connector_Generic:Conn_01x05 J4
 U 1 1 5D687A2E
-P 4850 5100
-F 0 "J4" H 4930 5092 50  0000 L CNN
-F 1 "PoE Output" H 4930 5001 50  0000 L CNN
-F 2 "project_footprints:M20-7910542R" H 4850 5100 50  0001 C CNN
-F 3 "~" H 4850 5100 50  0001 C CNN
-	1    4850 5100
+P 4500 4100
+F 0 "J4" H 4580 4092 50  0000 L CNN
+F 1 "PoE Output" H 4580 4001 50  0000 L CNN
+F 2 "project_footprints:M20-7910542R" H 4500 4100 50  0001 C CNN
+F 3 "~" H 4500 4100 50  0001 C CNN
+	1    4500 4100
 	-1   0    0    1   
 $EndComp
 $Comp
 L Connector_Generic:Conn_01x05 J3
 U 1 1 5D685426
-P 4850 5700
-F 0 "J3" H 4930 5692 50  0000 L CNN
-F 1 "PoE Input" H 4930 5601 50  0000 L CNN
-F 2 "project_footprints:M20-7910542R" H 4850 5700 50  0001 C CNN
-F 3 "~" H 4850 5700 50  0001 C CNN
-	1    4850 5700
+P 4500 4700
+F 0 "J3" H 4580 4692 50  0000 L CNN
+F 1 "PoE Input" H 4580 4601 50  0000 L CNN
+F 2 "project_footprints:M20-7910542R" H 4500 4700 50  0001 C CNN
+F 3 "~" H 4500 4700 50  0001 C CNN
+	1    4500 4700
 	-1   0    0    1   
 $EndComp
 $Comp
 L thermostat:0857891001 J5
 U 1 1 5D6600E3
-P 5950 5350
-F 0 "J5" H 5950 4635 50  0000 C CNN
-F 1 "0857891001" H 5950 4726 50  0000 C CNN
-F 2 "project_footprints:0857891001" H 5300 5100 50  0001 C CNN
-F 3 "" H 5300 5100 50  0001 C CNN
-	1    5950 5350
+P 5600 4350
+F 0 "J5" H 5600 3635 50  0000 C CNN
+F 1 "0857891001" H 5600 3726 50  0000 C CNN
+F 2 "project_footprints:0857891001" H 4950 4100 50  0001 C CNN
+F 3 "" H 4950 4100 50  0001 C CNN
+	1    5600 4350
 	-1   0    0    1   
 $EndComp
 Wire Wire Line
-	5550 5500 5300 5500
+	5200 4500 4950 4500
 Wire Wire Line
-	5300 5500 5300 5800
+	4950 4500 4950 4800
 Wire Wire Line
-	5300 5800 5050 5800
-Text Label 5200 5200 0    50   ~ 0
+	4950 4800 4700 4800
+Text Label 4850 4200 0    50   ~ 0
 GND
-Text Label 5200 5100 0    50   ~ 0
+Text Label 4850 4100 0    50   ~ 0
 PWR_5V
 Wire Wire Line
-	5050 5200 5200 5200
+	4700 4200 4850 4200
 Wire Wire Line
-	5050 5100 5200 5100
+	4700 4100 4850 4100
+$Comp
+L Regulator_Switching:LM2596S-5 IC1
+U 1 1 5D6B23A7
+P 8900 3600
+F 0 "IC1" H 8900 3967 50  0000 C CNN
+F 1 "LM2596S-5" H 8900 3876 50  0000 C CNN
+F 2 "Package_TO_SOT_SMD:TO-263-5_TabPin3" H 8950 3350 50  0001 L CIN
+F 3 "http://www.ti.com/lit/ds/symlink/lm2596.pdf" H 8900 3600 50  0001 C CNN
+F 4 "926-LM2596S-50" H 8900 3600 50  0001 C CNN "Mouser"
+	1    8900 3600
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector:Screw_Terminal_01x05 J6
+U 1 1 5D6C475A
+P 9700 2150
+F 0 "J6" H 9780 2192 50  0000 L CNN
+F 1 "Screw_Terminal_01x05" H 9780 2101 50  0000 L CNN
+F 2 "" H 9700 2150 50  0001 C CNN
+F 3 "~" H 9700 2150 50  0001 C CNN
+	1    9700 2150
+	1    0    0    -1  
+$EndComp
+Text Label 8700 2350 0    50   ~ 0
+HVAC_COMMON
+Wire Wire Line
+	8700 2350 9500 2350
+Text Label 7000 3500 0    50   ~ 0
+HVAC_PWR(RED)
+Wire Wire Line
+	7000 3500 7800 3500
+Text Label 10950 4200 2    50   ~ 0
+GND
+$Comp
+L Device:D_Small D1
+U 1 1 5D6DC8DD
+P 7900 3500
+F 0 "D1" H 7900 3295 50  0000 C CNN
+F 1 "S1A" H 7900 3386 50  0000 C CNN
+F 2 "Diodes_SMD:D_SOD-123F" V 7900 3500 50  0001 C CNN
+F 3 "https://www.mouser.com/datasheet/2/308/US1AFA-1301710.pdf" V 7900 3500 50  0001 C CNN
+F 4 "512-US1AFA" H 7900 3500 50  0001 C CNN "Mouser"
+	1    7900 3500
+	-1   0    0    1   
+$EndComp
+$Comp
+L Device:D_Small D2
+U 1 1 5D6DD814
+P 9500 4000
+F 0 "D2" V 9454 4068 50  0000 L CNN
+F 1 "SS24" V 9545 4068 50  0000 L CNN
+F 2 "Diodes_SMD:D_SMB" V 9500 4000 50  0001 C CNN
+F 3 "https://www.mouser.com/datasheet/2/427/ss22-59686.pdf" V 9500 4000 50  0001 C CNN
+F 4 "625-SS24-E3" V 9500 4000 50  0001 C CNN "Mouser"
+	1    9500 4000
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:CP C1
+U 1 1 5D6E0E38
+P 8200 4050
+F 0 "C1" H 8318 4096 50  0000 L CNN
+F 1 "100uF/50V" H 8318 4005 50  0000 L CNN
+F 2 "Capacitors_SMD:CP_Elec_8x10" H 8238 3900 50  0001 C CNN
+F 3 "https://www.mouser.com/datasheet/2/315/ABA0000C1184-947404.pdf" H 8200 4050 50  0001 C CNN
+F 4 "667-EEE-FP1H101AV" H 8200 4050 50  0001 C CNN "Mouser"
+	1    8200 4050
+	1    0    0    -1  
+$EndComp
+$Comp
+L pspice:INDUCTOR L1
+U 1 1 5D6EE7D4
+P 9850 3500
+F 0 "L1" H 9850 3715 50  0000 C CNN
+F 1 "150uH" H 9850 3624 50  0000 C CNN
+F 2 "Inductors_SMD:L_Neosid_Ms95a" H 9850 3500 50  0001 C CNN
+F 3 "~" H 9850 3500 50  0001 C CNN
+	1    9850 3500
+	1    0    0    -1  
+$EndComp
+Text Label 7000 4200 0    50   ~ 0
+HVAC_COMMON
+Wire Wire Line
+	7000 4200 8200 4200
+Wire Wire Line
+	10950 4200 10550 4200
+Connection ~ 8200 4200
+Wire Wire Line
+	9500 4100 9500 4200
+Connection ~ 9500 4200
+Wire Wire Line
+	9500 4200 8900 4200
+Wire Wire Line
+	9400 3700 9500 3700
+Wire Wire Line
+	9500 3700 9500 3900
+Wire Wire Line
+	9400 3500 9500 3500
+Wire Wire Line
+	9500 3700 9500 3500
+Connection ~ 9500 3700
+Connection ~ 9500 3500
+Wire Wire Line
+	9500 3500 9600 3500
+Wire Wire Line
+	9500 3700 10200 3700
+Wire Wire Line
+	10200 4000 10200 4200
+Wire Wire Line
+	10200 4200 9500 4200
+Wire Wire Line
+	10100 3500 10200 3500
+Wire Wire Line
+	10200 3500 10200 3700
+Wire Wire Line
+	8000 3500 8200 3500
+Wire Wire Line
+	8900 3900 8900 4200
+Connection ~ 8900 4200
+Wire Wire Line
+	8900 4200 8400 4200
+Wire Wire Line
+	8400 4200 8200 4200
+Connection ~ 8400 4200
+Wire Wire Line
+	8400 3700 8400 4200
+Text Label 10950 3500 2    50   ~ 0
+PWR_5V
+Wire Wire Line
+	10950 3500 10550 3500
+Wire Wire Line
+	8200 3900 8200 3500
+Connection ~ 8200 3500
+Wire Wire Line
+	8200 3500 8400 3500
+$Comp
+L Device:LED D3
+U 1 1 5D754FCE
+P 10550 3650
+F 0 "D3" V 10589 3533 50  0000 R CNN
+F 1 "LED" V 10498 3533 50  0000 R CNN
+F 2 "LEDs:LED_0805" H 10550 3650 50  0001 C CNN
+F 3 "~" H 10550 3650 50  0001 C CNN
+	1    10550 3650
+	0    -1   -1   0   
+$EndComp
+$Comp
+L Device:R_US R1
+U 1 1 5D7582DF
+P 10550 3950
+F 0 "R1" H 10618 3996 50  0000 L CNN
+F 1 "1k" H 10618 3905 50  0000 L CNN
+F 2 "Resistors_SMD:R_0805" V 10590 3940 50  0001 C CNN
+F 3 "~" H 10550 3950 50  0001 C CNN
+	1    10550 3950
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	10550 4200 10550 4100
+Wire Wire Line
+	10550 4200 10200 4200
+Connection ~ 10550 4200
+Connection ~ 10200 4200
+Wire Wire Line
+	10550 3500 10200 3500
+Connection ~ 10550 3500
+Connection ~ 10200 3500
+$Comp
+L Device:CP C2
+U 1 1 5D767EF7
+P 10200 3850
+F 0 "C2" H 10318 3896 50  0000 L CNN
+F 1 "100uF/50V" H 10318 3805 50  0000 L CNN
+F 2 "Capacitors_SMD:CP_Elec_8x10" H 10238 3700 50  0001 C CNN
+F 3 "https://www.mouser.com/datasheet/2/315/ABA0000C1184-947404.pdf" H 10200 3850 50  0001 C CNN
+F 4 "667-EEE-FP1H101AV" H 10200 3850 50  0001 C CNN "Mouser"
+	1    10200 3850
+	1    0    0    -1  
+$EndComp
+Connection ~ 10200 3700
 $EndSCHEMATC
