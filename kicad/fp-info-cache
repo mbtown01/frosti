@@ -1,685 +1,545 @@
-1567349566328
-LEDs
-LED-L1T2_LUMILEDS
+1567361954011
+Buttons_Switches_SMD
+Nidec_Copal_SH-7010A
 
 
 0
 0
 0
-LEDs
-LED_1W_3W_R8
+Buttons_Switches_SMD
+Nidec_Copal_SH-7010B
 
 
 0
 0
 0
-LEDs
-LED_0402
+Buttons_Switches_SMD
+Nidec_Copal_SH-7040B
 
 
 0
 0
 0
-LEDs
-LED_0603
+Buttons_Switches_SMD
+Panasonic_EVQPUJ_EVQPUA
 
 
 0
 0
 0
-LEDs
-LED_0603_HandSoldering
+Buttons_Switches_SMD
+Panasonic_EVQPUK_EVQPUB
 
 
 0
 0
 0
-LEDs
-LED_0606
+Buttons_Switches_SMD
+Panasonic_EVQPUL_EVQPUC
 
 
 0
 0
 0
-LEDs
-LED_0805
+Buttons_Switches_SMD
+Panasonic_EVQPUM_EVQPUD
 
 
 0
 0
 0
-LEDs
-LED_0805_HandSoldering
+Buttons_Switches_SMD
+SW_DIP_x1_W5.08mm_Slide_Copal_CHS-A
 
 
 0
 0
 0
-LEDs
-LED_1206
+Buttons_Switches_SMD
+SW_DIP_x1_W5.9mm_Slide_Copal_CVS
 
 
 0
 0
 0
-LEDs
-LED_1206_HandSoldering
+Buttons_Switches_SMD
+SW_DIP_x1_W7.62mm_Slide_Copal_CHS-B
 
 
 0
 0
 0
-LEDs
-LED_BL-FL7680RGB
+Buttons_Switches_SMD
+SW_DIP_x1_W8.61mm_Slide_LowProfile
 
 
 0
 0
 0
-LEDs
-LED_Cree-PLCC4_2x2mm_CW
+Buttons_Switches_SMD
+SW_DIP_x2_W5.08mm_Slide_Copal_CHS-A
 
 
 0
 0
 0
-LEDs
-LED_Cree-PLCC4_3.2x2.8mm_CCW
+Buttons_Switches_SMD
+SW_DIP_x2_W5.9mm_Slide_Copal_CVS
 
 
 0
 0
 0
-LEDs
-LED_Cree-PLCC4_5x5mm_CW
+Buttons_Switches_SMD
+SW_DIP_x2_W6.15mm_Slide_Omron_A6H
 
 
 0
 0
 0
-LEDs
-LED_Cree-XB
+Buttons_Switches_SMD
+SW_DIP_x2_W7.62mm_Slide_Copal_CHS-B
 
 
 0
 0
 0
-LEDs
-LED_Cree-XH
+Buttons_Switches_SMD
+SW_DIP_x2_W8.61mm_Slide_LowProfile
 
 
 0
 0
 0
-LEDs
-LED_Cree-XHP35
+Buttons_Switches_SMD
+SW_DIP_x3_W5.9mm_Slide_Copal_CVS
 
 
 0
 0
 0
-LEDs
-LED_Cree-XHP50_6V
+Buttons_Switches_SMD
+SW_DIP_x3_W8.61mm_Slide_LowProfile
 
 
 0
 0
 0
-LEDs
-LED_Cree-XHP50_12V
+Buttons_Switches_SMD
+SW_DIP_x4_W5.08mm_Slide_Copal_CHS-A
 
 
 0
 0
 0
-LEDs
-LED_Cree-XHP70_6V
+Buttons_Switches_SMD
+SW_DIP_x4_W5.9mm_Slide_Copal_CVS
 
 
 0
 0
 0
-LEDs
-LED_Cree-XHP70_12V
+Buttons_Switches_SMD
+SW_DIP_x4_W6.15mm_Slide_Omron_A6H
 
 
 0
 0
 0
-LEDs
-LED_Cree-XP
+Buttons_Switches_SMD
+SW_DIP_x4_W7.62mm_Slide_Copal_CHS-B
 
 
 0
 0
 0
-LEDs
-LED_Cree-XP-G
+Buttons_Switches_SMD
+SW_DIP_x4_W8.61mm_Slide_LowProfile
 
 
 0
 0
 0
-LEDs
-LED_Cree-XQ
+Buttons_Switches_SMD
+SW_DIP_x5_W8.61mm_Slide_LowProfile
 
 
 0
 0
 0
-LEDs
-LED_Cree-XQ_HandSoldering
+Buttons_Switches_SMD
+SW_DIP_x6_W5.08mm_Slide_Copal_CHS-A
 
 
 0
 0
 0
-LEDs
-LED_D1.8mm_W1.8mm_H2.4mm_Horizontal_O1.27mm_Z1.6mm
+Buttons_Switches_SMD
+SW_DIP_x6_W6.15mm_Slide_Omron_A6H
 
 
 0
 0
 0
-LEDs
-LED_D1.8mm_W1.8mm_H2.4mm_Horizontal_O1.27mm_Z4.9mm
+Buttons_Switches_SMD
+SW_DIP_x6_W7.62mm_Slide_Copal_CHS-B
 
 
 0
 0
 0
-LEDs
-LED_D1.8mm_W1.8mm_H2.4mm_Horizontal_O1.27mm_Z8.2mm
+Buttons_Switches_SMD
+SW_DIP_x6_W8.61mm_Slide_LowProfile
 
 
 0
 0
 0
-LEDs
-LED_D1.8mm_W1.8mm_H2.4mm_Horizontal_O3.81mm_Z1.6mm
+Buttons_Switches_SMD
+SW_DIP_x7_W8.61mm_Slide_LowProfile
 
 
 0
 0
 0
-LEDs
-LED_D1.8mm_W1.8mm_H2.4mm_Horizontal_O3.81mm_Z4.9mm
+Buttons_Switches_SMD
+SW_DIP_x8_W5.08mm_Slide_Copal_CHS-A
 
 
 0
 0
 0
-LEDs
-LED_D1.8mm_W1.8mm_H2.4mm_Horizontal_O3.81mm_Z8.2mm
+Buttons_Switches_SMD
+SW_DIP_x8_W5.9mm_Slide_Copal_CVS
 
 
 0
 0
 0
-LEDs
-LED_D1.8mm_W1.8mm_H2.4mm_Horizontal_O6.35mm_Z1.6mm
+Buttons_Switches_SMD
+SW_DIP_x8_W6.15mm_Slide_Omron_A6H
 
 
 0
 0
 0
-LEDs
-LED_D1.8mm_W1.8mm_H2.4mm_Horizontal_O6.35mm_Z4.9mm
+Buttons_Switches_SMD
+SW_DIP_x8_W7.62mm_Slide_Copal_CHS-B
 
 
 0
 0
 0
-LEDs
-LED_D1.8mm_W1.8mm_H2.4mm_Horizontal_O6.35mm_Z8.2mm
+Buttons_Switches_SMD
+SW_DIP_x8_W8.61mm_Slide_LowProfile
 
 
 0
 0
 0
-LEDs
-LED_D1.8mm_W3.3mm_H2.4mm
+Buttons_Switches_SMD
+SW_DIP_x9_W8.61mm_Slide_LowProfile
 
 
 0
 0
 0
-LEDs
-LED_D2.0mm_W4.0mm_H2.8mm_FlatTop
+Buttons_Switches_SMD
+SW_DIP_x10_W5.08mm_Slide_Copal_CHS-A
 
 
 0
 0
 0
-LEDs
-LED_D2.0mm_W4.8mm_H2.5mm_FlatTop
+Buttons_Switches_SMD
+SW_DIP_x10_W6.15mm_Slide_Omron_A6H
 
 
 0
 0
 0
-LEDs
-LED_D3.0mm
+Buttons_Switches_SMD
+SW_DIP_x10_W7.62mm_Slide_Copal_CHS-B
 
 
 0
 0
 0
-LEDs
-LED_D3.0mm-3
+Buttons_Switches_SMD
+SW_DIP_x10_W8.61mm_Slide_LowProfile
 
 
 0
 0
 0
-LEDs
-LED_D3.0mm_FlatTop
+Buttons_Switches_SMD
+SW_DIP_x11_W8.61mm_Slide_LowProfile
 
 
 0
 0
 0
-LEDs
-LED_D3.0mm_Horizontal_O1.27mm_Z2.0mm
+Buttons_Switches_SMD
+SW_DIP_x12_W8.61mm_Slide_LowProfile
 
 
 0
 0
 0
-LEDs
-LED_D3.0mm_Horizontal_O1.27mm_Z6.0mm
+Buttons_Switches_SMD
+SW_MEC_5GSH9
 
 
 0
 0
 0
-LEDs
-LED_D3.0mm_Horizontal_O1.27mm_Z10.0mm
+Buttons_Switches_SMD
+SW_SP3T_PCM13
 
 
 0
 0
 0
-LEDs
-LED_D3.0mm_Horizontal_O3.81mm_Z2.0mm
+Buttons_Switches_SMD
+SW_SPDT_CK-JS102011SAQN
 
 
 0
 0
 0
-LEDs
-LED_D3.0mm_Horizontal_O3.81mm_Z6.0mm
+Buttons_Switches_SMD
+SW_SPDT_PCM12
 
 
 0
 0
 0
-LEDs
-LED_D3.0mm_Horizontal_O3.81mm_Z10.0mm
+Buttons_Switches_SMD
+SW_SPST_B3S-1000
 
 
 0
 0
 0
-LEDs
-LED_D3.0mm_Horizontal_O6.35mm_Z2.0mm
+Buttons_Switches_SMD
+SW_SPST_B3S-1100
 
 
 0
 0
 0
-LEDs
-LED_D3.0mm_Horizontal_O6.35mm_Z6.0mm
+Buttons_Switches_SMD
+SW_SPST_B3SL-1002P
 
 
 0
 0
 0
-LEDs
-LED_D3.0mm_Horizontal_O6.35mm_Z10.0mm
+Buttons_Switches_SMD
+SW_SPST_B3SL-1022P
 
 
 0
 0
 0
-LEDs
-LED_D4.0mm
+Buttons_Switches_SMD
+SW_SPST_B3U-1000P
 
 
 0
 0
 0
-LEDs
-LED_D5.0mm
+Buttons_Switches_SMD
+SW_SPST_B3U-1000P-B
 
 
 0
 0
 0
-LEDs
-LED_D5.0mm-3
+Buttons_Switches_SMD
+SW_SPST_B3U-1100P
 
 
 0
 0
 0
-LEDs
-LED_D5.0mm-4
+Buttons_Switches_SMD
+SW_SPST_B3U-1100P-B
 
 
 0
 0
 0
-LEDs
-LED_D5.0mm_FlatTop
+Buttons_Switches_SMD
+SW_SPST_B3U-3000P
 
 
 0
 0
 0
-LEDs
-LED_D5.0mm_Horizontal_O1.27mm_Z3.0mm
+Buttons_Switches_SMD
+SW_SPST_B3U-3000P-B
 
 
 0
 0
 0
-LEDs
-LED_D5.0mm_Horizontal_O1.27mm_Z9.0mm
+Buttons_Switches_SMD
+SW_SPST_B3U-3100P
 
 
 0
 0
 0
-LEDs
-LED_D5.0mm_Horizontal_O1.27mm_Z15.0mm
+Buttons_Switches_SMD
+SW_SPST_B3U-3100P-B
 
 
 0
 0
 0
-LEDs
-LED_D5.0mm_Horizontal_O3.81mm_Z3.0mm
+Buttons_Switches_SMD
+SW_SPST_EVPBF
 
 
 0
 0
 0
-LEDs
-LED_D5.0mm_Horizontal_O3.81mm_Z9.0mm
+Buttons_Switches_SMD
+SW_SPST_EVQP0
 
 
 0
 0
 0
-LEDs
-LED_D5.0mm_Horizontal_O3.81mm_Z15.0mm
+Buttons_Switches_SMD
+SW_SPST_EVQP2
 
 
 0
 0
 0
-LEDs
-LED_D5.0mm_Horizontal_O6.35mm_Z3.0mm
+Buttons_Switches_SMD
+SW_SPST_EVQP7A
 
 
 0
 0
 0
-LEDs
-LED_D5.0mm_Horizontal_O6.35mm_Z9.0mm
+Buttons_Switches_SMD
+SW_SPST_EVQP7C
 
 
 0
 0
 0
-LEDs
-LED_D5.0mm_Horizontal_O6.35mm_Z15.0mm
+Buttons_Switches_SMD
+SW_SPST_EVQPE1
 
 
 0
 0
 0
-LEDs
-LED_D8.0mm
+Buttons_Switches_SMD
+SW_SPST_EVQQ2
 
 
 0
 0
 0
-LEDs
-LED_D8.0mm-3
+Buttons_Switches_SMD
+SW_SPST_FSMSM
 
 
 0
 0
 0
-LEDs
-LED_D10.0mm
+Buttons_Switches_SMD
+SW_SPST_KMR2
 
 
 0
 0
 0
-LEDs
-LED_D10.0mm-3
+Buttons_Switches_SMD
+SW_SPST_KMR2_GNDPad
 
 
 0
 0
 0
-LEDs
-LED_D20.0mm
+Buttons_Switches_SMD
+SW_SPST_PTS645
 
 
 0
 0
 0
-LEDs
-LED_miniPLCC_2315
+Buttons_Switches_SMD
+SW_SPST_PTS810
 
 
 0
 0
 0
-LEDs
-LED_miniPLCC_2315_Handsoldering
+Buttons_Switches_SMD
+SW_SPST_Panasonic_EVQPL_3PL_5PL_PT_A08
 
 
 0
 0
 0
-LEDs
-LED_Normandled_WS2813-06_5.0x5.0mm_Pitch1.6mm
+Buttons_Switches_SMD
+SW_SPST_Panasonic_EVQPL_3PL_5PL_PT_A15
 
 
 0
 0
 0
-LEDs
-LED_Oval_W5.2mm_H3.8mm
+Buttons_Switches_SMD
+SW_SPST_REED_CT05-XXXX-G1
 
 
 0
 0
 0
-LEDs
-LED_PLCC-2
+Buttons_Switches_SMD
+SW_SPST_REED_CT05-XXXX-J1
 
 
 0
 0
 0
-LEDs
-LED_PLCC_2835
+Buttons_Switches_SMD
+SW_SPST_REED_CT10-XXXX-G1
 
 
 0
 0
 0
-LEDs
-LED_PLCC_2835_Handsoldering
+Buttons_Switches_SMD
+SW_SPST_REED_CT10-XXXX-G2
 
 
 0
 0
 0
-LEDs
-LED_Rectangular_W3.0mm_H2.0mm
+Buttons_Switches_SMD
+SW_SPST_REED_CT10-XXXX-G4
 
 
 0
 0
 0
-LEDs
-LED_Rectangular_W3.9mm_H1.8mm
+Buttons_Switches_SMD
+SW_SPST_SKQG
 
 
 0
 0
 0
-LEDs
-LED_Rectangular_W3.9mm_H1.8mm_FlatTop
-
-
-0
-0
-0
-LEDs
-LED_Rectangular_W3.9mm_H1.9mm
-
-
-0
-0
-0
-LEDs
-LED_Rectangular_W5.0mm_H2.0mm
-
-
-0
-0
-0
-LEDs
-LED_Rectangular_W5.0mm_H2.0mm-3pins
-
-
-0
-0
-0
-LEDs
-LED_Rectangular_W5.0mm_H2.0mm_Horizontal_O1.27mm_Z1.0mm
-
-
-0
-0
-0
-LEDs
-LED_Rectangular_W5.0mm_H2.0mm_Horizontal_O1.27mm_Z3.0mm
-
-
-0
-0
-0
-LEDs
-LED_Rectangular_W5.0mm_H2.0mm_Horizontal_O1.27mm_Z5.0mm
-
-
-0
-0
-0
-LEDs
-LED_Rectangular_W5.0mm_H2.0mm_Horizontal_O3.81mm_Z1.0mm
-
-
-0
-0
-0
-LEDs
-LED_Rectangular_W5.0mm_H2.0mm_Horizontal_O3.81mm_Z3.0mm
-
-
-0
-0
-0
-LEDs
-LED_Rectangular_W5.0mm_H2.0mm_Horizontal_O3.81mm_Z5.0mm
-
-
-0
-0
-0
-LEDs
-LED_Rectangular_W5.0mm_H2.0mm_Horizontal_O6.35mm_Z1.0mm
-
-
-0
-0
-0
-LEDs
-LED_Rectangular_W5.0mm_H2.0mm_Horizontal_O6.35mm_Z3.0mm
-
-
-0
-0
-0
-LEDs
-LED_Rectangular_W5.0mm_H2.0mm_Horizontal_O6.35mm_Z5.0mm
-
-
-0
-0
-0
-LEDs
-LED_Rectangular_W5.0mm_H5.0mm
-
-
-0
-0
-0
-LEDs
-LED_RGB_1210
-
-
-0
-0
-0
-LEDs
-LED_RGB_5050-6
-
-
-0
-0
-0
-LEDs
-LED_RGB_Getian_GT-P6PRGB4303
-
-
-0
-0
-0
-LEDs
-LED_RGB_PLCC-6
-
-
-0
-0
-0
-LEDs
-LED_SideEmitter_Rectangular_W4.5mm_H1.6mm
-
-
-0
-0
-0
-LEDs
-LED_WS2812-PLCC6
-
-
-0
-0
-0
-LEDs
-LED_WS2812B-PLCC4
+Buttons_Switches_SMD
+SW_SPST_TL3342
 
 
 0

@@ -4,4 +4,28 @@ $CMP 1827585-1
 F Compliant
 $ENDCMP
 #
+$CMP LM2596S-12-RENUM
+D 12V 3A Step-Down Voltage Regulator, TO-263
+K Step-Down Voltage Regulator 12V 3A
+F http://www.ti.com/lit/ds/symlink/lm2596.pdf
+$ENDCMP
+#
+$CMP LM2596S-3.3
+D 3.3V 3A Step-Down Voltage Regulator, TO-263
+K Step-Down Voltage Regulator 3.3V 3A
+F http://www.ti.com/lit/ds/symlink/lm2596.pdf
+$ENDCMP
+#
+$CMP LM2596S-5
+D 5V 3A Step-Down Voltage Regulator, TO-263
+K Step-Down Voltage Regulator 5V 3A
+F http://www.ti.com/lit/ds/symlink/lm2596.pdf
+$ENDCMP
+#
+$CMP LM2596S-ADJ
+D Adjustable 3A Step-Down Voltage Regulator, TO-263
+K Step-Down Voltage Regulator Adjustable 3A
+F http://www.ti.com/lit/ds/symlink/lm2596.pdf
+$ENDCMP
+#
 #End Doc Library
