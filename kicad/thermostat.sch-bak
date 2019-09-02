@@ -598,7 +598,7 @@ F 5 "1" H 9450 4050 50  0001 C CNN "Populate"
 	1    0    0    -1  
 $EndComp
 $Comp
-L thermostat-rescue:Mounting_Hole-Mechanical-thermostat-rescue Pi1
+L thermostat:Mounting_Hole-Mechanical Pi1
 U 1 1 5D6C5FE0
 P 800 6550
 F 0 "Pi1" H 900 6596 50  0000 L CNN
@@ -609,7 +609,7 @@ F 3 "" H 800 6550 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L thermostat-rescue:Mounting_Hole-Mechanical-thermostat-rescue Gr1
+L thermostat:Mounting_Hole-Mechanical Gr1
 U 1 1 5D6CA3D9
 P 800 6300
 F 0 "Gr1" H 900 6346 50  0000 L CNN

@@ -2,3 +2,6 @@
 .coverage
 *.log
 .pytest_cache/v/cache/lastfailed
+kicad/fp-info-cache
+kicad/thermostat.kicad_pcb-bak
+kicad/thermostat.sch-bak
