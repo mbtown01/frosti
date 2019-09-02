@@ -1,4 +1,5 @@
 EESchema Schematic File Version 4
+LIBS:thermostat-cache
 EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
@@ -163,7 +164,7 @@ F 0 "CONN1" H 2650 3117 50  0000 C CNN
 F 1 "Conn_02x20_Odd_Even" H 2650 3026 50  0000 C CNN
 F 2 "Socket_Strips:Socket_Strip_Straight_2x20_Pitch2.54mm" H -2250 1050 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/418/NG_CD_534998_P7-1253073.pdf" H -2250 1050 50  0001 C CNN
-F 4 "571-7-534998-0" H 2600 2000 50  0001 C CNN "Mouser"
+F 4 "485-2243" H 2600 2000 50  0001 C CNN "Mouser"
 F 5 "1" H 2600 2000 50  0001 C CNN "Populate"
 	1    2600 2000
 	1    0    0    -1  
@@ -404,7 +405,8 @@ F 0 "J1" H 9730 2942 50  0000 L CNN
 F 1 "Display i2c" H 9730 2851 50  0000 L CNN
 F 2 "Pin_Headers:Pin_Header_Straight_1x04_Pitch2.54mm" H 9650 2950 50  0001 C CNN
 F 3 "~" H 9650 2950 50  0001 C CNN
-F 4 "1" H 9650 2950 50  0001 C CNN "Populate"
+F 4 "99" H 9650 2950 50  0001 C CNN "Populate"
+F 5 "538-22-28-4044" H 9650 2950 50  0001 C CNN "Mouser"
 	1    9650 2950
 	1    0    0    -1  
 $EndComp
@@ -416,7 +418,8 @@ F 0 "J2" H 9730 3442 50  0000 L CNN
 F 1 "Sensor i2c" H 9730 3351 50  0000 L CNN
 F 2 "Socket_Strips:Socket_Strip_Straight_1x04_Pitch2.54mm" H 9650 3450 50  0001 C CNN
 F 3 "~" H 9650 3450 50  0001 C CNN
-F 4 "1" H 9650 3450 50  0001 C CNN "Populate"
+F 4 "99" H 9650 3450 50  0001 C CNN "Populate"
+F 5 "200-SLW10401SS" H 9650 3450 50  0001 C CNN "Mouser"
 	1    9650 3450
 	1    0    0    -1  
 $EndComp
