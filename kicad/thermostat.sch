@@ -1,6 +1,6 @@
 EESchema Schematic File Version 4
 LIBS:thermostat-cache
-EELAYER 30 0
+EELAYER 29 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
@@ -165,6 +165,7 @@ F 1 "Conn_02x20_Odd_Even" H 2650 3026 50  0000 C CNN
 F 2 "Socket_Strips:Socket_Strip_Straight_2x20_Pitch2.54mm" H -2250 1050 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/418/NG_CD_534998_P7-1253073.pdf" H -2250 1050 50  0001 C CNN
 F 4 "571-7-534998-0" H 2600 2000 50  0001 C CNN "Mouser"
+F 5 "1" H 2600 2000 50  0001 C CNN "Populate"
 	1    2600 2000
 	1    0    0    -1  
 $EndComp
@@ -225,10 +226,9 @@ P 6200 1250
 F 0 "RELAY1" V 6350 1450 50  0001 C CNN
 F 1 "RELAY_FAN" H 6200 1573 50  0000 C CNN
 F 2 "project_footprints:AGQ210A03" V 6350 1450 50  0001 C CNN
-F 3 "" V 6350 1450 50  0001 C CNN
-F 4 "AGQ210A03" H 6200 1250 50  0001 C CNN "MPN"
+F 3 "https://www.mouser.com/datasheet/2/315/mech_eng_gq-1299323.pdf" V 6350 1450 50  0001 C CNN
+F 4 "769-AGQ210A03" H 6200 1250 50  0001 C CNN "Mouser"
 F 5 "1" H 6200 1250 50  0001 C CNN "Populate"
-F 6 "AGQ210A03" H 6200 1250 50  0001 C CNN "Package"
 	1    6200 1250
 	1    0    0    -1  
 $EndComp
@@ -299,8 +299,8 @@ P 6200 1950
 F 0 "RELAY2" V 6350 2150 50  0001 C CNN
 F 1 "RELAY_HEAT" H 6200 2273 50  0000 C CNN
 F 2 "project_footprints:AGQ210A03" V 6350 2150 50  0001 C CNN
-F 3 "" V 6350 2150 50  0001 C CNN
-F 4 "AGQ210A03" H 6200 1950 50  0001 C CNN "MPN"
+F 3 "https://www.mouser.com/datasheet/2/315/mech_eng_gq-1299323.pdf" V 6350 2150 50  0001 C CNN
+F 4 "769-AGQ210A03" H 6200 1950 50  0001 C CNN "Mouser"
 F 5 "1" H 6200 1950 50  0001 C CNN "Populate"
 	1    6200 1950
 	1    0    0    -1  
@@ -328,10 +328,9 @@ P 6200 2650
 F 0 "RELAY3" V 6350 2850 50  0001 C CNN
 F 1 "RELAY_COOL" H 6200 2973 50  0000 C CNN
 F 2 "project_footprints:AGQ210A03" V 6350 2850 50  0001 C CNN
-F 3 "" V 6350 2850 50  0001 C CNN
-F 4 "" H 6200 2650 50  0001 C CNN "TEST"
-F 5 "AGQ210A03" H 6200 2650 50  0001 C CNN "MPN"
-F 6 "1" H 6200 2650 50  0001 C CNN "Populate"
+F 3 "https://www.mouser.com/datasheet/2/315/mech_eng_gq-1299323.pdf" V 6350 2850 50  0001 C CNN
+F 4 "769-AGQ210A03" H 6200 2650 50  0001 C CNN "Mouser"
+F 5 "1" V 6200 2650 50  0001 C CNN "Populate"
 	1    6200 2650
 	1    0    0    -1  
 $EndComp
@@ -392,6 +391,7 @@ F 1 "GPIO16" H 1900 4494 50  0001 C CNN
 F 2 "Buttons_Switches_SMD:SW_SPST_EVPBF" H 1900 4500 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/315/ATK0000C432-1596775.pdf" H 1900 4500 50  0001 C CNN
 F 4 "667-EVP-BFAC1A000" H 1900 4300 50  0001 C CNN "Mouser"
+F 5 "1" H 1900 4300 50  0001 C CNN "Populate"
 	1    1900 4300
 	1    0    0    -1  
 $EndComp
@@ -405,6 +405,7 @@ F 0 "J1" H 5030 6492 50  0000 L CNN
 F 1 "Display i2c" H 5030 6401 50  0000 L CNN
 F 2 "Pin_Headers:Pin_Header_Straight_1x04_Pitch2.54mm" H 4950 6500 50  0001 C CNN
 F 3 "~" H 4950 6500 50  0001 C CNN
+F 4 "1" H 4950 6500 50  0001 C CNN "Populate"
 	1    4950 6500
 	1    0    0    -1  
 $EndComp
@@ -416,6 +417,7 @@ F 0 "J2" H 5030 6992 50  0000 L CNN
 F 1 "Sensor i2c" H 5030 6901 50  0000 L CNN
 F 2 "Socket_Strips:Socket_Strip_Straight_1x04_Pitch2.54mm" H 4950 7000 50  0001 C CNN
 F 3 "~" H 4950 7000 50  0001 C CNN
+F 4 "1" H 4950 7000 50  0001 C CNN "Populate"
 	1    4950 7000
 	1    0    0    -1  
 $EndComp
@@ -460,6 +462,7 @@ F 1 "LM2596S-5" H 8150 4076 50  0000 C CNN
 F 2 "project_footprints:TO170P1435X465-6N" H 8200 3550 50  0001 L CIN
 F 3 "http://www.ti.com/lit/ds/symlink/lm2596.pdf" H 8150 3800 50  0001 C CNN
 F 4 "926-LM2596S-50" H 8150 3800 50  0001 C CNN "Mouser"
+F 5 "1" H 8150 3800 50  0001 C CNN "Populate"
 	1    8150 3800
 	1    0    0    -1  
 $EndComp
@@ -472,6 +475,7 @@ F 1 "Screw_Terminal_01x05" H 9780 2101 50  0000 L CNN
 F 2 "project_footprints:CUI_TB004-508-05BE" H 9700 2150 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/670/tb004-508-1550640.pdf" H 9700 2150 50  0001 C CNN
 F 4 "490-TB004-508-05BE" H 9700 2150 50  0001 C CNN "Mouser"
+F 5 "1" H 9700 2150 50  0001 C CNN "Populate"
 	1    9700 2150
 	1    0    0    -1  
 $EndComp
@@ -494,6 +498,7 @@ F 1 "S1A" H 6750 3586 50  0000 C CNN
 F 2 "Diodes_SMD:D_SOD-123F" V 6750 3700 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/308/US1AFA-1301710.pdf" V 6750 3700 50  0001 C CNN
 F 4 "512-US1AFA" H 6750 3700 50  0001 C CNN "Mouser"
+F 5 "1" H 6750 3700 50  0001 C CNN "Populate"
 	1    6750 3700
 	-1   0    0    1   
 $EndComp
@@ -506,6 +511,7 @@ F 1 "SS24" V 8795 4268 50  0000 L CNN
 F 2 "Diodes_SMD:D_SMB" V 8750 4200 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/427/ss22-59686.pdf" V 8750 4200 50  0001 C CNN
 F 4 "625-SS24-E3" V 8750 4200 50  0001 C CNN "Mouser"
+F 5 "1" H 8750 4200 50  0001 C CNN "Populate"
 	1    8750 4200
 	0    1    1    0   
 $EndComp
@@ -518,6 +524,7 @@ F 1 "150uH" H 9100 3824 50  0000 C CNN
 F 2 "Inductors_SMD:L_Wuerth_WE-PD-Typ-LS" H 9100 3700 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/445/7447773151-1526088.pdf" H 9100 3700 50  0001 C CNN
 F 4 "710-7447773151" H 9100 3700 50  0001 C CNN "Mouser"
+F 5 "1" H 9100 3700 50  0001 C CNN "Populate"
 	1    9100 3700
 	1    0    0    -1  
 $EndComp
@@ -559,6 +566,7 @@ F 0 "D3" V 10139 3733 50  0000 R CNN
 F 1 "LED" V 10048 3733 50  0000 R CNN
 F 2 "LEDs:LED_0805" H 10100 3850 50  0001 C CNN
 F 3 "~" H 10100 3850 50  0001 C CNN
+F 4 "1" H 10100 3850 50  0001 C CNN "Populate"
 	1    10100 3850
 	0    -1   -1   0   
 $EndComp
@@ -570,6 +578,7 @@ F 0 "R1" H 10168 4196 50  0000 L CNN
 F 1 "1k" H 10168 4105 50  0000 L CNN
 F 2 "Resistors_SMD:R_0805" V 10140 4140 50  0001 C CNN
 F 3 "~" H 10100 4150 50  0001 C CNN
+F 4 "1" H 10100 4150 50  0001 C CNN "Populate"
 	1    10100 4150
 	1    0    0    -1  
 $EndComp
@@ -584,6 +593,7 @@ F 1 "100uF/50V" H 9568 4005 50  0000 L CNN
 F 2 "Capacitors_SMD:CP_Elec_8x10" H 9488 3900 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/315/ABA0000C1184-947404.pdf" H 9450 4050 50  0001 C CNN
 F 4 "667-EEE-FP1H101AV" H 9450 4050 50  0001 C CNN "Mouser"
+F 5 "1" H 9450 4050 50  0001 C CNN "Populate"
 	1    9450 4050
 	1    0    0    -1  
 $EndComp
@@ -632,6 +642,7 @@ F 1 "100uF/50V" H 7168 4205 50  0000 L CNN
 F 2 "Capacitors_SMD:CP_Elec_8x10" H 7088 4100 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/315/ABA0000C1184-947404.pdf" H 7050 4250 50  0001 C CNN
 F 4 "667-EEE-FP1H101AV" H 7050 4250 50  0001 C CNN "Mouser"
+F 5 "1" H 7050 4250 50  0001 C CNN "Populate"
 	1    7050 4250
 	1    0    0    -1  
 $EndComp
@@ -659,6 +670,7 @@ F 1 "GPIO20" H 1900 4944 50  0001 C CNN
 F 2 "Buttons_Switches_SMD:SW_SPST_EVPBF" H 1900 4950 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/315/ATK0000C432-1596775.pdf" H 1900 4950 50  0001 C CNN
 F 4 "667-EVP-BFAC1A000" H 1900 4750 50  0001 C CNN "Mouser"
+F 5 "1" H 1900 4750 50  0001 C CNN "Populate"
 	1    1900 4750
 	1    0    0    -1  
 $EndComp
@@ -671,6 +683,7 @@ F 1 "GPIO21" H 1900 5394 50  0001 C CNN
 F 2 "Buttons_Switches_SMD:SW_SPST_EVPBF" H 1900 5400 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/315/ATK0000C432-1596775.pdf" H 1900 5400 50  0001 C CNN
 F 4 "667-EVP-BFAC1A000" H 1900 5200 50  0001 C CNN "Mouser"
+F 5 "1" H 1900 5200 50  0001 C CNN "Populate"
 	1    1900 5200
 	1    0    0    -1  
 $EndComp
@@ -683,7 +696,30 @@ F 1 "GPIO12" H 1900 5844 50  0001 C CNN
 F 2 "Buttons_Switches_SMD:SW_SPST_EVPBF" H 1900 5850 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/315/ATK0000C432-1596775.pdf" H 1900 5850 50  0001 C CNN
 F 4 "667-EVP-BFAC1A000" H 1900 5650 50  0001 C CNN "Mouser"
+F 5 "1" H 1900 5650 50  0001 C CNN "Populate"
 	1    1900 5650
+	1    0    0    -1  
+$EndComp
+$Comp
+L thermostat-rescue:Mounting_Hole-Mechanical-thermostat-rescue MH1
+U 1 1 5D6D64DA
+P 1450 6300
+F 0 "MH1" H 1550 6346 50  0000 L CNN
+F 1 "Mounting_Hole-Wall" H 1550 6255 50  0000 L CNN
+F 2 "Mounting_Holes:MountingHole_5mm" H 1450 6300 50  0001 C CNN
+F 3 "" H 1450 6300 50  0001 C CNN
+	1    1450 6300
+	1    0    0    -1  
+$EndComp
+$Comp
+L thermostat-rescue:Mounting_Hole-Mechanical-thermostat-rescue MH2
+U 1 1 5D6E2454
+P 1450 6550
+F 0 "MH2" H 1550 6596 50  0000 L CNN
+F 1 "Mounting_Hole-Wall" H 1550 6505 50  0000 L CNN
+F 2 "Mounting_Holes:MountingHole_5mm" H 1450 6550 50  0001 C CNN
+F 3 "" H 1450 6550 50  0001 C CNN
+	1    1450 6550
 	1    0    0    -1  
 $EndComp
 $EndSCHEMATC
