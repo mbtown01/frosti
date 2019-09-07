@@ -1,6 +1,6 @@
 EESchema Schematic File Version 4
 LIBS:thermostat-cache
-EELAYER 30 0
+EELAYER 29 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
@@ -523,7 +523,7 @@ U 1 1 5D6EE7D4
 P 7600 4650
 F 0 "L1" H 7600 4865 50  0000 C CNN
 F 1 "150uH" H 7600 4774 50  0000 C CNN
-F 2 "Inductors_SMD:L_Wuerth_WE-PD-Typ-LS" H 7600 4650 50  0001 C CNN
+F 2 "Inductors_SMD:L_Wuerth_WE-PD-Typ-M-Typ-S" H 7600 4650 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/445/7447773151-1526088.pdf" H 7600 4650 50  0001 C CNN
 F 4 "710-7447773151" H 7600 4650 50  0001 C CNN "Mouser"
 F 5 "1" H 7600 4650 50  0001 C CNN "Populate"
