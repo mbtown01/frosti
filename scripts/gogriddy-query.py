@@ -1,31 +1,37 @@
 #!/usr/bin/python3
 
-import os
-import configparser
 import requests
 import json
+import sys
+
 from time import sleep
 from xml.etree import ElementTree
 
 # pylint: disable=import-error
 from influxdb import InfluxDBClient
 import serial
+from os.path import dirname
+sys.path.append(dirname(__file__)+'/../')
+from src.config import config
 # pylint: enable=import-error
 
 
 def get_simple_element(ser, elementName, attrName, command):
-    ser.write(command)
-    ser.flush()
+    element = None
+    while element is None:
+        ser.write(command)
+        ser.flush()
 
-    sleep(1)
-    xml_text = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<data>\n"
-    for line in ser.readlines():
-        xml_text += str(line)
-    xml_text += "</data>"
+        sleep(1)
+        xml_text = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<data>\n"
+        for line in ser.readlines():
+            xml_text += str(line)
+        xml_text += "</data>"
 
-    parser = ElementTree.XMLParser(encoding="utf-8")
-    root = ElementTree.fromstring(xml_text, parser=parser)
-    element = root.find(elementName)
+        parser = ElementTree.XMLParser(encoding="utf-8")
+        root = ElementTree.fromstring(xml_text, parser=parser)
+        element = root.find(elementName)
+
     value = int(element.find(attrName).text, 16)
     multiplier = max(1, int(element.find("Multiplier").text, 16))
     divisor = max(1, int(element.find("Divisor").text, 16))
@@ -33,49 +39,20 @@ def get_simple_element(ser, elementName, attrName, command):
 
     return value
 
-dir_name = os.path.dirname(os.path.realpath(__file__))
-conf = dir_name + '/../etc/gogriddy-config.conf'
+if not config.influxdb_enabled:
+    raise RuntimeError('InfluxDB is not configured')
 
-config = configparser.ConfigParser()
-config.read(conf)
-
-meterID = config.get('default', 'meterID')
-memberID = config.get('default', 'memberID')
-settlement_point = config.get('default', 'settlement_point')
-api_url = config.get('default', 'api_url')
-influxdb_protocol = config.get('influxdb', 'protocol')
-influxdb_host = config.get('influxdb', 'host')
-influxdb_port = config.get('influxdb', 'port')
-influxdb_dbname = config.get('influxdb', 'dbname')
-
-client = InfluxDBClient(host=influxdb_host, port=influxdb_port)
-client.switch_database(influxdb_dbname)
+client = InfluxDBClient(host=config.influxdb_host, port=config.influxdb_port)
+client.switch_database(config.influxdb_dbName)
 
 payload = {
-    'meterID': meterID, 'memberID': memberID,
-    'settlement_point': settlement_point
+    'meterID': config.gogriddy_meterId,
+    'memberID': config.gogriddy_meterId,
+    'settlement_point': config.gogriddy_settlementPoint
 }
 
-r = requests.post(api_url, data=json.dumps(payload))
+r = requests.post(config.gogriddy_apiUrl, data=json.dumps(payload))
 j = json.loads(r.text)
-
-price_date = j["now"]["date_local_tz"]
-current_price = j["now"]["price_ckwh"]
-value_score = j["now"]["value_score"]
-wstd_dev_ckwh = j["now"]["std_dev_ckwh"]
-seconds_until_refresh = j["seconds_until_refresh"]
-future_date = j["forecast"][0]["date_local_tz"]
-future_price = j["forecast"][0]["price_ckwh"]
-future_wstd_dev_ckwh = j["forecast"][0]["std_dev_ckwh"]
-future_value_score = j["forecast"][0]["value_score"]
-
-influxdb_entry = \
-    f'electric_cost,price_date={price_date},future_date={future_date} ' + \
-    f'future_price={future_price},current_price={current_price},' + \
-    f'value_score={value_score},future_value_score={future_value_score},' + \
-    f'wstd_dev_ckwh={wstd_dev_ckwh},' + \
-    f'future_wstd_dev_ckwh={future_wstd_dev_ckwh},' + \
-    f'seconds_until_refresh={seconds_until_refresh}'
 
 # Connect and reuse the serial interface until complete
 ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
@@ -96,7 +73,18 @@ meter = get_simple_element(
     b"<Refresh>Y</Refresh></Command>")
 ser.close()
 
-influxdb_entry += f',demand={demand},meter={meter}'
+influxdb_entry = \
+    f'electric_cost,price_date={j["now"]["date_local_tz"]},' + \
+    f'future_date={j["forecast"][0]["date_local_tz"]} ' + \
+    f'future_price={j["forecast"][0]["price_ckwh"]},' + \
+    f'current_price={j["now"]["price_ckwh"]},' + \
+    f'value_score={j["now"]["value_score"]},' + \
+    f'future_value_score={j["forecast"][0]["value_score"]},' + \
+    f'wstd_dev_ckwh={j["now"]["std_dev_ckwh"]},' + \
+    f'future_wstd_dev_ckwh={j["forecast"][0]["std_dev_ckwh"]},' + \
+    f'seconds_until_refresh={j["seconds_until_refresh"]},' + \
+    f'demand={demand},' + \
+    f'meter={meter}'
 
-print(influxdb_entry)
-client.write_points(influxdb_entry, protocol=influxdb_protocol)
+# print(influxdb_entry)
+client.write_points(influxdb_entry, protocol=config.influxdb_protocol)

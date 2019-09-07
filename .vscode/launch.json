@@ -24,7 +24,16 @@
             "cwd": "${workspaceFolder}",
             "module": "src",
             "console": "integratedTerminal",
-            "stopOnEntry": true,
-        }
+            "stopOnEntry": false,
+        },
+        {
+            "name": "Python: Query GoGriddy",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "scripts/gogriddy-query.py",
+            "console": "integratedTerminal",
+            "stopOnEntry": false,
+        }        
     ]
 }

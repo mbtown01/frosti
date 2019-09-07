@@ -3,6 +3,9 @@
     "python.linting.pylintEnabled": true,
     "python.linting.enabled": true,
     "python.linting.pep8Enabled": true,
+    "python.linting.pep8Args": [
+        "--ignore=E402,E226"
+    ],
     "python.testing.pytestArgs": [
         "test",
         "--cov=src",
