@@ -1,0 +1,34 @@
+{
+    "thermostat": {
+        "defaults": {
+            "comfortMin": 68,
+            "comfortMax": 75,
+            "delta": 1.0,
+            "mode": "AUTO"
+        },
+        "programs": {
+            "overnight": {
+                "days": [0, 1, 2, 3, 4, 5, 6],
+                "start": "20:00",
+                "comfortMin": 68,
+                "comfortMax": 73
+            }
+        }
+    },
+
+    "gogriddy": {
+        "enabled": true,
+        "meterID": 1008901023809085840100,
+        "memberID": 32795,
+        "settlement_point": "LZ_HOUSTON",
+        "api_url": "https://app.gogriddy.com/api/v1/insights/getnow"
+    },
+
+    "influxdb": {
+        "enabled": true,
+        "protocol": "line",
+        "host": "influx.local.madllama.net",
+        "port": 8086,
+        "dbname": "griddy"
+    }
+}
