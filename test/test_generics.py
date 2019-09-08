@@ -194,7 +194,7 @@ class Test_GenericHardwareDriver(unittest.TestCase):
         self.__dummyEventHandler = \
             Test_GenericHardwareDriver.DummyEventHandler(self.__eventBus)
         self.__environmentSensor = GenericEnvironmentSensor()
-        self.__display = GenericLcdDisplay(16, 2)
+        self.__display = GenericLcdDisplay(20, 4)
         self.__buttonMap = {
             'up': GenericButton(GenericButton.Action.UP),
             'down': GenericButton(GenericButton.Action.DOWN),
@@ -212,7 +212,8 @@ class Test_GenericHardwareDriver(unittest.TestCase):
 
     def test_simple(self):
         self.__hardwareDriver.processEvents()
+        self.__dummyEventHandler.processEvents()
 
-        # self.assertEqual(
-        #     self.__environmentSensor.temperature,
-        #     self.__dummyEventHandler.lastTemperature)
+        self.assertEqual(
+            self.__environmentSensor.temperature,
+            self.__dummyEventHandler.lastTemperature)

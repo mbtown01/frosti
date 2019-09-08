@@ -35,9 +35,8 @@ def get_simple_element(ser, elementName, attrName, command):
     value = int(element.find(attrName).text, 16)
     multiplier = max(1, int(element.find("Multiplier").text, 16))
     divisor = max(1, int(element.find("Divisor").text, 16))
-    value = value * multiplier / float(divisor)
+    return value * multiplier / float(divisor)
 
-    return value
 
 if not config.influxdb_enabled:
     raise RuntimeError('InfluxDB is not configured')

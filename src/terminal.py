@@ -20,8 +20,8 @@ class TerminalDisplay(GenericLcdDisplay):
     def commit(self):
         """ Commits all pending changes to the display """
         super().commit()
-        self.__window.addstr(0, 0, super().rowText(0))
-        self.__window.addstr(1, 0, super().rowText(1))
+        for row in range(self.height):
+            self.__window.addstr(row, 0, super().rowText(row))
         self.__window.refresh()
 
 
@@ -40,8 +40,8 @@ class TerminalHardwareDriver(GenericHardwareDriver):
         curses.curs_set(0)
 
         lines, cols = self.__stdscr.getmaxyx()
-        self.__displayWin = curses.newwin(2, cols, 0, 0)
-        self.__logWin = curses.newwin(lines-3, cols, 3, 0)
+        self.__displayWin = curses.newwin(4, cols, 0, 0)
+        self.__logWin = curses.newwin(lines-5, cols, 5, 0)
         self.__logWin.scrollok(True)
         self.__buttonMap = {
             ord('k'): GenericButton(GenericButton.Action.UP),

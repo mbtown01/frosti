@@ -238,6 +238,8 @@ class GenericHardwareDriver(EventHandler):
         super()._subscribe(
             TemperatureChangedEvent, self.__processTemperatureChanged)
 
+        self.__sampleSensors()
+
     def processEvents(self):
         super().processEvents()
 
