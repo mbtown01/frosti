@@ -5,7 +5,7 @@ import logging
 import json
 
 from src.logging import log
-from src.settings import Settings
+from src.settings import settings, Settings
 from src.events import Event, EventBus, EventHandler
 from src.thermostat import PropertyChangedEvent, \
     ThermostatStateChangedEvent, ThermostatState, \
@@ -75,9 +75,9 @@ class ApiEventHandler(EventHandler):
         return self.__lastHumidity
 
     def toggleMode(self):
-        Settings.instance().mode = Settings.Mode(
-            (int(Settings.instance().mode.value)+1) % len(Settings.Mode))
-        return f"Mode now {Settings.instance().mode}"
+        settings.mode = Settings.Mode(
+            (int(settings.mode.value)+1) % len(Settings.Mode))
+        return f"Mode now {settings.mode}"
 
     def getStatusJson(self):
         response = {
@@ -94,10 +94,10 @@ class ApiEventHandler(EventHandler):
     def getSettingsJson(self):
         response = {
             'version': self.version,
-            'comfortMin': Settings.instance().comfortMin,
-            'comfortMax': Settings.instance().comfortMax,
-            'mode': str(Settings.instance().mode).replace('Mode.', ''),
-            'delta': Settings.instance().delta,
+            'comfortMin': settings.comfortMin,
+            'comfortMax': settings.comfortMax,
+            'mode': str(settings.mode).replace('Mode.', ''),
+            'delta': settings.delta,
         }
         return json.dumps(response, indent=4)
 

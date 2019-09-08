@@ -19,18 +19,21 @@ from src.config import config
 def get_simple_element(ser, elementName, attrName, command):
     element = None
     while element is None:
-        ser.write(command)
-        ser.flush()
+        try:
+            ser.write(command)
+            ser.flush()
 
-        sleep(1)
-        xml_text = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<data>\n"
-        for line in ser.readlines():
-            xml_text += str(line)
-        xml_text += "</data>"
+            sleep(1)
+            xml_text = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<data>\n"
+            for line in ser.readlines():
+                xml_text += str(line)
+            xml_text += "</data>"
 
-        parser = ElementTree.XMLParser(encoding="utf-8")
-        root = ElementTree.fromstring(xml_text, parser=parser)
-        element = root.find(elementName)
+            parser = ElementTree.XMLParser(encoding="utf-8")
+            root = ElementTree.fromstring(xml_text, parser=parser)
+            element = root.find(elementName)
+        except:
+            print(sys.exc_info()[0])
 
     value = int(element.find(attrName).text, 16)
     multiplier = max(1, int(element.find("Multiplier").text, 16))

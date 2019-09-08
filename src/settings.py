@@ -14,7 +14,6 @@ class Settings:
     by the user during normal thermostat operation, and an event is
     fired when they are changed.
     """
-    __instance = None
 
     class Mode(Enum):
         OFF = 0
@@ -105,10 +104,4 @@ class Settings:
         """
         self.__eventBus = eventBus
 
-    @staticmethod
-    def instance():
-        """ Returns the global instance
-        """
-        if __class__.__instance is None:
-            __class__.__instance = Settings()
-        return __class__.__instance
+settings = Settings()

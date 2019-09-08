@@ -8,7 +8,7 @@ from src.logging import log, setupLogging
 from src.events import EventBus
 from src.thermostat import ThermostatDriver
 from src.api import ApiEventHandler
-from src.settings import Settings, SettingsChangedEvent
+from src.settings import settings, SettingsChangedEvent
 from src.terminal import TerminalHardwareDriver
 
 
@@ -17,7 +17,7 @@ def main(stdscr):
 
     # Build the initial event bus and connect the settings instance
     eventBus = EventBus()
-    Settings.instance().setEventBus(eventBus)
+    settings.setEventBus(eventBus)
 
     # Put all the event handlers together
     ApiEventHandler.createInstance(eventBus)
@@ -47,7 +47,7 @@ def main(stdscr):
 
 if __name__ == '__main__':
     uname = popen('uname -a').read()
-    if uname.startswith('Darwin'):
-        wrapper(main)
-    else:
+    if uname.find(' armv') >= 0:
         main(None)
+    else:
+        wrapper(main)

@@ -6,22 +6,58 @@
             "delta": 1.0,
             "mode": "AUTO"
         },
-        "programs": {
-            "overnight": {
+        "program": [
+            {
+                "name": "overnight",
                 "days": [0, 1, 2, 3, 4, 5, 6],
                 "start": "20:00",
                 "comfortMin": 68,
                 "comfortMax": 73
+            },
+            {
+                "name": "weekend",
+                "days": [5, 6],
+                "start": "08:00",
+                "comfortMin": 68,
+                "comfortMax": 75
+            },
+            {
+                "name": "work week (away)",
+                "days": [0, 1, 2, 3, 4],
+                "start": "08:00",
+                "comfortMin": 65,
+                "comfortMax": 80
+            },
+            {
+                "name": "work week (home)",
+                "days": [0, 1, 2, 3, 4],
+                "start": "05:00",
+                "comfortMin": 65,
+                "comfortMax": 75
             }
-        }
+        ],
+        "energy_overrides": [
+            { 
+                "price": 0.20, 
+                "comfortMax": 78 
+            },
+            { 
+                "price": 0.50, 
+                "comfortMax": 80 
+            },
+            { 
+                "price": 1.00, 
+                "comfortMax": 99
+            }
+        ]
     },
 
     "gogriddy": {
         "enabled": true,
         "meterID": 1008901023809085840100,
         "memberID": 32795,
-        "settlement_point": "LZ_HOUSTON",
-        "api_url": "https://app.gogriddy.com/api/v1/insights/getnow"
+        "settlementPoint": "LZ_HOUSTON",
+        "apiUrl": "https://app.gogriddy.com/api/v1/insights/getnow"
     },
 
     "influxdb": {
@@ -29,6 +65,6 @@
         "protocol": "line",
         "host": "influx.local.madllama.net",
         "port": 8086,
-        "dbname": "griddy"
+        "dbName": "griddy"
     }
 }

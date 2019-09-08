@@ -1,4 +1,5 @@
 import os
+import json
 import configparser
 
 
@@ -7,19 +8,22 @@ class ThermostatConfig:
     def __init__(self):
         localPath = os.path.realpath(__file__)
         searchOrder = (
-            os.path.dirname(localPath) + '/../etc/thermostat.conf',
-            '/etc/thermostat.conf',
-            os.path.expanduser('~/.thermostat.conf')
+            os.path.expanduser('~/.thermostat.json'),
+            '/etc/thermostat.json',
+            os.path.dirname(localPath) + '/../etc/thermostat.json'
         )
 
-        self.__config = configparser.ConfigParser()
-        for dirName in searchOrder:
-            if os.path.exists(dirName):
-                self.__config.read(dirName)
+        for fileName in searchOrder:
+            if os.path.exists(fileName):
+                with open(fileName) as configFile:
+                    self.__config = json.load(configFile)
+                break
 
     def __resolve(self, section, option, default=None):
-        if self.__config.has_option(section, option):
-            return self.__config.get(section, option)
+        if section not in self.__config:
+            raise RuntimeError(f'Section {section} is not in config file')
+        if option in self.__config[section]:
+            return self.__config[section][option]
         return default
 
     @property
@@ -36,11 +40,11 @@ class ThermostatConfig:
 
     @property
     def gogriddy_settlementPoint(self):
-        return self.__resolve('gogriddy', 'settlement_point')
+        return self.__resolve('gogriddy', 'settlementPoint')
 
     @property
     def gogriddy_apiUrl(self):
-        return self.__resolve('gogriddy', 'api_url')
+        return self.__resolve('gogriddy', 'apiUrl')
 
     @property
     def influxdb_enabled(self):
@@ -56,7 +60,7 @@ class ThermostatConfig:
 
     @property
     def influxdb_dbName(self):
-        return self.__resolve('influxdb', 'dbname')
+        return self.__resolve('influxdb', 'dbName')
 
     @property
     def influxdb_protocol(self):

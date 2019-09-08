@@ -196,10 +196,10 @@ class Test_GenericHardwareDriver(unittest.TestCase):
         self.__environmentSensor = GenericEnvironmentSensor()
         self.__display = GenericLcdDisplay(20, 4)
         self.__buttonMap = {
-            'up': GenericButton(GenericButton.Action.UP),
-            'down': GenericButton(GenericButton.Action.DOWN),
-            'enter': GenericButton(GenericButton.Action.ENTER),
-            'mode': GenericButton(GenericButton.Action.MODE),
+            'up': GenericButton(1),
+            'down': GenericButton(2),
+            'enter': GenericButton(3),
+            'mode': GenericButton(4),
         }
 
         self.__hardwareDriver = GenericHardwareDriver(

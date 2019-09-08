@@ -1,7 +1,7 @@
 from enum import Enum
 
 from src.logging import log
-from src.settings import Settings, SettingsChangedEvent
+from src.settings import settings, Settings, SettingsChangedEvent
 from src.events import Event, EventBus, EventHandler
 
 
@@ -65,21 +65,21 @@ class ThermostatDriver(EventHandler):
         return self.__state
 
     def __processSettingsChanged(self, event: SettingsChangedEvent):
-        log.debug(f"ThermostatDriver: new settings: {Settings.instance()}")
-        if Settings.instance().mode == Settings.Mode.OFF:
+        log.debug(f"ThermostatDriver: new settings: {settings}")
+        if settings.mode == Settings.Mode.OFF:
             self.__changeState(ThermostatState.OFF)
 
     def __processTemperatureChanged(self, event: TemperatureChangedEvent):
-        if Settings.instance().mode == Settings.Mode.COOL:
+        if settings.mode == Settings.Mode.COOL:
             self.__processCooling(event.value)
-        elif Settings.instance().mode == Settings.Mode.HEAT:
+        elif settings.mode == Settings.Mode.HEAT:
             self.__processHeating(event.value)
-        elif Settings.instance().mode == Settings.Mode.AUTO:
+        elif settings.mode == Settings.Mode.AUTO:
             self.__processAuto(event.value)
 
     def __processCooling(self, newTemp: float):
-        runAt = Settings.instance().comfortMax+Settings.instance().delta
-        runUntil = Settings.instance().comfortMax-Settings.instance().delta
+        runAt = settings.comfortMax+settings.delta
+        runUntil = settings.comfortMax-settings.delta
 
         if self.__state != ThermostatState.COOLING and newTemp > runAt:
             self.__changeState(ThermostatState.COOLING)
@@ -87,8 +87,8 @@ class ThermostatDriver(EventHandler):
             self.__changeState(ThermostatState.OFF)
 
     def __processHeating(self, newTemp: float):
-        runAt = Settings.instance().comfortMin-Settings.instance().delta
-        runUntil = Settings.instance().comfortMin+Settings.instance().delta
+        runAt = settings.comfortMin-settings.delta
+        runUntil = settings.comfortMin+settings.delta
 
         if self.__state != ThermostatState.HEATING and newTemp < runAt:
             self.__changeState(ThermostatState.HEATING)
@@ -96,10 +96,10 @@ class ThermostatDriver(EventHandler):
             self.__changeState(ThermostatState.OFF)
 
     def __processAuto(self, newTemp: float):
-        runAtHeat = Settings.instance().comfortMin-Settings.instance().delta
-        runUntilHeat = Settings.instance().comfortMin+Settings.instance().delta
-        runAtCool = Settings.instance().comfortMax+Settings.instance().delta
-        runUntilCool = Settings.instance().comfortMax-Settings.instance().delta
+        runAtHeat = settings.comfortMin-settings.delta
+        runUntilHeat = settings.comfortMin+settings.delta
+        runAtCool = settings.comfortMax+settings.delta
+        runUntilCool = settings.comfortMax-settings.delta
 
         if self.__state != ThermostatState.COOLING and newTemp > runAtCool:
             self.__changeState(ThermostatState.COOLING)

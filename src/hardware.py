@@ -6,6 +6,7 @@ import adafruit_bme280
 import RPi.GPIO as GPIO
 # pylint: enable=import-error
 
+from enum import Enum
 from time import sleep
 
 from src.logging import log
@@ -94,8 +95,8 @@ class Lcd1602Display(GenericLcdDisplay):
 class SimplePushButton(GenericButton):
     """ A physical button provided to the user """
 
-    def __init__(self, action: GenericButton.Action, pin: int):
-        super().__init__(action)
+    def __init__(self, id: int, pin: int):
+        super().__init__(id)
         self.__pin = pin
         self.__isPressed = False
 
@@ -132,27 +133,58 @@ class Bm280EnvironmentSensor(GenericEnvironmentSensor):
 
 class HardwareDriver(GenericHardwareDriver):
 
+    class RelayPin(Enum):
+        FAN = 5
+        HEAT = 6
+        COOL = 13
+        COMMON = 19
+
     def __init__(self, eventBus: EventBus):
         super().__init__(
             eventBus=eventBus,
             lcd=Lcd1602Display(0x27, 20, 4),
             sensor=Bm280EnvironmentSensor(),
             buttons=(
-                SimplePushButton(GenericButton.Action.MODE, 16),
-                SimplePushButton(GenericButton.Action.UP, 20),
-                SimplePushButton(GenericButton.Action.DOWN, 21),
-                SimplePushButton(GenericButton.Action.ENTER, 12),
+                SimplePushButton(1, 21),
+                SimplePushButton(2, 20),
+                SimplePushButton(3, 16),
+                SimplePushButton(4, 12),
             ),
         )
 
         GPIO.setmode(GPIO.BCM)
-        GPIO.setup(5, GPIO.OUT)
-        GPIO.setup(6, GPIO.OUT)
-        GPIO.setup(13, GPIO.OUT)
-        GPIO.setup(19, GPIO.OUT)
+        GPIO.setup(HardwareDriver.RelayPin.COMMON.value, GPIO.OUT)
+        GPIO.setup(HardwareDriver.RelayPin.FAN.value, GPIO.OUT)
+        GPIO.setup(HardwareDriver.RelayPin.HEAT.value, GPIO.OUT)
+        GPIO.setup(HardwareDriver.RelayPin.COOL.value, GPIO.OUT)
+
+        self.__openAllRelays()
+
+    def __openAllRelays(self):
+        GPIO.output(HardwareDriver.RelayPin.COMMON.value, True)
+        GPIO.output(HardwareDriver.RelayPin.FAN.value, False)
+        GPIO.output(HardwareDriver.RelayPin.HEAT.value, False)
+        GPIO.output(HardwareDriver.RelayPin.COOL.value, False)
+        sleep(0.5)
+        GPIO.output(HardwareDriver.RelayPin.COMMON.value, False)
+
+    def __closeRelayExclusively(self, relayPin: RelayPin):
+        # Relay CLOSES/CONNECTS when COMMON is LOW and relay pin is HIGH
+        # Relay OPENS/DISCONNETS when COMMON is HIGH and relay pin is LOW
+        self.__openAllRelays
+        GPIO.output(relayPin.value, True)
+        sleep(0.5)
+        GPIO.output(relayPin.value, False)
 
     def _processStateChanged(self, event: ThermostatStateChangedEvent):
-        GPIO.output(5, event.state == ThermostatState.FAN)
-        GPIO.output(6, event.state == ThermostatState.HEATING)
-        GPIO.output(13, event.state == ThermostatState.COOLING)
-        GPIO.output(19, event.state == ThermostatState.OFF)
+        if ThermostatState.OFF == event.state:
+            self.__openAllRelays()
+        elif ThermostatState.COOLING == event.state:
+            self.__closeRelayExclusively(HardwareDriver.RelayPin.COOL)
+        elif ThermostatState.HEATING == event.state:
+            self.__closeRelayExclusively(HardwareDriver.RelayPin.HEAT)
+        elif ThermostatState.FAN == event.state:
+            self.__closeRelayExclusively(HardwareDriver.RelayPin.FAN)
+        else:
+            raise RuntimeError(
+                f"Unknown event state ({event.state}) encountered")

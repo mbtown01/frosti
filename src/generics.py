@@ -1,7 +1,5 @@
-from enum import Enum
-
 from src.logging import log
-from src.settings import Settings, SettingsChangedEvent
+from src.settings import settings, Settings, SettingsChangedEvent
 from src.events import EventBus, EventHandler, Event
 from src.thermostat import ThermostatState, ThermostatStateChangedEvent, \
     PressureChangedEvent, HumidityChangedEvent, TemperatureChangedEvent
@@ -106,19 +104,13 @@ class GenericLcdDisplay:
 class GenericButton:
     """ A logical button provided to the user """
 
-    class Action(Enum):
-        MODE = 1
-        UP = 2
-        DOWN = 3
-        ENTER = 4
-
-    def __init__(self, action: Action):
-        self.__action = action
+    def __init__(self, id: int):
+        self.__id = id
         self.__isPressed = False
 
     @property
-    def action(self):
-        return self.__action
+    def id(self):
+        return self.__id
 
     def press(self):
         self.__isPressed = True
@@ -261,7 +253,7 @@ class GenericHardwareDriver(EventHandler):
         self.__drawLcdInvoker.invokeCurrent()
 
     def __processSettingsChanged(self, event: SettingsChangedEvent):
-        log.debug(f"HardwareDriver: new settings: {Settings.instance()}")
+        log.debug(f"HardwareDriver: new settings: {settings}")
         self.__drawLcdInvoker.invokeCurrent()
 
     def __processStateChanged(self, event: ThermostatStateChangedEvent):
@@ -276,24 +268,24 @@ class GenericHardwareDriver(EventHandler):
         super()._fireEvent(HumidityChangedEvent(self.__sensor.humidity))
 
     def __buttonHandlerDefault(self, button: GenericButton):
-        log.debug(f"DefaultButtonHandler saw {button.action}")
-        if GenericButton.Action.MODE == button.action:
-            self.__drawRowTwoInvoker.reset(1)
-            Settings.instance().mode = Settings.Mode(
-                (int(Settings.instance().mode.value)+1) % len(Settings.Mode))
-        elif GenericButton.Action.UP == button.action:
+        log.debug(f"DefaultButtonHandler saw button {button.id}")
+        if 1 == button.id:
             self.__modifyComfortSettings(1)
-        elif GenericButton.Action.DOWN == button.action:
+        elif 2 == button.id:
             self.__modifyComfortSettings(-1)
+        elif 4 == button.id:
+            self.__drawRowTwoInvoker.reset(1)
+            settings.mode = Settings.Mode(
+                (int(settings.mode.value)+1) % len(Settings.Mode))
 
     def __modifyComfortSettings(self, increment: int):
         self.__drawRowTwoInvoker.reset(0)
-        if Settings.Mode.HEAT == Settings.instance().mode:
-            Settings.instance().comfortMin = \
-                Settings.instance().comfortMin + increment
-        if Settings.Mode.COOL == Settings.instance().mode:
-            Settings.instance().comfortMax = \
-                Settings.instance().comfortMax + increment
+        if Settings.Mode.HEAT == settings.mode:
+            settings.comfortMin = \
+                settings.comfortMin + increment
+        if Settings.Mode.COOL == settings.mode:
+            settings.comfortMax = \
+                settings.comfortMax + increment
 
     def __processButtons(self):
         for button in self.__buttons:
@@ -301,23 +293,17 @@ class GenericHardwareDriver(EventHandler):
                 self.__buttonHandler(button)
 
     def __drawRowTwoTarget(self):
-        # 0123456789012345
-        # Target:  ## / ##
-        heat = Settings.instance().comfortMin
-        cool = Settings.instance().comfortMax
+        heat = settings.comfortMin
+        cool = settings.comfortMax
         self.__lcd.update(1, 0, f'Target:      {heat:<3.0f}/{cool:>3.0f}')
 
     def __drawRowTwoState(self):
-        # 0123456789012345
-        # State:   COOLING
         state = str(self.__lastState).replace('ThermostatState.', '')
         self.__lcd.update(1, 0, f'State:     {state:>9s}')
 
     def __drawLcdDisplay(self):
-        # 0123456789012345
-        # Now: ###.#  AUTO
         now = self.__lastTemperature
-        mode = str(Settings.instance().mode).replace('Mode.', '')
+        mode = str(settings.mode).replace('Mode.', '')
         self.__lcd.update(0, 0, f'Now: {now:<5.1f}    {mode:>6s}')
         self.__lcd.update(3, 0, r'UP  DOWN   SEL  MODE')
         self.__drawRowTwoInvoker.invokeCurrent()

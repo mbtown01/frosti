@@ -44,10 +44,10 @@ class TerminalHardwareDriver(GenericHardwareDriver):
         self.__logWin = curses.newwin(lines-5, cols, 5, 0)
         self.__logWin.scrollok(True)
         self.__buttonMap = {
-            ord('k'): GenericButton(GenericButton.Action.UP),
-            ord('j'): GenericButton(GenericButton.Action.DOWN),
-            ord('\n'): GenericButton(GenericButton.Action.ENTER),
-            ord('\t'): GenericButton(GenericButton.Action.MODE),
+            ord('1'): GenericButton(1),
+            ord('2'): GenericButton(2),
+            ord('3'): GenericButton(3),
+            ord('4'): GenericButton(4),
         }
 
         super().__init__(
