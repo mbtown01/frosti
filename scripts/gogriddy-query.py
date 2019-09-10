@@ -33,7 +33,7 @@ def get_simple_element(ser, elementName, attrName, command):
             root = ElementTree.fromstring(xml_text, parser=parser)
             element = root.find(elementName)
         except:
-            print(sys.exc_info()[0])
+            print(sys.exc_info())
 
     value = int(element.find(attrName).text, 16)
     multiplier = max(1, int(element.find("Multiplier").text, 16))
@@ -57,7 +57,7 @@ r = requests.post(config.gogriddy_apiUrl, data=json.dumps(payload))
 j = json.loads(r.text)
 
 # Connect and reuse the serial interface until complete
-ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
+ser = serial.Serial('/dev/ttyUSB1', 115200, timeout=1)
 
 # Request that the device synchronize and not send update fragments and
 # then clear out any pending lines in the input buffer
