@@ -101,31 +101,23 @@ class ApiEventHandler(EventHandler):
         }
         return json.dumps(response, indent=4)
 
-    @staticmethod
-    def createInstance(eventBus: EventBus):
-        """ Send SettingsChangedEvent notifications to the provided event bus,
-        or nowhere if eventBus is None
-        """
-        __class__.__instance = ApiEventHandler(eventBus)
+
+class ApiMessageHandler:
+    apiEventHandler = None
 
     @staticmethod
-    def instance():
-        """ Returns the global instance
-        """
-        if __class__.__instance is None:
-            raise RuntimeError("Instance of ApiEventHandler not instantiated")
-        return __class__.__instance
+    def setup(eventHandler: ApiEventHandler):
+        __class__.apiEventHandler = eventHandler
 
     # region Static webserice handlers
-
     @staticmethod
     @app.route("/")
     def serve_root():
         return render_template(
             'index.html',
-            temperature=f'{ApiEventHandler.instance().temperature}',
-            pressure=f'{ApiEventHandler.instance().pressure}',
-            humidity=f'{ApiEventHandler.instance().humidity}',
+            temperature=f'{__class__.apiEventHandler.temperature}',
+            pressure=f'{__class__.apiEventHandler.pressure}',
+            humidity=f'{__class__.apiEventHandler.humidity}',
         )
 
     @staticmethod
@@ -141,36 +133,36 @@ class ApiEventHandler(EventHandler):
     @staticmethod
     @app.route('/api/version')
     def api_version():
-        return ApiEventHandler.instance().version
+        return __class__.apiEventHandler.version
 
     @staticmethod
     @app.route('/api/status')
     def api_status():
-        return ApiEventHandler.instance().getStatusJson()
+        return __class__.apiEventHandler.getStatusJson()
 
     @staticmethod
     @app.route('/api/settings')
     def api_settings():
-        return ApiEventHandler.instance().getSettingsJson()
+        return __class__.apiEventHandler.getSettingsJson()
 
     @staticmethod
     @app.route('/api/action/mode_toggle', methods=['POST'])
     def api_action_mode_toggle():
-        return ApiEventHandler.instance().toggleMode()
+        return __class__.apiEventHandler.toggleMode()
 
     @staticmethod
     @app.route('/api/sensors/temperature')
     def api_sensor_temperature():
-        return f"{ApiEventHandler.instance().temperature}"
+        return f"{__class__.apiEventHandler.temperature}"
 
     @staticmethod
     @app.route('/api/sensors/pressure')
     def api_sensor_pressure():
-        return f"{ApiEventHandler.instance().pressure}"
+        return f"{__class__.apiEventHandler.pressure}"
 
     @staticmethod
     @app.route('/api/sensors/humidity')
     def api_sensor_humidity():
-        return f"{ApiEventHandler.instance().humidity}"
+        return f"{__class__.apiEventHandler.humidity}"
 
     # endregion
