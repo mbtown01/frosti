@@ -3,55 +3,79 @@
         "defaults": {
             "comfortMin": 68,
             "comfortMax": 75,
-            "delta": 1.0,
-            "mode": "AUTO"
+            "delta": 1.0
         },
-        "program": [
-            {
-                "name": "overnight",
-                "days": [0, 1, 2, 3, 4, 5, 6],
-                "start": "20:00",
+        "presets": {
+            "overnight": {
                 "comfortMin": 68,
                 "comfortMax": 73
             },
-            {
-                "name": "weekend",
+            "home": {
+                "comfortMin": 70,
+                "comfortMax": 76,
+                "energy_overrides": [
+                    {
+                        "price": 0.50, 
+                        "comfortMax": 80
+                    },
+                    {
+                        "price": 1.00, 
+                        "comfortMax": 82
+                    }
+                ]
+            },
+            "away": {
+                "comfortMin": 64,
+                "comfortMax": 78,
+                "energy_overrides": [
+                    { 
+                        "price": 0.25, 
+                        "comfortMax": 80
+                    },
+                    {
+                        "price": 0.50, 
+                        "comfortMax": 82
+                    },
+                    {
+                        "price": 1.00, 
+                        "comfortMax": 88
+                    }
+                ]
+            }
+        },
+        "schedule": {
+            "work week": {
+                "days": [0, 1, 2, 3, 4],
+                "times": [
+                    { 
+                        "start": "08:00", 
+                        "preset": "away" 
+                    },
+                    { 
+                        "start": "17:00", 
+                        "preset": "home" 
+                    },
+                    { 
+                        "start": "20:00", 
+                        "preset": "overnight" 
+                    }
+                ]
+            },
+            "weekend": {
                 "days": [5, 6],
-                "start": "08:00",
-                "comfortMin": 68,
-                "comfortMax": 75
-            },
-            {
-                "name": "work week (away)",
-                "days": [0, 1, 2, 3, 4],
-                "start": "08:00",
-                "comfortMin": 65,
-                "comfortMax": 80
-            },
-            {
-                "name": "work week (home)",
-                "days": [0, 1, 2, 3, 4],
-                "start": "05:00",
-                "comfortMin": 65,
-                "comfortMax": 75
+                "times": [
+                    { 
+                        "start": "08:00", 
+                        "preset": "home" 
+                    },
+                    { 
+                        "start": "20:00", 
+                        "preset": "overnight" 
+                    }
+                ]
             }
-        ],
-        "energy_overrides": [
-            { 
-                "price": 0.20, 
-                "comfortMax": 78 
-            },
-            { 
-                "price": 0.50, 
-                "comfortMax": 80 
-            },
-            { 
-                "price": 1.00, 
-                "comfortMax": 99
-            }
-        ]
+        }
     },
-
     "gogriddy": {
         "enabled": true,
         "meterID": 1008901023809085840100,
