@@ -3,7 +3,7 @@ import json
 import configparser
 
 
-class ThermostatConfig:
+class Config:
 
     def __init__(self):
         localPath = os.path.realpath(__file__)

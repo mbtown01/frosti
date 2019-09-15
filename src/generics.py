@@ -98,7 +98,7 @@ class GenericLcdDisplay:
         for row in self.__rows:
             results.append(row.commit())
 
-        return results
+            return results
 
 
 class GenericButton:
@@ -196,16 +196,40 @@ class GenericEnvironmentSensor:
         self.__humidity = value
 
 
-class GenericHardwareDriver(EventHandler):
+class GenericScreen(EventHandler):
 
     def __init__(self,
-                 lcd: GenericLcdDisplay,
-                 sensor: GenericEnvironmentSensor,
-                 buttons: list,
+                 width: int,
+                 height: int,
                  eventBus: EventBus,
-                 loopSleep: int=0.05):
-        self.__lcd = lcd
-        self.__buttons = buttons
+                 loopSleep: int):
+        super().__init__(eventBus, loopSleep)
+        self.__eventBus = eventBus
+        self.__lcdBuffer = GenericLcdDisplay(width=width, height=height)
+
+    def _fireEvent(self, event: Event):
+        self.__eventBus.put(event)
+
+    @property
+    def lcdBuffer(self):
+        return self.__lcdBuffer
+
+    def processButton(self, button: GenericButton):
+        raise NotImplementedError
+
+    def drawLcdDisplay(self, display: GenericLcdDisplay):
+        raise NotImplementedError
+
+
+class DefaultScreen(GenericScreen):
+
+    def __init__(self,
+                 width: int,
+                 height: int,
+                 sensor: GenericEnvironmentSensor,
+                 eventBus: EventBus,
+                 loopSleep: int):
+        super().__init__(width, height, eventBus, loopSleep)
         self.__sensor = sensor
 
         self.__lastTemperature = sensor.temperature
@@ -220,13 +244,9 @@ class GenericHardwareDriver(EventHandler):
                 self.__drawRowTwoTarget, self.__drawRowTwoState])
 
         self.__rotateRowTwoInterval = int(3/loopSleep)
-        self.__buttonHandler = self.__buttonHandlerDefault
 
-        super().__init__(eventBus, loopSleep)
         super()._subscribe(
             SettingsChangedEvent, self.__processSettingsChanged)
-        super()._subscribe(
-            ThermostatStateChangedEvent, self.__processStateChanged)
         super()._subscribe(
             TemperatureChangedEvent, self.__processTemperatureChanged)
 
@@ -235,18 +255,12 @@ class GenericHardwareDriver(EventHandler):
     def processEvents(self):
         super().processEvents()
 
-        # Always scan for button presses
-        self.__processButtons()
-
         # Update the LCD display with the current page's content
         self.__drawLcdInvoker.increment()
         self.__drawRowTwoInvoker.increment(execute=False)
 
         # Only update measurements at the sample interval
         self.__sampleInvoker.increment()
-
-    def _processStateChanged(self, event: ThermostatStateChangedEvent):
-        pass
 
     def __processTemperatureChanged(self, event: TemperatureChangedEvent):
         self.__lastTemperature = event.value
@@ -267,8 +281,8 @@ class GenericHardwareDriver(EventHandler):
         super()._fireEvent(PressureChangedEvent(self.__sensor.pressure))
         super()._fireEvent(HumidityChangedEvent(self.__sensor.humidity))
 
-    def __buttonHandlerDefault(self, button: GenericButton):
-        log.debug(f"DefaultButtonHandler saw button {button.id}")
+    def processButton(self, button: GenericButton):
+        log.debug(f"DefaultScreen.processBUtton saw button {button.id}")
         if 1 == button.id:
             self.__modifyComfortSettings(1)
         elif 2 == button.id:
@@ -287,29 +301,56 @@ class GenericHardwareDriver(EventHandler):
             settings.comfortMax = \
                 settings.comfortMax + increment
 
-    def __processButtons(self):
-        for button in self.__buttons:
-            if button.query():
-                self.__buttonHandler(button)
-
     def __drawRowTwoTarget(self):
         heat = settings.comfortMin
         cool = settings.comfortMax
-        self.__lcd.update(1, 0, f'Target:      {heat:<3.0f}/{cool:>3.0f}')
+        self.lcdBuffer.update(1, 0, f'Target:      {heat:<3.0f}/{cool:>3.0f}')
 
     def __drawRowTwoState(self):
         state = str(self.__lastState).replace('ThermostatState.', '')
-        self.__lcd.update(1, 0, f'State:     {state:>9s}')
+        self.lcdBuffer.update(1, 0, f'State:     {state:>9s}')
 
     def __drawLcdDisplay(self):
         now = self.__lastTemperature
         mode = str(settings.mode).replace('Mode.', '')
-        self.__lcd.update(0, 0, f'Now: {now:<5.1f}    {mode:>6s}')
-        self.__lcd.update(3, 0, r'UP  DOWN   SEL  MODE')
+        self.lcdBuffer.update(0, 0, f'Now: {now:<5.1f}    {mode:>6s}')
+        self.lcdBuffer.update(3, 0, r'UP  DOWN   SEL  MODE')
         self.__drawRowTwoInvoker.invokeCurrent()
-        self.__lcd.commit()
 
     # 01234567890123456789
     # Now: ###.#      AUTO
     # Stat         COOLING
     # UP  DOWN   SEL  MODE
+
+
+class GenericHardwareDriver(EventHandler):
+
+    def __init__(self,
+                 lcd: GenericLcdDisplay,
+                 sensor: GenericEnvironmentSensor,
+                 buttons: list,
+                 eventBus: EventBus,
+                 loopSleep: int=0.05):
+        self.__lcd = lcd
+        self.__buttons = buttons
+        self.__activeScreen = DefaultScreen(
+            lcd.width, lcd.height, sensor, eventBus, loopSleep)
+
+        super().__init__(eventBus, loopSleep)
+
+    def processEvents(self):
+        super().processEvents()
+
+        self.__activeScreen.processEvents()
+
+        # Always scan for button presses
+        for button in self.__buttons:
+            if button.query():
+                self.__activeScreen.processButton(button)
+
+        # Send buffered updates to the actual display
+        self.__activeScreen.lcdBuffer.commit()
+        for row in range(self.__lcd.height):
+            self.__lcd.update(
+                row, 0, self.__activeScreen.lcdBuffer.rowText(row))
+        self.__lcd.commit()
