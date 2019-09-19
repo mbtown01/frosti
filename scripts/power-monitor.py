@@ -14,6 +14,7 @@ sys.path.append(dirname(__file__)+'/../')
 from src.config import config
 # pylint: enable=import-error
 
+# https://rainforestautomation.com/wp-content/uploads/2014/02/raven_xml_api_r127.pdf
 
 # <InstantaneousDemand>
 #   <DeviceMacId>0xd8d5b9000000054e</DeviceMacId>
@@ -49,21 +50,22 @@ def sendCommand(ser, command: str, refresh: str=None):
     if refresh is not None:
         ser.write(b"<Refresh>" + refresh.encode('utf-8') + b"</Refresh>")
     ser.write(b"</Command>")
+    ser.flush()
 
 
 # Connect and reuse the serial interface until complete
 ser = serial.Serial('/dev/ttyUSB1', 115200, timeout=1)
 
 sendCommand(ser, 'set_schedule_default')
-sendCommand(ser, 'get_instantaneous_demand', 'Y')
-sendCommand(ser, 'get_current_summation_delivered', 'Y')
-ser.flush()
 
 lines = []
-while True:
+demand = None
+summation = None
+while demand is None or summation is None:
+    sendCommand(ser, 'get_instantaneous_demand', 'N')
+    sendCommand(ser, 'get_current_summation_delivered', 'N')
     for line in ser.readlines():
         line = line.decode('ascii').strip()
-        print('FOOBAR ', line)
         lines.append(line)
 
     if len(lines) and lines[0].startswith("<InstantaneousDemand>"):
@@ -71,40 +73,27 @@ while True:
         while not lines[0].startswith("</InstantaneousDemand>"):
             cmdLines.append(lines.pop(0))
         cmdLines.append(lines.pop(0))
-        result = parseBlock(cmdLines, 'InstantaneousDemand', 'Demand')
-        print(f'Demand={result}')
+        demand = parseBlock(cmdLines, 'InstantaneousDemand', 'Demand')
 
     if len(lines) and lines[0].startswith("<CurrentSummationDelivered>"):
         cmdLines = []
         while not lines[0].startswith("</CurrentSummationDelivered>"):
             cmdLines.append(lines.pop(0))
         cmdLines.append(lines.pop(0))
-        result = parseBlock(
+        summation = parseBlock(
             cmdLines, 'CurrentSummationDelivered', 'SummationDelivered')
-        print(f'SummationDelivered={result}')
 
-
-# if config.influxdb_enabled:
-#     client = InfluxDBClient(
-#         host=config.influxdb_host, port=config.influxdb_port)
-#     client.switch_database(config.influxdb_dbName)
+if config.influxdb_enabled:
+    client = InfluxDBClient(
+        host=config.influxdb_host, port=config.influxdb_port)
+    client.switch_database(config.influxdb_dbName)
 
     # <Command><Name>get_current_summation_delivered</Name><Refresh>N</Refresh></Command>
     # <Command><Name>get_instantaneous_demand</Name><Refresh>N</Refresh></Command>
     # <Command><Name>get_schedule</Name></Command>
 
-    # influxdb_entry = \
-    #     f'electric_cost,price_date={j["now"]["date_local_tz"]},' + \
-    #     f'future_date={j["forecast"][0]["date_local_tz"]} ' + \
-    #     f'future_price={j["forecast"][0]["price_ckwh"]},' + \
-    #     f'current_price={j["now"]["price_ckwh"]},' + \
-    #     f'value_score={j["now"]["value_score"]},' + \
-    #     f'future_value_score={j["forecast"][0]["value_score"]},' + \
-    #     f'wstd_dev_ckwh={j["now"]["std_dev_ckwh"]},' + \
-    #     f'future_wstd_dev_ckwh={j["forecast"][0]["std_dev_ckwh"]},' + \
-    #     f'seconds_until_refresh={j["seconds_until_refresh"]},' + \
-    #     f'demand={demand},' + \
-    #     f'meter={meter}'
+    influxdb_entry = \
+        f'electric_cost demand={demand},meter={summation}'
 
-    # # print(influxdb_entry)
-    # client.write_points(influxdb_entry, protocol=config.influxdb_protocol)
+    print(influxdb_entry)
+    client.write_points(influxdb_entry, protocol=config.influxdb_protocol)
