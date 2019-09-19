@@ -152,6 +152,9 @@ class HardwareDriver(GenericHardwareDriver):
             ),
         )
 
+        super()._subscribe(
+            ThermostatStateChangedEvent, self.__processStateChanged)
+
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(HardwareDriver.RelayPin.COMMON.value, GPIO.OUT)
         GPIO.setup(HardwareDriver.RelayPin.FAN.value, GPIO.OUT)
@@ -176,7 +179,7 @@ class HardwareDriver(GenericHardwareDriver):
         sleep(0.5)
         GPIO.output(relayPin.value, False)
 
-    def _processStateChanged(self, event: ThermostatStateChangedEvent):
+    def __processStateChanged(self, event: ThermostatStateChangedEvent):
         if ThermostatState.OFF == event.state:
             self.__openAllRelays()
         elif ThermostatState.COOLING == event.state:

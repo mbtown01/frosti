@@ -67,4 +67,4 @@ class Config:
         return self.__resolve('influxdb', 'protocol')
 
 
-config = ThermostatConfig()
+config = Config()

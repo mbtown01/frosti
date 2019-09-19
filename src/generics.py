@@ -98,7 +98,7 @@ class GenericLcdDisplay:
         for row in self.__rows:
             results.append(row.commit())
 
-            return results
+        return results
 
 
 class GenericButton:
@@ -196,6 +196,17 @@ class GenericEnvironmentSensor:
         self.__humidity = value
 
 
+class GenericPowerProvider(EventHandler):
+
+    def __init__(self, eventBus: EventBus, loopSleep: int):
+        super().__init__(eventBus, loopSleep)
+
+
+class NextScreenEvent(Event):
+    """ A request for the hardware driver to move to the next screen """
+    pass
+
+
 class GenericScreen(EventHandler):
 
     def __init__(self,
@@ -249,6 +260,8 @@ class DefaultScreen(GenericScreen):
             SettingsChangedEvent, self.__processSettingsChanged)
         super()._subscribe(
             TemperatureChangedEvent, self.__processTemperatureChanged)
+        super()._subscribe(
+            ThermostatStateChangedEvent, self.__processStateChanged)
 
         self.__sampleSensors()
 
@@ -274,7 +287,6 @@ class DefaultScreen(GenericScreen):
         log.debug(f"HardwareDriver: new state: {event.state}")
         self.__lastState = event.state
         self.__drawLcdInvoker.reset()
-        self._processStateChanged(event)
 
     def __sampleSensors(self):
         super()._fireEvent(TemperatureChangedEvent(self.__sensor.temperature))
@@ -287,10 +299,12 @@ class DefaultScreen(GenericScreen):
             self.__modifyComfortSettings(1)
         elif 2 == button.id:
             self.__modifyComfortSettings(-1)
-        elif 4 == button.id:
+        elif 3 == button.id:
             self.__drawRowTwoInvoker.reset(1)
             settings.mode = Settings.Mode(
                 (int(settings.mode.value)+1) % len(Settings.Mode))
+        elif 4 == button.id:
+            super()._fireEvent(NextScreenEvent())
 
     def __modifyComfortSettings(self, increment: int):
         self.__drawRowTwoInvoker.reset(0)
@@ -314,13 +328,14 @@ class DefaultScreen(GenericScreen):
         now = self.__lastTemperature
         mode = str(settings.mode).replace('Mode.', '')
         self.lcdBuffer.update(0, 0, f'Now: {now:<5.1f}    {mode:>6s}')
-        self.lcdBuffer.update(3, 0, r'UP  DOWN   SEL  MODE')
+        self.lcdBuffer.update(3, 0, r'UP  DOWN  MODE  NEXT')
         self.__drawRowTwoInvoker.invokeCurrent()
 
     # 01234567890123456789
     # Now: ###.#      AUTO
     # Stat         COOLING
-    # UP  DOWN   SEL  MODE
+    #
+    # UP  DOWN  MODE  NEXT
 
 
 class GenericHardwareDriver(EventHandler):
@@ -331,26 +346,40 @@ class GenericHardwareDriver(EventHandler):
                  buttons: list,
                  eventBus: EventBus,
                  loopSleep: int=0.05):
+        super().__init__(eventBus, loopSleep)
+
         self.__lcd = lcd
         self.__buttons = buttons
-        self.__activeScreen = DefaultScreen(
-            lcd.width, lcd.height, sensor, eventBus, loopSleep)
+        self.__activeScreenIndex = 0
+        self.__screens = [
+            DefaultScreen(
+                lcd.width, lcd.height, sensor, eventBus, loopSleep)
+        ]
 
-        super().__init__(eventBus, loopSleep)
+        super()._subscribe(
+            NextScreenEvent, self.__processNextScreen)
 
     def processEvents(self):
         super().processEvents()
 
-        self.__activeScreen.processEvents()
+        for screen in self.__screens:
+            screen.processEvents()
+
+        activeScreen = self.__screens[self.__activeScreenIndex]
 
         # Always scan for button presses
         for button in self.__buttons:
             if button.query():
-                self.__activeScreen.processButton(button)
+                activeScreen.processButton(button)
 
         # Send buffered updates to the actual display
-        self.__activeScreen.lcdBuffer.commit()
+        activeScreen.lcdBuffer.commit()
         for row in range(self.__lcd.height):
             self.__lcd.update(
-                row, 0, self.__activeScreen.lcdBuffer.rowText(row))
+                row, 0, activeScreen.lcdBuffer.rowText(row))
         self.__lcd.commit()
+
+    def __processNextScreen(self, event: NextScreenEvent):
+        log.debug(f"GenericHardwareDriver received NextScreenEvent")
+        self.__activeScreenIndex = \
+            (self.__activeScreenIndex + 1) % len(self.__screens)

@@ -2,6 +2,7 @@ from enum import Enum
 
 from src.events import Event, EventBus, EventHandler
 from src.logging import log
+from src.config import config
 
 
 class SettingsChangedEvent(Event):
@@ -57,6 +58,7 @@ class Settings:
     @comfortMin.setter
     def comfortMin(self, value):
         self.__comfortMin = value
+        self.__comfortMax = max(self.__comfortMax, value+2*self.__delta)
         if self.__eventBus is not None:
             self.__eventBus.put(SettingsChangedEvent())
 
@@ -70,6 +72,7 @@ class Settings:
     @comfortMax.setter
     def comfortMax(self, value):
         self.__comfortMax = value
+        self.__comfortMin = min(self.__comfortMin, value-2*self.__delta)
         if self.__eventBus is not None:
             self.__eventBus.put(SettingsChangedEvent())
 
