@@ -19,7 +19,7 @@ class Config:
                     self.__config = json.load(configFile)
                 break
 
-    def __resolve(self, section, option, default=None):
+    def resolve(self, section, option, default=None):
         if section not in self.__config:
             raise RuntimeError(f'Section {section} is not in config file')
         if option in self.__config[section]:
@@ -28,43 +28,43 @@ class Config:
 
     @property
     def gogriddy_enabled(self):
-        return self.__resolve('gogriddy', 'enabled', False)
+        return self.resolve('gogriddy', 'enabled', False)
 
     @property
     def gogriddy_memberId(self):
-        return self.__resolve('gogriddy', 'memberId')
+        return self.resolve('gogriddy', 'memberId')
 
     @property
     def gogriddy_meterId(self):
-        return self.__resolve('gogriddy', 'meterId')
+        return self.resolve('gogriddy', 'meterId')
 
     @property
     def gogriddy_settlementPoint(self):
-        return self.__resolve('gogriddy', 'settlementPoint')
+        return self.resolve('gogriddy', 'settlementPoint')
 
     @property
     def gogriddy_apiUrl(self):
-        return self.__resolve('gogriddy', 'apiUrl')
+        return self.resolve('gogriddy', 'apiUrl')
 
     @property
     def influxdb_enabled(self):
-        return self.__resolve('influxdb', 'enabled', False)
+        return self.resolve('influxdb', 'enabled', False)
 
     @property
     def influxdb_host(self):
-        return self.__resolve('influxdb', 'host')
+        return self.resolve('influxdb', 'host')
 
     @property
     def influxdb_port(self):
-        return self.__resolve('influxdb', 'port')
+        return self.resolve('influxdb', 'port')
 
     @property
     def influxdb_dbName(self):
-        return self.__resolve('influxdb', 'dbName')
+        return self.resolve('influxdb', 'dbName')
 
     @property
     def influxdb_protocol(self):
-        return self.__resolve('influxdb', 'protocol')
+        return self.resolve('influxdb', 'protocol')
 
 
 config = Config()

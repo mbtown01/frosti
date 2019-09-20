@@ -3,6 +3,7 @@ from enum import Enum
 from src.logging import log
 from src.settings import settings, Settings, SettingsChangedEvent
 from src.events import Event, EventBus, EventHandler
+from src.config import config
 
 
 class ThermostatState(Enum):

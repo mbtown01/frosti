@@ -22,27 +22,14 @@ class Settings:
         COOL = 2
         HEAT = 3
 
-    def __init__(self, mode: Mode=None,
-                 comfortMin: float=None, comfortMax: float=None,
-                 delta: float=None):
+    def __init__(self):
         self.__eventBus = None
-        self.__comfortMin = comfortMin or 68.0
-        self.__comfortMax = comfortMax or 75.0
-        self.__delta = delta or 1.0
-        self.__mode = mode or Settings.Mode.AUTO
+        self.__comfortMin = config.resolve("thermostat", )
+        self.__comfortMax = 75.0
+        self.__delta = 1.0
+        self.__mode = Settings.Mode.AUTO
         if self.__comfortMax - self.__comfortMin < 2*self.__delta:
             self.__comfortMax = self.__comfortMin + 2*self.__delta
-
-    # def clone(self, mode: Mode=None,
-    #           comfortMin: float=None, comfortMax: float=None,
-    #           delta: float=None):
-
-    #     return Settings(
-    #         comfortMin=comfortMin or self.__comfortMin,
-    #         comfortMax=comfortMax or self.__comfortMax,
-    #         delta=delta or self.__delta,
-    #         mode=mode or self.__mode
-    #     )
 
     def __repr__(self):
         return f"[{self.__mode}] heatAt: {self.__comfortMin} " + \
