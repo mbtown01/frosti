@@ -24,3 +24,5 @@ def setupLogging(queue: Queue=None):
     handler.setFormatter(logging.Formatter(
         '[%(asctime)s] %(module)s %(levelname)s - %(message)s'))
     logging.getLogger('').addHandler(handler)
+
+    logging.getLogger('chardet.charsetprober').setLevel(logging.INFO)

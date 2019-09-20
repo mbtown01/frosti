@@ -1,6 +1,9 @@
 from queue import Queue
 from threading import Thread
 from time import sleep
+from sys import exc_info
+
+from src.logging import log
 
 
 class Event:
@@ -76,7 +79,11 @@ class EventHandler:
         """ Calls processEvents() and then sleeps for self.loopSleep
         seconds until stop() is called """
         while not self.__shouldStop:
-            self.processEvents()
+            try:
+                self.processEvents()
+            except:
+                log.warning(
+                    "Threaded EventHandler caught exception: " + exc_info())
             sleep(self.loopSleep)
 
     def _fireEvent(self, event: Event):

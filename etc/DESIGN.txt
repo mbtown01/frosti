@@ -20,3 +20,16 @@ Driver
 
 Display
     * 
+
+Threads
+    * ThermostatDriver
+    * ApiEventHandler
+    * HardwareDriver (terminal/rpi)
+        * GenericLcdDisplay
+        * GenericEnvironmentSen sor
+        * 
+
+Threaded EventHandlers
+    * Threaded event handlers are designed to run in the background independent
+      of what's going on in the application, and communicate state information
+      via events on the EventBus

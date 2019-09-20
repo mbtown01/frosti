@@ -196,15 +196,16 @@ class GenericEnvironmentSensor:
         self.__humidity = value
 
 
-class GenericPowerProvider(EventHandler):
+class PowerPriceChangedEvent(Event):
+    """ Signals the start of a new power price """
 
-    def __init__(self, eventBus: EventBus, loopSleep: int):
-        super().__init__(eventBus, loopSleep)
+    def __init__(self, price: float):
+        super().__init__(data={'price': price})
 
-
-class NextScreenEvent(Event):
-    """ A request for the hardware driver to move to the next screen """
-    pass
+    @property
+    def price(self):
+        """ Returns the new power price in $/kW*h """
+        return self._data['price']
 
 
 class GenericScreen(EventHandler):
@@ -303,8 +304,6 @@ class DefaultScreen(GenericScreen):
             self.__drawRowTwoInvoker.reset(1)
             settings.mode = Settings.Mode(
                 (int(settings.mode.value)+1) % len(Settings.Mode))
-        elif 4 == button.id:
-            super()._fireEvent(NextScreenEvent())
 
     def __modifyComfortSettings(self, increment: int):
         self.__drawRowTwoInvoker.reset(0)
@@ -356,9 +355,6 @@ class GenericHardwareDriver(EventHandler):
                 lcd.width, lcd.height, sensor, eventBus, loopSleep)
         ]
 
-        super()._subscribe(
-            NextScreenEvent, self.__processNextScreen)
-
     def processEvents(self):
         super().processEvents()
 
@@ -378,8 +374,3 @@ class GenericHardwareDriver(EventHandler):
             self.__lcd.update(
                 row, 0, activeScreen.lcdBuffer.rowText(row))
         self.__lcd.commit()
-
-    def __processNextScreen(self, event: NextScreenEvent):
-        log.debug(f"GenericHardwareDriver received NextScreenEvent")
-        self.__activeScreenIndex = \
-            (self.__activeScreenIndex + 1) % len(self.__screens)

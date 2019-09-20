@@ -48,8 +48,7 @@ class HumidityChangedEvent(PropertyChangedEvent):
 
 
 class ThermostatDriver(EventHandler):
-    """ Thermostat driver logic
-    """
+    """ Thermostat driver logic """
 
     def __init__(self, eventBus: EventBus):
         super().__init__(eventBus)
@@ -109,5 +108,6 @@ class ThermostatDriver(EventHandler):
             self.__changeState(ThermostatState.OFF)
 
     def __changeState(self, newState: ThermostatState):
-        self.__state = newState
-        self._fireEvent(ThermostatStateChangedEvent(newState))
+        if self.__state != newState:
+            self.__state = newState
+            self._fireEvent(ThermostatStateChangedEvent(newState))

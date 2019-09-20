@@ -1,9 +1,12 @@
 import requests
 import json
 import sys
+from datetime import datetime
 
 from src.events import Event, EventHandler, EventBus
 from src.config import config
+from src.generics import PowerPriceChangedEvent
+from src.logging import log
 
 # GoGriddy billing is actually based on 15-minute RTSPP intervals indicated
 # here
@@ -20,52 +23,38 @@ from src.config import config
 # consuming power again
 
 
-class PowerRateChangedEvent(Event):
-    """ Signals the start of a new power rate """
+class GoGriddyEventHandler(EventHandler):
+    """ EventHandler thread that monitors power prices and fires an event 
+    if there is a change """
 
-    def __init__(self, rate: float):
-        super().__init__(data={'rate': rate})
+    def __init__(self, eventBus: EventBus):
+        super().__init__(eventBus, loopSleep=5.0)
 
-    @property
-    def rate(self):
-        return self._data['rate']
-
-
-class GoGriddyPowerInterface:
-
-    def __init__(self):
         self.__apiPostData = {
             'meterID': config.gogriddy_meterId,
             'memberID': config.gogriddy_meterId,
             'settlement_point': config.gogriddy_settlementPoint
         }
+        self.__nextPoll = datetime.now().timestamp()-1
+        self.__rawData = None
+        self.__updatePrice()
 
-    def getRawData(self):
-        result = requests.post(
-            config.gogriddy_apiUrl, data=json.dumps(self.__apiPostData))
+    def __updatePrice(self):
+        """ Returns the new power price in $/kW*h """
+        timeStamp = datetime.now().timestamp() 
+        if self.__rawData is  None or self.__nextPoll <= timeStamp:
+            result = requests.post(
+                config.gogriddy_apiUrl, data=json.dumps(self.__apiPostData))
+            self.__rawData = json.loads(result.text)
+            self.__nextPoll = \
+                timeStamp + float(self.__rawData['seconds_until_refresh'])
+            price = float(self.__rawData["now"]["price_ckwh"])/100.0
+            self._fireEvent(PowerPriceChangedEvent(price))
 
-        return json.loads(result.text)
+            log.info(f"GoGriddy power price is now {price:.4f}/kW*h")
 
-    def getCurrentRate(self):
-        data = self.getRawData()
+    def processEvents(self):
+        """ Poll the price prover and figre an event if price changed """
+        super().processEvents()
 
-        # 'seconds_until_refresh'
-
-        return float(data["now"]["price_ckwh"])/100.0
-
-    def getForecast(self):
-        data = self.getRawData()
-
-        for pair in data["forecast"]:
-            print(pair)
-
-        # 'date_local_tz'
-        # 'price_ckwh'
-
-        return None
-
-
-class GoGriddyPowerEventHandler(EventHandler):
-
-    def __init__(self, eventBus: EventBus, loopSleep: int):
-        super().__init__(eventBus, loopSleep)
+        self.__updatePrice()

@@ -10,6 +10,8 @@ from src.thermostat import ThermostatDriver
 from src.api import ApiEventHandler, ApiMessageHandler
 from src.settings import settings, SettingsChangedEvent
 from src.terminal import TerminalHardwareDriver
+from src.power import GoGriddyEventHandler
+from src.config import config
 
 
 def main(stdscr):
@@ -38,6 +40,15 @@ def main(stdscr):
         from src.hardware import HardwareDriver
         hardwareDriver = HardwareDriver(eventBus)
         setupLogging()
+
+    # Setup the power price handler after the other event handlers have
+    # been created so they get the first power events
+    if config.gogriddy_enabled:
+        try:
+            powerPriceEventHandler = GoGriddyEventHandler(eventBus)
+            powerPriceEventHandler.start("Power Price Event Handler")
+        except ConnectionError:
+            log.warning("Unable to reach GoGriddy")
 
     # Start all handlers on their own theads
     hardwareDriver.start('Hardware Driver')
