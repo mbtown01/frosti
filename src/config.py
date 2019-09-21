@@ -10,14 +10,18 @@ class Config:
         searchOrder = (
             os.path.expanduser('~/.thermostat.json'),
             '/etc/thermostat.json',
-            os.path.dirname(localPath) + '/../etc/thermostat.json'
+            os.path.abspath(
+                os.path.dirname(localPath) + '/../etc/thermostat.json')
         )
 
+        self.__config = None
         for fileName in searchOrder:
             if os.path.exists(fileName):
                 with open(fileName) as configFile:
                     self.__config = json.load(configFile)
                 break
+        if self.__config is None:
+            pass
 
     def resolve(self, section, option, default=None):
         if section not in self.__config:

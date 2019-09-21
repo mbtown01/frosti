@@ -24,7 +24,7 @@ class Settings:
 
     def __init__(self):
         self.__eventBus = None
-        self.__comfortMin = config.resolve("thermostat", )
+        self.__comfortMin = 68.0
         self.__comfortMax = 75.0
         self.__delta = 1.0
         self.__mode = Settings.Mode.AUTO

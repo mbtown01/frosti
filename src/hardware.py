@@ -131,13 +131,13 @@ class Bm280EnvironmentSensor(GenericEnvironmentSensor):
         return self.__bme280.humidity
 
 
-class HardwareDriver(GenericHardwareDriver):
+class Relay(Enum):
+    FAN = 1
+    HEAT = 2
+    COOL = 3
 
-    class RelayPin(Enum):
-        FAN = 5
-        HEAT = 6
-        COOL = 13
-        COMMON = 19
+
+class HardwareDriver(GenericHardwareDriver):
 
     def __init__(self, eventBus: EventBus):
         super().__init__(
@@ -155,39 +155,47 @@ class HardwareDriver(GenericHardwareDriver):
         super()._subscribe(
             ThermostatStateChangedEvent, self.__processStateChanged)
 
+        self.__relayMap = {
+            Relay.FAN: {'IN': 5, 'OUT': 17},
+            Relay.HEAT: {'IN': 6, 'OUT': 27},
+            Relay.COOL: {'IN': 13, 'OUT': 22}
+        }
+
         GPIO.setmode(GPIO.BCM)
-        GPIO.setup(HardwareDriver.RelayPin.COMMON.value, GPIO.OUT)
-        GPIO.setup(HardwareDriver.RelayPin.FAN.value, GPIO.OUT)
-        GPIO.setup(HardwareDriver.RelayPin.HEAT.value, GPIO.OUT)
-        GPIO.setup(HardwareDriver.RelayPin.COOL.value, GPIO.OUT)
+
+        for relay in self.__relayMap.keys():
+            pinMap = self.__relayMap[relay]
+            GPIO.setup(pinMap['IN'], GPIO.OUT)
+            GPIO.setup(pinMap['OUT'], GPIO.OUT)
 
         self.__openAllRelays()
 
-    def __openAllRelays(self):
-        GPIO.output(HardwareDriver.RelayPin.COMMON.value, True)
-        GPIO.output(HardwareDriver.RelayPin.FAN.value, False)
-        GPIO.output(HardwareDriver.RelayPin.HEAT.value, False)
-        GPIO.output(HardwareDriver.RelayPin.COOL.value, False)
+    def __openRelay(self, relay: Relay):
+        pinMap = self.__relayMap[relay]
+        GPIO.output(pinMap['IN'], False)
+        GPIO.output(pinMap['OUT'], True)
         sleep(0.5)
-        GPIO.output(HardwareDriver.RelayPin.COMMON.value, False)
+        GPIO.output(pinMap['OUT'], False)
 
-    def __closeRelayExclusively(self, relayPin: RelayPin):
-        # Relay CLOSES/CONNECTS when COMMON is LOW and relay pin is HIGH
-        # Relay OPENS/DISCONNETS when COMMON is HIGH and relay pin is LOW
-        self.__openAllRelays
-        GPIO.output(relayPin.value, True)
+    def __closeRelay(self, relay: Relay):
+        pinMap = self.__relayMap[relay]
+        GPIO.output(pinMap['IN'], True)
         sleep(0.5)
-        GPIO.output(relayPin.value, False)
+        GPIO.output(pinMap['IN'], False)
+
+    def __openAllRelays(self):
+        for relay in self.__relayMap.keys():
+            self.__openRelay(relay)
 
     def __processStateChanged(self, event: ThermostatStateChangedEvent):
         if ThermostatState.OFF == event.state:
             self.__openAllRelays()
         elif ThermostatState.COOLING == event.state:
-            self.__closeRelayExclusively(HardwareDriver.RelayPin.COOL)
+            self.__closeRelay(Relay.COOL)
         elif ThermostatState.HEATING == event.state:
-            self.__closeRelayExclusively(HardwareDriver.RelayPin.HEAT)
+            self.__closeRelay(Relay.HEAT)
         elif ThermostatState.FAN == event.state:
-            self.__closeRelayExclusively(HardwareDriver.RelayPin.FAN)
+            self.__closeRelay(Relay.FAN)
         else:
             raise RuntimeError(
                 f"Unknown event state ({event.state}) encountered")

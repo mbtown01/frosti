@@ -18,18 +18,17 @@ Driver
         * get() for all sensors
         * get()/set() for temperature targets
 
-Display
-    * 
-
-Threads
-    * ThermostatDriver
-    * ApiEventHandler
-    * HardwareDriver (terminal/rpi)
-        * GenericLcdDisplay
-        * GenericEnvironmentSen sor
-        * 
-
 Threaded EventHandlers
     * Threaded event handlers are designed to run in the background independent
       of what's going on in the application, and communicate state information
       via events on the EventBus
+
+Thoughts on board v3
+    * Include the heat sink for the voltage regulator and 
+      move somewhere not under the RPI?
+    * Include LEDs for each relay for debugging purposes
+    * Add BMP280 circuit directly to the board
+    * Scratch Common GPIO 19
+    * Scratch all common connections between relays
+    * Route GPIO 17, 27, 22 for relays
+    

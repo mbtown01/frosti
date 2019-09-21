@@ -246,6 +246,7 @@ class DefaultScreen(GenericScreen):
 
         self.__lastTemperature = sensor.temperature
         self.__lastState = ThermostatState.OFF
+        self.__lastPrice = 0.0
 
         self.__sampleInvoker = CounterBasedInvoker(
             ticks=max(1, int(5/loopSleep)), handlers=[self.__sampleSensors])
@@ -253,7 +254,9 @@ class DefaultScreen(GenericScreen):
             ticks=max(1, int(0.1/loopSleep)), handlers=[self.__drawLcdDisplay])
         self.__drawRowTwoInvoker = CounterBasedInvoker(
             ticks=max(1, int(3/loopSleep)), handlers=[
-                self.__drawRowTwoTarget, self.__drawRowTwoState])
+                self.__drawRowTwoTarget,
+                self.__drawRowTwoState,
+                self.__drawRowTwoPrice])
 
         self.__rotateRowTwoInterval = int(3/loopSleep)
 
@@ -263,6 +266,8 @@ class DefaultScreen(GenericScreen):
             TemperatureChangedEvent, self.__processTemperatureChanged)
         super()._subscribe(
             ThermostatStateChangedEvent, self.__processStateChanged)
+        super()._subscribe(
+            PowerPriceChangedEvent, self.__powerPriceChanged)
 
         self.__sampleSensors()
 
@@ -276,16 +281,22 @@ class DefaultScreen(GenericScreen):
         # Only update measurements at the sample interval
         self.__sampleInvoker.increment()
 
+    def __powerPriceChanged(self, event: PowerPriceChangedEvent):
+        log.info(f"DefaultScreen: Power price is now {event.price:.4f}/kW*h")
+        self.__drawRowTwoInvoker.reset(2)
+        self.__lastPrice = event.price
+        self.__drawLcdInvoker.invokeCurrent()
+
     def __processTemperatureChanged(self, event: TemperatureChangedEvent):
         self.__lastTemperature = event.value
         self.__drawLcdInvoker.invokeCurrent()
 
     def __processSettingsChanged(self, event: SettingsChangedEvent):
-        log.debug(f"HardwareDriver: new settings: {settings}")
+        log.debug(f"DefaultScreen: new settings: {settings}")
         self.__drawLcdInvoker.invokeCurrent()
 
     def __processStateChanged(self, event: ThermostatStateChangedEvent):
-        log.debug(f"HardwareDriver: new state: {event.state}")
+        log.debug(f"DefaultScreen: new state: {event.state}")
         self.__lastState = event.state
         self.__drawLcdInvoker.reset()
 
@@ -304,6 +315,8 @@ class DefaultScreen(GenericScreen):
             self.__drawRowTwoInvoker.reset(1)
             settings.mode = Settings.Mode(
                 (int(settings.mode.value)+1) % len(Settings.Mode))
+        elif 4 == button.id:
+            self.__drawRowTwoInvoker.increment()
 
     def __modifyComfortSettings(self, increment: int):
         self.__drawRowTwoInvoker.reset(0)
@@ -322,6 +335,12 @@ class DefaultScreen(GenericScreen):
     def __drawRowTwoState(self):
         state = str(self.__lastState).replace('ThermostatState.', '')
         self.lcdBuffer.update(1, 0, f'State:     {state:>9s}')
+
+    def __drawRowTwoPrice(self):
+        price = self.__lastPrice
+        self.lcdBuffer.update(1, 0, f'Price:  ${price:.4f}/kW*h')
+        # '01234567890123456789'
+        # 'Price:  $0.0356/kW*h'
 
     def __drawLcdDisplay(self):
         now = self.__lastTemperature

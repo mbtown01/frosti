@@ -60,8 +60,8 @@ class TerminalHardwareDriver(GenericHardwareDriver):
             buttons=self.__buttonMap.values(),
         )
 
-        super()._subscribe( 
-            PowerPriceChangedEvent, self.__powerPriceChanged )
+        super()._subscribe(
+            PowerPriceChangedEvent, self.__powerPriceChanged)
 
     def __powerPriceChanged(self, event: PowerPriceChangedEvent):
         log.info(f"TerminalDriver: Power price is now {event.price:.4f}/kW*h")
@@ -86,9 +86,11 @@ class TerminalHardwareDriver(GenericHardwareDriver):
                 self.__stdscr.clear()
                 self.__stdscr.refresh()
             elif char == ord('9'):
-                super()._fireEvent(PowerPriceChangedEvent(self.__lastPrice-0.25))
+                super()._fireEvent(
+                    PowerPriceChangedEvent(self.__lastPrice-0.25))
             elif char == ord('0'):
-                super()._fireEvent(PowerPriceChangedEvent(self.__lastPrice+0.25))
+                super()._fireEvent(
+                    PowerPriceChangedEvent(self.__lastPrice+0.25))
             elif char in self.__buttonMap:
                 self.__buttonMap[char].press()
             elif char == curses.KEY_UP:
