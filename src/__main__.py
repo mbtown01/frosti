@@ -44,12 +44,9 @@ def main(stdscr):
         except ConnectionError:
             log.warning("Unable to reach GoGriddy")
 
-    # Start all handlers on their own theads
-    hardwareDriver.start('Hardware Driver')
-
     log.info('Entering into standard operation')
     eventBus.put(SettingsChangedEvent())
-    hardwareDriver.join()
+    hardwareDriver.exec()
 
 if __name__ == '__main__':
     uname = popen('uname -a').read()

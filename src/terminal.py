@@ -17,13 +17,25 @@ class TerminalDisplay(GenericLcdDisplay):
     def __init__(self, window, width, height):
         super().__init__(width, height)
         self.__window = window
+        self.__backlightEnabled = False
+
+    def setBacklight(self, enabled: bool):
+        self.__backlightEnabled = enabled
+        self.commit()
 
     def commit(self):
         """ Commits all pending changes to the display """
-        super().commit()
-        for row in range(self.height):
-            self.__window.addstr(row, 0, super().rowText(row))
-        self.__window.refresh()
+        results = super().commit()
+        filtered = [l for l in results if len(l)]
+        if len(filtered):
+            for row in range(self.height):
+                if self.__backlightEnabled:
+                    self.__window.addstr(
+                        row, 0, super().rowText(row), curses.A_REVERSE)
+                else:
+                    self.__window.addstr(
+                        row, 0, super().rowText(row))
+            self.__window.refresh()
 
 
 class TerminalRelay(GenericRelay):
@@ -77,6 +89,7 @@ class TerminalThermostatDriver(GenericThermostatDriver):
         curses.init_pair(1, curses.COLOR_RED, curses.COLOR_WHITE)
         curses.init_pair(2, curses.COLOR_BLUE, curses.COLOR_WHITE)
         curses.init_pair(3, curses.COLOR_GREEN, curses.COLOR_WHITE)
+        curses.init_pair(4, curses.COLOR_WHITE, curses.COLOR_BLACK)
         curses.curs_set(0)
 
         lines, cols = self.__stdscr.getmaxyx()

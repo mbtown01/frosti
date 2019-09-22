@@ -12,21 +12,23 @@ from time import sleep
 from src.logging import log
 from src.generics import GenericLcdDisplay, GenericButton, \
     CounterBasedInvoker, GenericThermostatDriver, GenericEnvironmentSensor, \
-    GenericRelay
+    GenericRelay, ThermostatState
 from src.events import EventBus
-from src.thermostat import ThermostatStateChangedEvent, ThermostatState
 
 
-class Lcd1602Display(GenericLcdDisplay):
+class HD44780Display(GenericLcdDisplay):
+    """ An HD44780 character based LCD display fronted by an i2c interface """
 
     # Modified version of the driver from
     # https://github.com/sunfounder/SunFounder_SensorKit_for_RPi2.git
+    # Command reference
+    # https://mil.ufl.edu/3744/docs/lcdmanual/commands.html
     def __init__(self, addr, width, height):
         super().__init__(width, height)
 
         self.__smbus = smbus.SMBus(1)
         self.__lcdAddr = addr
-        self.__blen = 1  # Hard-coding this, not sure what other options do
+        self.__blen = 0  # Hard-coding this, not sure what other options do
 
         self.__send_command(0x33)  # Must initialize to 8-line mode at first
         sleep(0.005)
@@ -36,23 +38,24 @@ class Lcd1602Display(GenericLcdDisplay):
         sleep(0.005)
         self.__send_command(0x0C)  # Enable display without cursor
         sleep(0.005)
-        self.__send_command(0x01)  # Clear Screen
-        self.__smbus.write_byte(self.__lcdAddr, 0x08)
 
-    def __write_word(self, addr, data):
+        self.clear()
+        self.setBacklight(True)
+
+    def __write_word(self, data):
         temp = data
         if self.__blen == 1:
             temp |= 0x08
         else:
             temp &= 0xF7
-        self.__smbus.write_byte(addr, temp)
+        self.__smbus.write_byte(self.__lcdAddr, temp)
 
     def __send(self, buf, op):
         buf |= op                # RS = 0, RW = 0, EN = 1
-        self.__write_word(self.__lcdAddr, buf)
+        self.__write_word(buf)
         sleep(0.002)
         buf &= 0xFB               # Make EN = 0
-        self.__write_word(self.__lcdAddr, buf)
+        self.__write_word(buf)
 
     def __send_command(self, comm):
         # Send last 4 bits first, then send the first 4 bits
@@ -63,13 +66,6 @@ class Lcd1602Display(GenericLcdDisplay):
         # Send last 4 bits first, then send the first 4 bits
         self.__send(data & 0xF0, 0x05)
         self.__send((data & 0x0f) << 4, 0x05)
-
-    def __clear(self):
-        self.__send_command(0x01)  # Clear Screen
-
-    def __openlight(self):  # Enable the backlight
-        self.__smbus.write_byte(self.__lcdAddr, 0x08)
-        self.__smbus.close()
 
     def __write(self, x, y, str):
         x = min(self.width-1, max(0, x))
@@ -85,6 +81,19 @@ class Lcd1602Display(GenericLcdDisplay):
         for chr in str:
             self.__send_data(ord(chr))
 
+    def clear(self):
+        """ Clear the contents of the LCD screen """
+        self.__send_command(0x01)  # Clear Screen
+
+    def setBacklight(self, enabled: bool):
+        """ If enabled, turns on the backlight, otherwise turns it off """
+        if enabled:
+            # self.__send_command(0x12)
+            self.__smbus.write_byte(self.__lcdAddr, 0x08)
+        else:
+            # self.__send_command(0x08)
+            self.__smbus.write_byte(self.__lcdAddr, 0x00)
+
     def commit(self):
         """ Commits all pending changes to the display """
         results = super().commit()
@@ -93,8 +102,8 @@ class Lcd1602Display(GenericLcdDisplay):
                 self.__write(change[0], i, change[1])
 
 
-class SimplePushButton(GenericButton):
-    """ A physical button provided to the user """
+class GpioPushButton(GenericButton):
+    """ A physical button based on a GPIO pin reading high/low voltage """
 
     def __init__(self, id: int, pin: int):
         super().__init__(id)
@@ -168,13 +177,13 @@ class HardwareThermostatDriver(GenericThermostatDriver):
 
         super().__init__(
             eventBus=eventBus,
-            lcd=Lcd1602Display(0x27, 20, 4),
+            lcd=HD44780Display(0x27, 20, 4),
             sensor=Bm280EnvironmentSensor(),
             buttons=(
-                SimplePushButton(1, 21),
-                SimplePushButton(2, 20),
-                SimplePushButton(3, 16),
-                SimplePushButton(4, 12),
+                GpioPushButton(1, 21),
+                GpioPushButton(2, 20),
+                GpioPushButton(3, 16),
+                GpioPushButton(4, 12),
             ),
             relays=(
                 PanasonicAgqRelay(ThermostatState.FAN, 5, 17),

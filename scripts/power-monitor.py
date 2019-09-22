@@ -60,13 +60,23 @@ class RavenXmlSerialInterface:
         self.__serial.flush()
 
     def __commandResponse(self, command: str, elementName: str, attrName: str):
-        self.__sendCommand(command, 'Y')
-
         lines = []
         result = None
+        readAttempts = 0
+        issueCommand = True
+
         while result is None:
+            if issueCommand or readAttempts > 4:
+                # print(f'Issuing command for {elementName}')
+                self.__sendCommand(command, 'Y')
+                issueCommand = False
+                readAttempts = 0
+                lines.clear()
+
+            # print(f'Reading for {elementName} {readAttempts}')
             for line in self.__serial.readlines():
                 line = line.decode('ascii').strip()
+                # print(f'    {elementName}: {line}')
                 lines.append(line)
 
             if len(lines) and lines[0].startswith(f"<{elementName}>"):
@@ -75,6 +85,8 @@ class RavenXmlSerialInterface:
                     cmdLines.append(lines.pop(0))
                 cmdLines.append(lines.pop(0))
                 result = self.__parseBlock(cmdLines, elementName, attrName)
+
+            readAttempts += 1
 
         return result
 
@@ -107,9 +119,9 @@ class RavenXmlSerialInterface:
             influxdb_entry = \
                 f'electric_cost demand={demand},meter={summation}'
 
-            print(influxdb_entry)
+            # print(influxdb_entry)
             client.write_points(
-                influxdb_entry, protocol=config.influxdb_protocol)
+               influxdb_entry, protocol=config.influxdb_protocol)
 
 if __name__ == '__main__':
     instance = RavenXmlSerialInterface('/dev/ttyUSB0')

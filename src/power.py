@@ -37,7 +37,6 @@ class GoGriddyEventHandler(EventHandler):
         }
         self.__nextPoll = datetime.now().timestamp()-1
         self.__rawData = None
-        self.__updatePrice()
 
     def __updatePrice(self):
         """ Returns the new power price in $/kW*h """

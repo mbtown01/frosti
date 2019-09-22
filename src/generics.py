@@ -84,6 +84,9 @@ class GenericLcdDisplay:
         for row in self.__rows:
             row.clear()
 
+    def setBacklight(self, enabled: bool):
+        pass
+
     def update(self, row: int, col: int, text: str):
         """ Add a pending change to the display """
         if row >= len(self.__rows):
@@ -93,7 +96,7 @@ class GenericLcdDisplay:
 
     def commit(self):
         """ Commit the set of pending changes and return the changes from
-        the previous compit """
+        the previous commit """
         results = list()
         for row in self.__rows:
             results.append(row.commit())
@@ -422,12 +425,11 @@ class GenericThermostatDriver(EventHandler):
         self.__sampleInvoker = CounterBasedInvoker(
             ticks=max(1, int(5/loopSleep)), handlers=[self.__sampleSensors])
         self.__state = ThermostatState.OFF
+        self.__backlightTicks = 50
+        self.__lcd.setBacklight(True)
 
         self.__openAllRelays()
         self.__sampleSensors()
-
-        super()._subscribe(
-            SettingsChangedEvent, self.__processSettingsChanged)
 
     @property
     def state(self):
@@ -445,7 +447,15 @@ class GenericThermostatDriver(EventHandler):
         # Always scan for button presses
         for button in self.__buttons:
             if button.query():
+                if 0 == self.__backlightTicks:
+                    self.__lcd.setBacklight(True)
+                self.__backlightTicks = 50
                 self.__screen.processButton(button)
+
+        if self.__backlightTicks:
+            self.__backlightTicks -= 1
+            if not self.__backlightTicks:
+                self.__lcd.setBacklight(False)
 
         # Send buffered updates to the actual display
         self.__screen.lcdBuffer.commit()
@@ -453,9 +463,6 @@ class GenericThermostatDriver(EventHandler):
             self.__lcd.update(
                 row, 0, self.__screen.lcdBuffer.rowText(row))
         self.__lcd.commit()
-
-    def __processSettingsChanged(self, event: SettingsChangedEvent):
-        self.__sampleSensors()
 
     def __openAllRelays(self):
         for relay in self.__relayMap.values():
