@@ -7,7 +7,7 @@ import json
 from src.logging import log
 from src.settings import settings, Settings
 from src.events import Event, EventBus, EventHandler
-from src.thermostat import PropertyChangedEvent, \
+from src.generics import PropertyChangedEvent, \
     ThermostatStateChangedEvent, ThermostatState, \
     TemperatureChangedEvent, PressureChangedEvent, HumidityChangedEvent
 

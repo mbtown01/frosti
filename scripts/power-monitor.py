@@ -29,71 +29,88 @@ from src.config import config
 # </InstantaneousDemand>
 
 
-def parseBlock(lines, elementName, attrName):
-    xml_text = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<data>\n"
-    for line in lines:
-        xml_text += str(line)
-    xml_text += "</data>"
+class RavenXmlSerialInterface:
 
-    parser = ElementTree.XMLParser(encoding="utf-8")
-    root = ElementTree.fromstring(xml_text, parser=parser)
-    element = root.find(elementName)
+    def __init__(self, tty: str):
+        # Connect and reuse the serial interface until complete
+        self.__serial = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
 
-    value = int(element.find(attrName).text, 16)
-    multiplier = max(1, int(element.find("Multiplier").text, 16))
-    divisor = max(1, int(element.find("Divisor").text, 16))
-    return value * multiplier / float(divisor)
+    def __parseBlock(self, lines, elementName, attrName):
+        xml_text = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<data>\n"
+        for line in lines:
+            xml_text += str(line)
+        xml_text += "</data>"
 
+        parser = ElementTree.XMLParser(encoding="utf-8")
+        root = ElementTree.fromstring(xml_text, parser=parser)
+        element = root.find(elementName)
 
-def sendCommand(ser, command: str, refresh: str=None):
-    ser.write(b"<Command><Name>" + command.encode('utf-8') + b"</Name>")
-    if refresh is not None:
-        ser.write(b"<Refresh>" + refresh.encode('utf-8') + b"</Refresh>")
-    ser.write(b"</Command>")
-    ser.flush()
+        value = int(element.find(attrName).text, 16)
+        multiplier = max(1, int(element.find("Multiplier").text, 16))
+        divisor = max(1, int(element.find("Divisor").text, 16))
+        return value * multiplier / float(divisor)
 
+    def __sendCommand(self, command: str, refresh: str=None):
+        self.__serial.write(
+            b"<Command><Name>" + command.encode('utf-8') + b"</Name>")
+        if refresh is not None:
+            self.__serial.write(
+                b"<Refresh>" + refresh.encode('utf-8') + b"</Refresh>")
+        self.__serial.write(b"</Command>")
+        self.__serial.flush()
 
-# Connect and reuse the serial interface until complete
-ser = serial.Serial('/dev/ttyUSB1', 115200, timeout=1)
+    def __commandResponse(self, command: str, elementName: str, attrName: str):
+        self.__sendCommand(command, 'Y')
 
-sendCommand(ser, 'set_schedule_default')
+        lines = []
+        result = None
+        while result is None:
+            for line in self.__serial.readlines():
+                line = line.decode('ascii').strip()
+                lines.append(line)
 
-lines = []
-demand = None
-summation = None
-while demand is None or summation is None:
-    sendCommand(ser, 'get_instantaneous_demand', 'N')
-    sendCommand(ser, 'get_current_summation_delivered', 'N')
-    for line in ser.readlines():
-        line = line.decode('ascii').strip()
-        lines.append(line)
+            if len(lines) and lines[0].startswith(f"<{elementName}>"):
+                cmdLines = []
+                while not lines[0].startswith(f"</{elementName}>"):
+                    cmdLines.append(lines.pop(0))
+                cmdLines.append(lines.pop(0))
+                result = self.__parseBlock(cmdLines, elementName, attrName)
 
-    if len(lines) and lines[0].startswith("<InstantaneousDemand>"):
-        cmdLines = []
-        while not lines[0].startswith("</InstantaneousDemand>"):
-            cmdLines.append(lines.pop(0))
-        cmdLines.append(lines.pop(0))
-        demand = parseBlock(cmdLines, 'InstantaneousDemand', 'Demand')
+        return result
 
-    if len(lines) and lines[0].startswith("<CurrentSummationDelivered>"):
-        cmdLines = []
-        while not lines[0].startswith("</CurrentSummationDelivered>"):
-            cmdLines.append(lines.pop(0))
-        cmdLines.append(lines.pop(0))
-        summation = parseBlock(
-            cmdLines, 'CurrentSummationDelivered', 'SummationDelivered')
+    def exec(self):
+        self.__sendCommand('set_schedule_default')
 
-if config.influxdb_enabled:
-    client = InfluxDBClient(
-        host=config.influxdb_host, port=config.influxdb_port)
-    client.switch_database(config.influxdb_dbName)
+        demand = self.__commandResponse(
+            'get_instantaneous_demand',
+            'InstantaneousDemand',
+            'Demand'
+        )
+        summation = self.__commandResponse(
+            'get_current_summation_delivered',
+            'CurrentSummationDelivered',
+            'SummationDelivered'
+        )
 
-    # <Command><Name>get_current_summation_delivered</Name><Refresh>N</Refresh></Command>
-    # <Command><Name>get_instantaneous_demand</Name><Refresh>N</Refresh></Command>
-    # <Command><Name>get_schedule</Name></Command>
+        if config.influxdb_enabled:
+            client = InfluxDBClient(
+                host=config.influxdb_host, port=config.influxdb_port)
+            client.switch_database(config.influxdb_dbName)
 
-    influxdb_entry = \
-        f'electric_cost demand={demand},meter={summation}'
+            # <Command><Name>get_current_summation_delivered</Name><Refresh>N</Refresh></Command>
+            # <Command><Name>get_instantaneous_demand</Name><Refresh>Y</Refresh></Command>
+            # <Command><Name>get_schedule</Name></Command>
+            # <Command><Name>set_schedule_default</Name></Command>
+            # <Command><Name>initialize</Name></Command>
+            # <Command><Name>restart</Name></Command>
 
-    print(influxdb_entry)
-    client.write_points(influxdb_entry, protocol=config.influxdb_protocol)
+            influxdb_entry = \
+                f'electric_cost demand={demand},meter={summation}'
+
+            print(influxdb_entry)
+            client.write_points(
+                influxdb_entry, protocol=config.influxdb_protocol)
+
+if __name__ == '__main__':
+    instance = RavenXmlSerialInterface('/dev/ttyUSB0')
+    instance.exec()

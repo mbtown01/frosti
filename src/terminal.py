@@ -4,10 +4,10 @@ from queue import Queue
 
 from src.logging import log
 from src.generics import GenericLcdDisplay, GenericButton, \
-    GenericHardwareDriver, GenericEnvironmentSensor, \
-    PowerPriceChangedEvent
+    GenericThermostatDriver, GenericEnvironmentSensor, \
+    PowerPriceChangedEvent, GenericRelay, ThermostatState, \
+    TemperatureChangedEvent
 from src.events import EventBus
-from src.thermostat import TemperatureChangedEvent
 
 
 class TerminalDisplay(GenericLcdDisplay):
@@ -26,7 +26,41 @@ class TerminalDisplay(GenericLcdDisplay):
         self.__window.refresh()
 
 
-class TerminalHardwareDriver(GenericHardwareDriver):
+class TerminalRelay(GenericRelay):
+
+    def __init__(self, function: ThermostatState,
+                 colorPair: int, row: int, col: int):
+        super().__init__(function)
+
+        self.__displayWin = curses.newwin(1, 16, row, col)
+        self.__isClosed = None
+        self.__colorPair = curses.color_pair(colorPair)
+
+    def redraw(self):
+        self.__displayWin.clear()
+        if self.__isClosed is None:
+            self.__displayWin.addstr(
+                0, 0, self.function.name + ' UNKNOWN')
+        elif self.__isClosed:
+            self.__displayWin.addstr(
+                0, 0, self.function.name + ' CLOSED',
+                curses.A_REVERSE | self.__colorPair)
+        else:
+            self.__displayWin.addstr(
+                0, 0, self.function.name + ' OPEN')
+
+        self.__displayWin.refresh()
+
+    def openRelay(self):
+        self.__isClosed = False
+        self.redraw()
+
+    def closeRelay(self):
+        self.__isClosed = True
+        self.redraw()
+
+
+class TerminalThermostatDriver(GenericThermostatDriver):
 
     def __init__(self, stdscr, messageQueue: Queue, eventBus: EventBus):
         self.__stdscr = stdscr
@@ -39,6 +73,10 @@ class TerminalHardwareDriver(GenericHardwareDriver):
         curses.noecho()
         curses.cbreak()
         curses.setupterm()
+        curses.start_color()
+        curses.init_pair(1, curses.COLOR_RED, curses.COLOR_WHITE)
+        curses.init_pair(2, curses.COLOR_BLUE, curses.COLOR_WHITE)
+        curses.init_pair(3, curses.COLOR_GREEN, curses.COLOR_WHITE)
         curses.curs_set(0)
 
         lines, cols = self.__stdscr.getmaxyx()
@@ -51,6 +89,11 @@ class TerminalHardwareDriver(GenericHardwareDriver):
             ord('3'): GenericButton(3),
             ord('4'): GenericButton(4),
         }
+        self.__relayList = (
+            TerminalRelay(ThermostatState.HEATING, 1, 0, 32),
+            TerminalRelay(ThermostatState.COOLING, 2, 1, 32),
+            TerminalRelay(ThermostatState.FAN, 3, 2, 32),
+        )
 
         super().__init__(
             eventBus=eventBus,
@@ -58,14 +101,15 @@ class TerminalHardwareDriver(GenericHardwareDriver):
             lcd=TerminalDisplay(self.__displayWin, 20, 4),
             sensor=self.__environmentSensor,
             buttons=self.__buttonMap.values(),
+            relays=self.__relayList,
         )
 
         super()._subscribe(
             PowerPriceChangedEvent, self.__powerPriceChanged)
 
     def __powerPriceChanged(self, event: PowerPriceChangedEvent):
-        log.info(f"TerminalDriver: Power price is now {event.price:.4f}/kW*h")
-        self.__lastPrice = event.price
+        log.info(f"TerminalDriver: Power price is now {event.value:.4f}/kW*h")
+        self.__lastPrice = event.value
 
     def processEvents(self):
         super().processEvents()
@@ -78,6 +122,10 @@ class TerminalHardwareDriver(GenericHardwareDriver):
             self.__logWin.move(y-1, 0)
             self.__logWin.insnstr(message.getMessage(), x)
             self.__logWin.refresh()
+
+        # Redraw the relay status
+        for relay in self.__relayList:
+            relay.redraw()
 
         # Handle any key presses
         char = self.__stdscr.getch()

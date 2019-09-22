@@ -22,7 +22,7 @@ class Test_GoGriddyInterface(unittest.TestCase):
             return self.__lastPrice
 
         def _powerPriceChangedEvent(self, event: PowerPriceChangedEvent):
-            self.__lastPrice = event.price
+            self.__lastPrice = event.value
 
     def setup_method(self, method):
         self.eventBus = EventBus()

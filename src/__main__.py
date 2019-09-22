@@ -6,10 +6,9 @@ import logging
 
 from src.logging import log, setupLogging
 from src.events import EventBus
-from src.thermostat import ThermostatDriver
 from src.api import ApiEventHandler, ApiMessageHandler
 from src.settings import settings, SettingsChangedEvent
-from src.terminal import TerminalHardwareDriver
+from src.terminal import TerminalThermostatDriver
 from src.power import GoGriddyEventHandler
 from src.config import config
 
@@ -23,22 +22,17 @@ def main(stdscr):
 
     # Put all the event handlers together
     apiEventHandler = ApiEventHandler(eventBus)
-    thermostat = ThermostatDriver(eventBus)
-
-    # Put the initial settings out to all participants so it's the
-    # first event they process
     apiEventHandler.start('API Event Driver')
-    thermostat.start('Thermostat Driver')
     ApiMessageHandler.setup(apiEventHandler)
 
     if stdscr is not None:
         messageQueue = Queue(128)
         setupLogging(messageQueue)
-        hardwareDriver = TerminalHardwareDriver(
+        hardwareDriver = TerminalThermostatDriver(
             stdscr, messageQueue, eventBus)
     else:
-        from src.hardware import HardwareDriver
-        hardwareDriver = HardwareDriver(eventBus)
+        from src.hardware import HardwareThermostatDriver
+        hardwareDriver = HardwareThermostatDriver(eventBus)
         setupLogging()
 
     # Setup the power price handler after the other event handlers have

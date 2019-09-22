@@ -24,7 +24,7 @@ from src.logging import log
 
 
 class GoGriddyEventHandler(EventHandler):
-    """ EventHandler thread that monitors power prices and fires an event 
+    """ EventHandler thread that monitors power prices and fires an event
     if there is a change """
 
     def __init__(self, eventBus: EventBus):
@@ -41,8 +41,8 @@ class GoGriddyEventHandler(EventHandler):
 
     def __updatePrice(self):
         """ Returns the new power price in $/kW*h """
-        timeStamp = datetime.now().timestamp() 
-        if self.__rawData is  None or self.__nextPoll <= timeStamp:
+        timeStamp = datetime.now().timestamp()
+        if self.__rawData is None or self.__nextPoll <= timeStamp:
             result = requests.post(
                 config.gogriddy_apiUrl, data=json.dumps(self.__apiPostData))
             self.__rawData = json.loads(result.text)

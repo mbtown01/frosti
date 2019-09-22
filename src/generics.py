@@ -1,8 +1,8 @@
+from enum import Enum
+
 from src.logging import log
 from src.settings import settings, Settings, SettingsChangedEvent
 from src.events import EventBus, EventHandler, Event
-from src.thermostat import ThermostatState, ThermostatStateChangedEvent, \
-    PressureChangedEvent, HumidityChangedEvent, TemperatureChangedEvent
 
 
 class GenericLcdDisplay:
@@ -196,18 +196,6 @@ class GenericEnvironmentSensor:
         self.__humidity = value
 
 
-class PowerPriceChangedEvent(Event):
-    """ Signals the start of a new power price """
-
-    def __init__(self, price: float):
-        super().__init__(data={'price': price})
-
-    @property
-    def price(self):
-        """ Returns the new power price in $/kW*h """
-        return self._data['price']
-
-
 class GenericScreen(EventHandler):
 
     def __init__(self,
@@ -233,23 +221,66 @@ class GenericScreen(EventHandler):
         raise NotImplementedError
 
 
+class ThermostatState(Enum):
+    OFF = 0
+    COOLING = 1
+    HEATING = 2
+    FAN = 3
+
+
+class ThermostatStateChangedEvent(Event):
+    def __init__(self, value: ThermostatState):
+        super().__init__('ThermostatStateChangedEvent', {'state': value})
+
+    @property
+    def state(self):
+        """ Returns the new state of the thermostat """
+        return self._data['state']
+
+
+class PropertyChangedEvent(Event):
+    def __init__(self, name: str, value: float):
+        super().__init__(name, {'value': value})
+
+    @property
+    def value(self):
+        return float(self._data['value'])
+
+
+class TemperatureChangedEvent(PropertyChangedEvent):
+    def __init__(self, value: float):
+        super().__init__('TemperatureChangedEvent', value)
+
+
+class PressureChangedEvent(PropertyChangedEvent):
+    def __init__(self, value: float):
+        super().__init__('PressureChangedEvent', value)
+
+
+class HumidityChangedEvent(PropertyChangedEvent):
+    def __init__(self, value: float):
+        super().__init__('HumidityChangedEvent', value)
+
+
+class PowerPriceChangedEvent(PropertyChangedEvent):
+    """ Signals the start of a new power price in $/kW*h """
+    def __init__(self, value: float):
+        super().__init__('PowerPriceChangedEvent', value)
+
+
 class DefaultScreen(GenericScreen):
 
     def __init__(self,
                  width: int,
                  height: int,
-                 sensor: GenericEnvironmentSensor,
                  eventBus: EventBus,
                  loopSleep: int):
         super().__init__(width, height, eventBus, loopSleep)
-        self.__sensor = sensor
 
-        self.__lastTemperature = sensor.temperature
+        self.__lastTemperature = 0.0
         self.__lastState = ThermostatState.OFF
         self.__lastPrice = 0.0
 
-        self.__sampleInvoker = CounterBasedInvoker(
-            ticks=max(1, int(5/loopSleep)), handlers=[self.__sampleSensors])
         self.__drawLcdInvoker = CounterBasedInvoker(
             ticks=max(1, int(0.1/loopSleep)), handlers=[self.__drawLcdDisplay])
         self.__drawRowTwoInvoker = CounterBasedInvoker(
@@ -269,8 +300,6 @@ class DefaultScreen(GenericScreen):
         super()._subscribe(
             PowerPriceChangedEvent, self.__powerPriceChanged)
 
-        self.__sampleSensors()
-
     def processEvents(self):
         super().processEvents()
 
@@ -278,13 +307,10 @@ class DefaultScreen(GenericScreen):
         self.__drawLcdInvoker.increment()
         self.__drawRowTwoInvoker.increment(execute=False)
 
-        # Only update measurements at the sample interval
-        self.__sampleInvoker.increment()
-
     def __powerPriceChanged(self, event: PowerPriceChangedEvent):
-        log.info(f"DefaultScreen: Power price is now {event.price:.4f}/kW*h")
+        log.info(f"DefaultScreen: Power price is now {event.value:.4f}/kW*h")
         self.__drawRowTwoInvoker.reset(2)
-        self.__lastPrice = event.price
+        self.__lastPrice = event.value
         self.__drawLcdInvoker.invokeCurrent()
 
     def __processTemperatureChanged(self, event: TemperatureChangedEvent):
@@ -299,11 +325,6 @@ class DefaultScreen(GenericScreen):
         log.debug(f"DefaultScreen: new state: {event.state}")
         self.__lastState = event.state
         self.__drawLcdInvoker.reset()
-
-    def __sampleSensors(self):
-        super()._fireEvent(TemperatureChangedEvent(self.__sensor.temperature))
-        super()._fireEvent(PressureChangedEvent(self.__sensor.pressure))
-        super()._fireEvent(HumidityChangedEvent(self.__sensor.humidity))
 
     def processButton(self, button: GenericButton):
         log.debug(f"DefaultScreen.processBUtton saw button {button.id}")
@@ -356,40 +377,140 @@ class DefaultScreen(GenericScreen):
     # UP  DOWN  MODE  NEXT
 
 
-class GenericHardwareDriver(EventHandler):
+class GenericRelay:
+
+    def __init__(self, function: ThermostatState):
+        self.__function = function
+        self.__isOpen = None
+
+    @property
+    def isOpen(self):
+        """  True if open, False if closed, None if indeterminite """
+        return self.__isOpen
+
+    @property
+    def function(self):
+        """ Gets the ThermostatState function this relay handles """
+        return self.__function
+
+    def openRelay(self):
+        """ Open the relay, break circuit, disabling the function """
+        self.__isOpen = True
+
+    def closeRelay(self):
+        """ Close the relay, connect circuit, enabling the function """
+        self.__isOpen = False
+
+
+class GenericThermostatDriver(EventHandler):
 
     def __init__(self,
                  lcd: GenericLcdDisplay,
                  sensor: GenericEnvironmentSensor,
                  buttons: list,
+                 relays: list,
                  eventBus: EventBus,
                  loopSleep: int=0.05):
         super().__init__(eventBus, loopSleep)
 
+        self.__sensor = sensor
         self.__lcd = lcd
         self.__buttons = buttons
-        self.__activeScreenIndex = 0
-        self.__screens = [
-            DefaultScreen(
-                lcd.width, lcd.height, sensor, eventBus, loopSleep)
-        ]
+        self.__relayMap = {r.function: r for r in relays}
+        self.__screen = DefaultScreen(
+            lcd.width, lcd.height, eventBus, loopSleep)
+        self.__sampleInvoker = CounterBasedInvoker(
+            ticks=max(1, int(5/loopSleep)), handlers=[self.__sampleSensors])
+        self.__state = ThermostatState.OFF
+
+        self.__openAllRelays()
+        self.__sampleSensors()
+
+        super()._subscribe(
+            SettingsChangedEvent, self.__processSettingsChanged)
+
+    @property
+    def state(self):
+        """ Current state of the thermostat """
+        return self.__state
 
     def processEvents(self):
         super().processEvents()
 
-        for screen in self.__screens:
-            screen.processEvents()
+        self.__screen.processEvents()
 
-        activeScreen = self.__screens[self.__activeScreenIndex]
+        # Only update measurements at the sample interval
+        self.__sampleInvoker.increment()
 
         # Always scan for button presses
         for button in self.__buttons:
             if button.query():
-                activeScreen.processButton(button)
+                self.__screen.processButton(button)
 
         # Send buffered updates to the actual display
-        activeScreen.lcdBuffer.commit()
+        self.__screen.lcdBuffer.commit()
         for row in range(self.__lcd.height):
             self.__lcd.update(
-                row, 0, activeScreen.lcdBuffer.rowText(row))
+                row, 0, self.__screen.lcdBuffer.rowText(row))
         self.__lcd.commit()
+
+    def __processSettingsChanged(self, event: SettingsChangedEvent):
+        self.__sampleSensors()
+
+    def __openAllRelays(self):
+        for relay in self.__relayMap.values():
+            relay.openRelay()
+
+    def __sampleSensors(self):
+        temperature = self.__sensor.temperature
+        super()._fireEvent(TemperatureChangedEvent(temperature))
+        super()._fireEvent(PressureChangedEvent(self.__sensor.pressure))
+        super()._fireEvent(HumidityChangedEvent(self.__sensor.humidity))
+
+        if settings.mode == Settings.Mode.COOL:
+            self.__processCooling(temperature)
+        elif settings.mode == Settings.Mode.HEAT:
+            self.__processHeating(temperature)
+        elif settings.mode == Settings.Mode.AUTO:
+            self.__processAuto(temperature)
+        else:
+            self.__changeState(ThermostatState.OFF)
+
+    def __processCooling(self, newTemp: float):
+        runAt = settings.comfortMax+settings.delta
+        runUntil = settings.comfortMax-settings.delta
+
+        if self.__state != ThermostatState.COOLING and newTemp > runAt:
+            self.__changeState(ThermostatState.COOLING)
+        elif newTemp <= runUntil:
+            self.__changeState(ThermostatState.OFF)
+
+    def __processHeating(self, newTemp: float):
+        runAt = settings.comfortMin-settings.delta
+        runUntil = settings.comfortMin+settings.delta
+
+        if self.__state != ThermostatState.HEATING and newTemp < runAt:
+            self.__changeState(ThermostatState.HEATING)
+        elif newTemp >= runUntil:
+            self.__changeState(ThermostatState.OFF)
+
+    def __processAuto(self, newTemp: float):
+        runAtHeat = settings.comfortMin-settings.delta
+        runUntilHeat = settings.comfortMin+settings.delta
+        runAtCool = settings.comfortMax+settings.delta
+        runUntilCool = settings.comfortMax-settings.delta
+
+        if self.__state != ThermostatState.COOLING and newTemp > runAtCool:
+            self.__changeState(ThermostatState.COOLING)
+        elif self.__state != ThermostatState.HEATING and newTemp < runAtHeat:
+            self.__changeState(ThermostatState.HEATING)
+        elif newTemp >= runUntilHeat and newTemp <= runUntilCool:
+            self.__changeState(ThermostatState.OFF)
+
+    def __changeState(self, newState: ThermostatState):
+        if self.__state != newState:
+            self.__state = newState
+            self.__openAllRelays()
+            if ThermostatState.OFF != self.__state:
+                self.__relayMap[self.__state].closeRelay()
+            self._fireEvent(ThermostatStateChangedEvent(newState))

@@ -11,7 +11,8 @@ from time import sleep
 
 from src.logging import log
 from src.generics import GenericLcdDisplay, GenericButton, \
-    CounterBasedInvoker, GenericHardwareDriver, GenericEnvironmentSensor
+    CounterBasedInvoker, GenericThermostatDriver, GenericEnvironmentSensor, \
+    GenericRelay
 from src.events import EventBus
 from src.thermostat import ThermostatStateChangedEvent, ThermostatState
 
@@ -131,15 +132,40 @@ class Bm280EnvironmentSensor(GenericEnvironmentSensor):
         return self.__bme280.humidity
 
 
-class Relay(Enum):
-    FAN = 1
-    HEAT = 2
-    COOL = 3
+class PanasonicAgqRelay(GenericRelay):
+
+    def __init__(self, function: ThermostatState, pinIn: int, pinOut: int):
+        super().__init__(function)
+        self.__pinIn = pinIn
+        self.__pinOut = pinOut
+
+        GPIO.setup(self.__pinIn, GPIO.OUT)
+        GPIO.setup(self.__pinOut, GPIO.OUT)
+        self.openRelay()
+
+    def openRelay(self):
+        super().openRelay()
+
+        # NEGATIVE 3V from IN->OUT opens the relay
+        GPIO.output(self.__pinIn, False)
+        GPIO.output(self.__pinOut, True)
+        sleep(0.1)
+        GPIO.output(self.__pinOut, False)
+
+    def closeRelay(self):
+        super().closeRelay()
+
+        # POSITIVE 3V from IN->OUT opens the relay
+        GPIO.output(self.__pinIn, True)
+        sleep(0.1)
+        GPIO.output(self.__pinIn, False)
 
 
-class HardwareDriver(GenericHardwareDriver):
+class HardwareThermostatDriver(GenericThermostatDriver):
 
     def __init__(self, eventBus: EventBus):
+        GPIO.setmode(GPIO.BCM)
+
         super().__init__(
             eventBus=eventBus,
             lcd=Lcd1602Display(0x27, 20, 4),
@@ -150,52 +176,9 @@ class HardwareDriver(GenericHardwareDriver):
                 SimplePushButton(3, 16),
                 SimplePushButton(4, 12),
             ),
+            relays=(
+                PanasonicAgqRelay(ThermostatState.FAN, 5, 17),
+                PanasonicAgqRelay(ThermostatState.HEATING, 6, 27),
+                PanasonicAgqRelay(ThermostatState.COOLING, 13, 22),
+            )
         )
-
-        super()._subscribe(
-            ThermostatStateChangedEvent, self.__processStateChanged)
-
-        self.__relayMap = {
-            Relay.FAN: {'IN': 5, 'OUT': 17},
-            Relay.HEAT: {'IN': 6, 'OUT': 27},
-            Relay.COOL: {'IN': 13, 'OUT': 22}
-        }
-
-        GPIO.setmode(GPIO.BCM)
-
-        for relay in self.__relayMap.keys():
-            pinMap = self.__relayMap[relay]
-            GPIO.setup(pinMap['IN'], GPIO.OUT)
-            GPIO.setup(pinMap['OUT'], GPIO.OUT)
-
-        self.__openAllRelays()
-
-    def __openRelay(self, relay: Relay):
-        pinMap = self.__relayMap[relay]
-        GPIO.output(pinMap['IN'], False)
-        GPIO.output(pinMap['OUT'], True)
-        sleep(0.5)
-        GPIO.output(pinMap['OUT'], False)
-
-    def __closeRelay(self, relay: Relay):
-        pinMap = self.__relayMap[relay]
-        GPIO.output(pinMap['IN'], True)
-        sleep(0.5)
-        GPIO.output(pinMap['IN'], False)
-
-    def __openAllRelays(self):
-        for relay in self.__relayMap.keys():
-            self.__openRelay(relay)
-
-    def __processStateChanged(self, event: ThermostatStateChangedEvent):
-        if ThermostatState.OFF == event.state:
-            self.__openAllRelays()
-        elif ThermostatState.COOLING == event.state:
-            self.__closeRelay(Relay.COOL)
-        elif ThermostatState.HEATING == event.state:
-            self.__closeRelay(Relay.HEAT)
-        elif ThermostatState.FAN == event.state:
-            self.__closeRelay(Relay.FAN)
-        else:
-            raise RuntimeError(
-                f"Unknown event state ({event.state}) encountered")

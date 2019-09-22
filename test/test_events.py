@@ -3,7 +3,7 @@ from queue import Queue
 from time import sleep
 
 from src.events import Event, EventBus, EventHandler
-from src.thermostat import \
+from src.generics import \
     TemperatureChangedEvent, PressureChangedEvent, HumidityChangedEvent
 
 

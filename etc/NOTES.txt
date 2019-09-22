@@ -24,3 +24,6 @@ brew install coreutils
 requests
 pytest
 pytest-cov
+
+# Generate reaonable class diagram (from root of projet)
+pyreverse -o png src

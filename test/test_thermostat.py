@@ -2,8 +2,9 @@ import unittest
 
 from src.events import EventBus, EventHandler
 from src.settings import settings, Settings
-from src.thermostat import ThermostatDriver, ThermostatState, \
-    TemperatureChangedEvent, ThermostatStateChangedEvent
+from src.generics import ThermostatStateChangedEvent, ThermostatState, \
+    GenericThermostatDriver, TemperatureChangedEvent, \
+    GenericLcdDisplay, GenericEnvironmentSensor, GenericRelay, GenericButton
 
 
 class Test_Thermostat(unittest.TestCase):
@@ -33,13 +34,36 @@ class Test_Thermostat(unittest.TestCase):
 
         self.dummyEventHandler = \
             Test_Thermostat.DummyEventHandler(self.eventBus)
-        self.thermostatDriver = ThermostatDriver(self.eventBus)
+        self.dummySensor = GenericEnvironmentSensor()
+        self.buttonList = (
+            GenericButton(1),
+            GenericButton(2),
+            GenericButton(3),
+            GenericButton(4),
+        )
+        self.relayList = (
+            GenericRelay(ThermostatState.HEATING),
+            GenericRelay(ThermostatState.COOLING),
+            GenericRelay(ThermostatState.FAN),
+        )
+        self.relayMap = {r.function: r for r in self.relayList}
+        self.thermostatDriver = GenericThermostatDriver(
+            lcd=GenericLcdDisplay(20, 4),
+            sensor=self.dummySensor,
+            buttons=self.buttonList,
+            relays=self.relayList,
+            eventBus=self.eventBus,
+            loopSleep=100,
+        )
         self.thermostatDriver.processEvents()
 
     def assertNextTemperature(self, temp: float, state: ThermostatState):
-        self.eventBus.put(TemperatureChangedEvent(temp))
+        self.dummySensor.temperature = temp
         self.thermostatDriver.processEvents()
         self.assertEqual(self.thermostatDriver.state, state)
+        for relay in self.relayList:
+            if relay.function != state:
+                self.assertTrue(relay.isOpen)
 
     def test_stateChangedCooling(self):
         settings.mode = Settings.Mode.COOL

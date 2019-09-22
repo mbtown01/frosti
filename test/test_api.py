@@ -5,7 +5,7 @@ from time import sleep
 
 from src.api import ApiEventHandler, ApiMessageHandler
 from src.events import Event, EventBus, EventHandler
-from src.thermostat import \
+from src.generics import \
     TemperatureChangedEvent, PressureChangedEvent, HumidityChangedEvent
 
 

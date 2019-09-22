@@ -2,9 +2,9 @@ import unittest
 
 from src.events import EventBus, EventHandler
 from src.generics import GenericLcdDisplay, GenericEnvironmentSensor, \
-    GenericButton, GenericHardwareDriver, CounterBasedInvoker
-from src.thermostat import ThermostatDriver, ThermostatState, \
-    TemperatureChangedEvent, ThermostatStateChangedEvent
+    GenericButton, GenericThermostatDriver, CounterBasedInvoker, \
+    GenericRelay, ThermostatState, ThermostatStateChangedEvent, \
+    TemperatureChangedEvent
 
 
 class Test_GenericLcdDisplay(unittest.TestCase):
@@ -201,13 +201,20 @@ class Test_GenericHardwareDriver(unittest.TestCase):
             'enter': GenericButton(3),
             'mode': GenericButton(4),
         }
+        self.__relayList = (
+            GenericRelay(ThermostatState.HEATING),
+            GenericRelay(ThermostatState.COOLING),
+            GenericRelay(ThermostatState.FAN),
+        )
+        self.__relayMap = {r.function: r for r in self.__relayList}
 
-        self.__hardwareDriver = GenericHardwareDriver(
+        self.__hardwareDriver = GenericThermostatDriver(
             eventBus=self.__eventBus,
             loopSleep=0.1,
             lcd=self.__display,
             sensor=self.__environmentSensor,
             buttons=self.__buttonMap.values(),
+            relays=self.__relayList
         )
 
     def test_simple(self):
