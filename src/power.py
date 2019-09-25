@@ -31,9 +31,9 @@ class GoGriddyEventHandler(EventHandler):
         super().__init__(eventBus, loopSleep=5.0)
 
         self.__apiPostData = {
-            'meterID': config.gogriddy_meterId,
-            'memberID': config.gogriddy_meterId,
-            'settlement_point': config.gogriddy_settlementPoint
+            'meterID': config.resolve('gogriddy', 'meterId'),
+            'memberID': config.resolve('gogriddy', 'memberId'),
+            'settlement_point': config.resolve('gogriddy', 'settlementPoint')
         }
         self.__nextPoll = datetime.now().timestamp()-1
         self.__rawData = None
@@ -43,7 +43,8 @@ class GoGriddyEventHandler(EventHandler):
         timeStamp = datetime.now().timestamp()
         if self.__rawData is None or self.__nextPoll <= timeStamp:
             result = requests.post(
-                config.gogriddy_apiUrl, data=json.dumps(self.__apiPostData))
+                config.resolve('gogriddy', 'apiUrl'),
+                data=json.dumps(self.__apiPostData))
             self.__rawData = json.loads(result.text)
             self.__nextPoll = \
                 timeStamp + float(self.__rawData['seconds_until_refresh'])

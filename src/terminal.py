@@ -6,7 +6,7 @@ from src.logging import log
 from src.generics import GenericLcdDisplay, GenericButton, \
     GenericThermostatDriver, GenericEnvironmentSensor, \
     PowerPriceChangedEvent, GenericRelay, ThermostatState, \
-    TemperatureChangedEvent
+    TemperatureChangedEvent, CounterBasedInvoker
 from src.events import EventBus
 
 
@@ -116,13 +116,21 @@ class TerminalThermostatDriver(GenericThermostatDriver):
             buttons=self.__buttonMap.values(),
             relays=self.__relayList,
         )
-
+        
+        self.__updateDisplayInvoker = CounterBasedInvoker(
+            ticks=max(1, int(5/super().loopSleep)), 
+            handlers=[self.__updateDisplay])
         super()._subscribe(
             PowerPriceChangedEvent, self.__powerPriceChanged)
 
     def __powerPriceChanged(self, event: PowerPriceChangedEvent):
         log.info(f"TerminalDriver: Power price is now {event.value:.4f}/kW*h")
         self.__lastPrice = event.value
+
+    def __updateDisplay(self):
+        # Redraw the relay status
+        for relay in self.__relayList:
+            relay.redraw()
 
     def processEvents(self):
         super().processEvents()
@@ -136,9 +144,7 @@ class TerminalThermostatDriver(GenericThermostatDriver):
             self.__logWin.insnstr(message.getMessage(), x)
             self.__logWin.refresh()
 
-        # Redraw the relay status
-        for relay in self.__relayList:
-            relay.redraw()
+        self.__updateDisplayInvoker.increment()
 
         # Handle any key presses
         char = self.__stdscr.getch()

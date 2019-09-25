@@ -21,9 +21,14 @@ class Config:
                     self.__config = json.load(configFile)
                 break
         if self.__config is None:
-            pass
+            raise RuntimeError("No configuration was found")
+
+    @property
+    def json(self):
+        return self.__config
 
     def resolve(self, section, option, default=None):
+        """ Helper method for getting simple properties from json data """
         if section not in self.__config:
             raise RuntimeError(f'Section {section} is not in config file')
         if option in self.__config[section]:

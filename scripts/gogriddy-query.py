@@ -15,19 +15,23 @@ sys.path.append(dirname(__file__)+'/../')
 from src.config import config
 # pylint: enable=import-error
 
-if not config.influxdb_enabled:
+if not config.resolve("influxdb", "enabled", False):
     raise RuntimeError('InfluxDB is not configured')
 
-client = InfluxDBClient(host=config.influxdb_host, port=config.influxdb_port)
-client.switch_database(config.influxdb_dbName)
+client = InfluxDBClient(
+    host=config.resolve("influxdb", "host"), 
+    port=config.resolve("influxdb", "port")
+)
+client.switch_database(config.resolve("influxdb", "dbName"))
 
 payload = {
-    'meterID': config.gogriddy_meterId,
-    'memberID': config.gogriddy_meterId,
-    'settlement_point': config.gogriddy_settlementPoint
+    'meterID': config.resolve("gogriddy","meterId"),
+    'memberID': config.resolve("gogriddy", "meterId"),
+    'settlement_point': config.resolve("gogriddy", "settlementPoint")
 }
 
-r = requests.post(config.gogriddy_apiUrl, data=json.dumps(payload))
+r = requests.post(
+    config.resolve("gogriddy", "apiUrl"), data=json.dumps(payload))
 j = json.loads(r.text)
 
 influxdb_entry = \
@@ -41,4 +45,5 @@ influxdb_entry = \
     f'future_wstd_dev_ckwh={j["forecast"][0]["std_dev_ckwh"]},' + \
     f'seconds_until_refresh={j["seconds_until_refresh"]}'
 
-client.write_points(influxdb_entry, protocol=config.influxdb_protocol)
+client.write_points(influxdb_entry, 
+    protocol=config.resolve("influxdb", "protocol"))
