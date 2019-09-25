@@ -19,13 +19,13 @@ if not config.resolve("influxdb", "enabled", False):
     raise RuntimeError('InfluxDB is not configured')
 
 client = InfluxDBClient(
-    host=config.resolve("influxdb", "host"), 
+    host=config.resolve("influxdb", "host"),
     port=config.resolve("influxdb", "port")
 )
 client.switch_database(config.resolve("influxdb", "dbName"))
 
 payload = {
-    'meterID': config.resolve("gogriddy","meterId"),
+    'meterID': config.resolve("gogriddy", "meterId"),
     'memberID': config.resolve("gogriddy", "meterId"),
     'settlement_point': config.resolve("gogriddy", "settlementPoint")
 }
@@ -45,5 +45,5 @@ influxdb_entry = \
     f'future_wstd_dev_ckwh={j["forecast"][0]["std_dev_ckwh"]},' + \
     f'seconds_until_refresh={j["seconds_until_refresh"]}'
 
-client.write_points(influxdb_entry, 
-    protocol=config.resolve("influxdb", "protocol"))
+client.write_points(
+    influxdb_entry, protocol=config.resolve("influxdb", "protocol"))

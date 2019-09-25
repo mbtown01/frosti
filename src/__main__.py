@@ -37,7 +37,7 @@ def main(stdscr):
 
     # Setup the power price handler after the other event handlers have
     # been created so they get the first power events
-    if config.gogriddy_enabled:
+    if config.resolve('gogriddy', 'enabled'):
         try:
             powerPriceEventHandler = GoGriddyEventHandler(eventBus)
             powerPriceEventHandler.start("Power Price Event Handler")

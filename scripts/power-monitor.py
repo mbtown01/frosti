@@ -104,10 +104,11 @@ class RavenXmlSerialInterface:
             'SummationDelivered'
         )
 
-        if config.influxdb_enabled:
+        if config.resolve('influxdb', 'enabled'):
             client = InfluxDBClient(
-                host=config.influxdb_host, port=config.influxdb_port)
-            client.switch_database(config.influxdb_dbName)
+                host=config.resolve('influxdb', 'host'),
+                port=config.resolve('influxdb', 'port'))
+            client.switch_database(config.resolve('influxdb', 'dbName'))
 
             # <Command><Name>get_current_summation_delivered</Name><Refresh>N</Refresh></Command>
             # <Command><Name>get_instantaneous_demand</Name><Refresh>Y</Refresh></Command>
@@ -121,7 +122,8 @@ class RavenXmlSerialInterface:
 
             # print(influxdb_entry)
             client.write_points(
-               influxdb_entry, protocol=config.influxdb_protocol)
+                influxdb_entry,
+                protocol=config.resolve('influxdb', 'protocol'))
 
 if __name__ == '__main__':
     instance = RavenXmlSerialInterface('/dev/ttyUSB0')

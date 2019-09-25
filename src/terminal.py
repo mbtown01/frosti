@@ -86,9 +86,9 @@ class TerminalThermostatDriver(GenericThermostatDriver):
         curses.cbreak()
         curses.setupterm()
         curses.start_color()
-        curses.init_pair(1, curses.COLOR_RED, curses.COLOR_WHITE)
-        curses.init_pair(2, curses.COLOR_BLUE, curses.COLOR_WHITE)
-        curses.init_pair(3, curses.COLOR_GREEN, curses.COLOR_WHITE)
+        curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
+        curses.init_pair(2, curses.COLOR_BLUE, curses.COLOR_BLACK)
+        curses.init_pair(3, curses.COLOR_GREEN, curses.COLOR_BLACK)
         curses.init_pair(4, curses.COLOR_WHITE, curses.COLOR_BLACK)
         curses.curs_set(0)
 
@@ -116,15 +116,14 @@ class TerminalThermostatDriver(GenericThermostatDriver):
             buttons=self.__buttonMap.values(),
             relays=self.__relayList,
         )
-        
+
         self.__updateDisplayInvoker = CounterBasedInvoker(
-            ticks=max(1, int(5/super().loopSleep)), 
+            ticks=max(1, int(5/super().loopSleep)),
             handlers=[self.__updateDisplay])
         super()._subscribe(
             PowerPriceChangedEvent, self.__powerPriceChanged)
 
     def __powerPriceChanged(self, event: PowerPriceChangedEvent):
-        log.info(f"TerminalDriver: Power price is now {event.value:.4f}/kW*h")
         self.__lastPrice = event.value
 
     def __updateDisplay(self):

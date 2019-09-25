@@ -35,45 +35,5 @@ class Config:
             return self.__config[section][option]
         return default
 
-    @property
-    def gogriddy_enabled(self):
-        return self.resolve('gogriddy', 'enabled', False)
-
-    @property
-    def gogriddy_memberId(self):
-        return self.resolve('gogriddy', 'memberId')
-
-    @property
-    def gogriddy_meterId(self):
-        return self.resolve('gogriddy', 'meterId')
-
-    @property
-    def gogriddy_settlementPoint(self):
-        return self.resolve('gogriddy', 'settlementPoint')
-
-    @property
-    def gogriddy_apiUrl(self):
-        return self.resolve('gogriddy', 'apiUrl')
-
-    @property
-    def influxdb_enabled(self):
-        return self.resolve('influxdb', 'enabled', False)
-
-    @property
-    def influxdb_host(self):
-        return self.resolve('influxdb', 'host')
-
-    @property
-    def influxdb_port(self):
-        return self.resolve('influxdb', 'port')
-
-    @property
-    def influxdb_dbName(self):
-        return self.resolve('influxdb', 'dbName')
-
-    @property
-    def influxdb_protocol(self):
-        return self.resolve('influxdb', 'protocol')
-
 
 config = Config()
