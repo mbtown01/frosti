@@ -117,9 +117,6 @@ class Settings:
     def __init__(self, json: dict=config.getJson()):
         if 'thermostat' not in json:
             raise RuntimeError("No thermostat configuration found")
-        if 'schedule' not in json['thermostat']:
-            raise RuntimeError("No schedule configuration found")
-        schedule = json['thermostat']['schedule']
         if 'programs' not in json['thermostat']:
             raise RuntimeError("No program configuration found in thermostat")
         programs = json['thermostat']['programs']
@@ -136,8 +133,10 @@ class Settings:
         self.__currentProgram = self.__programs['_default']
 
         self.__schedules = {}
-        for name in schedule:
-            self.__schedules[name] = Schedule(name, schedule[name])
+        if 'schedule' in json['thermostat']:
+            schedule = json['thermostat']['schedule']
+            for name in schedule:
+                self.__schedules[name] = Schedule(name, schedule[name])
 
     def __repr__(self):
         return f"[{self.__mode}] heatAt: {self.comfortMin} " + \

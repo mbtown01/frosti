@@ -1,5 +1,6 @@
 from enum import Enum
 from time import time, localtime
+import atexit
 
 from src.logging import log
 from src.settings import settings, Settings, SettingsChangedEvent
@@ -448,6 +449,7 @@ class GenericThermostatDriver(EventHandler):
 
         self.__openAllRelays()
         self.__sampleSensors()
+        atexit.register(self.__openAllRelays, self=self)
 
     @property
     def state(self):

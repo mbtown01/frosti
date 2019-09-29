@@ -104,3 +104,9 @@ class Test_Settings(unittest.TestCase):
 
     def test_initial(self):
         self.assertEqual(self.settings.comfortMin, 68.0)
+        self.assertEqual(self.settings.comfortMax, 75.0)
+
+    def test_schedule1(self):
+        self.settings.timeChanged(0, 9, 0)
+        self.assertEqual(self.settings.comfortMin, 64.0)
+        self.assertEqual(self.settings.comfortMax, 78.0)

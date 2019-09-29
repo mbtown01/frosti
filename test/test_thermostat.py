@@ -7,6 +7,20 @@ from src.generics import ThermostatStateChangedEvent, ThermostatState, \
     GenericLcdDisplay, GenericEnvironmentSensor, GenericRelay, GenericButton
 
 
+# Use simple settings with no other program information
+json = {
+    "thermostat": {
+        "delta": 1.0,
+        "programs": {
+            "_default": {
+                "comfortMin": 68,
+                "comfortMax": 75
+            }
+        }
+    }
+}
+
+
 class Test_Thermostat(unittest.TestCase):
 
     class DummyEventHandler(EventHandler):
@@ -26,9 +40,8 @@ class Test_Thermostat(unittest.TestCase):
 
     def setup_method(self, method):
         self.eventBus = EventBus()
+        settings.__init__(json)
         settings.mode = Settings.Mode.COOL
-        settings.comfortMin = 68.0
-        settings.comfortMax = 75.0
         settings.setEventBus(self.eventBus)
 
         self.dummyEventHandler = \
@@ -60,9 +73,9 @@ class Test_Thermostat(unittest.TestCase):
         self.dummySensor.temperature = temp
         self.thermostatDriver.processEvents()
         self.assertEqual(self.thermostatDriver.state, state)
-        for relay in self.relayList:
-            if relay.function != state:
-                self.assertTrue(relay.isOpen)
+        if ThermostatState.FAN != state and ThermostatState.OFF != state:
+            self.assertFalse(self.relayMap[state].isOpen)
+            self.assertFalse(self.relayMap[ThermostatState.FAN].isOpen)
 
     def test_stateChangedCooling(self):
         settings.mode = Settings.Mode.COOL
