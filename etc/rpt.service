@@ -1,0 +1,14 @@
+[Unit]
+Description=RPT Thermostat Service
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 -m src
+WorkingDirectory=/home/pi/rpt
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target

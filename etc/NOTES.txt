@@ -27,3 +27,9 @@ pytest-cov
 
 # Generate reaonable class diagram (from root of projet)
 pyreverse -o png src
+
+# Install the service
+# https://www.raspberrypi.org/documentation/linux/usage/systemd.md
+sudo cp rpt.service /etc/systemd/systemd
+sudo systemctl enable rpt.service
+sudo systemctl start rpt.service

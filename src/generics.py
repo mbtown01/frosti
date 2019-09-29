@@ -141,6 +141,7 @@ class CounterBasedInvoker:
         self.__handlers = handlers
         self.__lastHandler = 0
         self.__counter = 0
+        self.__enabled = True
 
     def increment(self, execute=True):
         """ Increments the counter and executes the next handler if it is
@@ -407,13 +408,16 @@ class GenericRelay:
 
 class GenericThermostatDriver(EventHandler):
 
+    BACKLIGHT_TIMEOUT = 10      # Number of ticks to wait
+    FAN_RUNOUT = 90             # Seconds to let fan run after mode ends
+
     def __init__(self,
                  lcd: GenericLcdDisplay,
                  sensor: GenericEnvironmentSensor,
                  buttons: list,
                  relays: list,
                  eventBus: EventBus,
-                 loopSleep: int=0.05):
+                 loopSleep: float=0.05):
         super().__init__(eventBus, loopSleep)
 
         self.__sensor = sensor
@@ -426,10 +430,18 @@ class GenericThermostatDriver(EventHandler):
             ticks=max(1, int(5/loopSleep)), handlers=[self.__sampleSensors])
         self.__checkScheduleInvoker = CounterBasedInvoker(
             ticks=max(1, int(5/loopSleep)), handlers=[self.__checkSchedule])
+        self.__backlightTimeoutInvoker = CounterBasedInvoker(
+            ticks=max(1, int(self.BACKLIGHT_TIMEOUT/loopSleep)),
+            handlers=[self.__backlightTimeout])
+        self.__fanRunoutInvoker = CounterBasedInvoker(
+            ticks=max(1, int(self.FAN_RUNOUT/loopSleep)),
+            handlers=[self.__fanRunout])
+
         self.__state = ThermostatState.OFF
         self.__delta = config.resolve('thermostat', 'delta', 1.0)
-        self.__backlightTicks = 50
         self.__lcd.setBacklight(True)
+        self.__inBacklightTimeout = True
+        self.__inFanRunout = False
 
         super()._subscribe(
             PowerPriceChangedEvent, self._powerPriceChanged)
@@ -449,19 +461,19 @@ class GenericThermostatDriver(EventHandler):
 
         self.__sampleInvoker.increment()
         self.__checkScheduleInvoker.increment()
+        if self.__inBacklightTimeout:
+            self.__backlightTimeoutInvoker.increment()
+        if self.__inFanRunout:
+            self.__fanRunoutInvoker.increment()
 
         # Always scan for button presses
         for button in self.__buttons:
             if button.query():
-                if 0 == self.__backlightTicks:
+                if not self.__inBacklightTimeout:
                     self.__lcd.setBacklight(True)
-                self.__backlightTicks = 50
+                self.__inBacklightTimeout = True
+                self.__backlightTimeoutInvoker.reset()
                 self.__screen.processButton(button)
-
-        if self.__backlightTicks:
-            self.__backlightTicks -= 1
-            if not self.__backlightTicks:
-                self.__lcd.setBacklight(False)
 
         # Send buffered updates to the actual display
         self.__screen.lcdBuffer.commit()
@@ -474,6 +486,14 @@ class GenericThermostatDriver(EventHandler):
         values = localtime(time())
         settings.timeChanged(
             day=values.tm_wday, hour=values.tm_hour, minute=values.tm_min)
+
+    def __fanRunout(self):
+        self.__relayMap[ThermostatState.FAN].openRelay()
+        self.__inFanRunout = False
+
+    def __backlightTimeout(self):
+        self.__inBacklightTimeout = False
+        self.__lcd.setBacklight(False)
 
     def _powerPriceChanged(self, event: PowerPriceChangedEvent):
         settings.priceChanged(event.value)
@@ -530,8 +550,12 @@ class GenericThermostatDriver(EventHandler):
 
     def __changeState(self, newState: ThermostatState):
         if self.__state != newState:
+            if self.__state in self.__relayMap:
+                self.__relayMap[self.__state].openRelay()
             self.__state = newState
-            self.__openAllRelays()
-            if ThermostatState.OFF != self.__state:
-                self.__relayMap[self.__state].closeRelay()
+            self.__inFanRunout = ThermostatState.OFF == newState
+            if ThermostatState.OFF != newState:
+                self.__relayMap[newState].closeRelay()
+                self.__relayMap[ThermostatState.FAN].closeRelay()
+                self.__fanRunoutInvoker.reset()
             self._fireEvent(ThermostatStateChangedEvent(newState))

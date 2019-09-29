@@ -17,5 +17,3 @@ ssh ${RPT_RUN_USER}@${RPT_RUN_HOSTNAME} killall python3
 # Sync the project and execute
 rsync -avz --delete "${RPT_HOME}/etc" "${RPT_RUN_USER}@${RPT_RUN_HOSTNAME}:rpt"
 rsync -avz --delete "${RPT_HOME}/src" "${RPT_RUN_USER}@${RPT_RUN_HOSTNAME}:rpt"
-#ssh ${RPT_RUN_USER}@${RPT_RUN_HOSTNAME} cd rpt \&\& python3 -m ptvsd \
-#    --host ${RPT_RUN_IPADDR} --port ${RPT_RUN_PORT} --wait -m src
