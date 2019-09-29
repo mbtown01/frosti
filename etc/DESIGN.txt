@@ -32,4 +32,5 @@ Thoughts on board v3
     * Scratch all common connections between relays
     * Route GPIO 17, 27, 22 for relays
     * Indicator for power spike / shutdown
+    * Replace relays with only-open-when-voltage-applied
     

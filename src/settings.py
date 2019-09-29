@@ -114,9 +114,7 @@ class Settings:
         COOL = 2
         HEAT = 3
 
-    def __init__(self):
-        json = config.getJson()
-
+    def __init__(self, json: dict=config.getJson()):
         if 'thermostat' not in json:
             raise RuntimeError("No thermostat configuration found")
         if 'schedule' not in json['thermostat']:
