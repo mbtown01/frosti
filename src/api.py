@@ -97,7 +97,6 @@ class ApiEventHandler(EventHandler):
             'comfortMin': settings.comfortMin,
             'comfortMax': settings.comfortMax,
             'mode': str(settings.mode).replace('Mode.', ''),
-            'delta': settings.delta,
         }
         return json.dumps(response, indent=4)
 

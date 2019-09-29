@@ -29,7 +29,6 @@ class Test_Thermostat(unittest.TestCase):
         settings.mode = Settings.Mode.COOL
         settings.comfortMin = 68.0
         settings.comfortMax = 75.0
-        settings.delta = 1.0
         settings.setEventBus(self.eventBus)
 
         self.dummyEventHandler = \

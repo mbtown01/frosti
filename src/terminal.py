@@ -120,10 +120,9 @@ class TerminalThermostatDriver(GenericThermostatDriver):
         self.__updateDisplayInvoker = CounterBasedInvoker(
             ticks=max(1, int(5/super().loopSleep)),
             handlers=[self.__updateDisplay])
-        super()._subscribe(
-            PowerPriceChangedEvent, self.__powerPriceChanged)
 
-    def __powerPriceChanged(self, event: PowerPriceChangedEvent):
+    def _powerPriceChanged(self, event: PowerPriceChangedEvent):
+        super()._powerPriceChanged(event)
         self.__lastPrice = event.value
 
     def __updateDisplay(self):

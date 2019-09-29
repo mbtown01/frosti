@@ -1,8 +1,10 @@
 from enum import Enum
+from time import time, localtime
 
 from src.logging import log
 from src.settings import settings, Settings, SettingsChangedEvent
 from src.events import EventBus, EventHandler, Event
+from src.config import config
 
 
 class GenericLcdDisplay:
@@ -345,11 +347,9 @@ class DefaultScreen(GenericScreen):
     def __modifyComfortSettings(self, increment: int):
         self.__drawRowTwoInvoker.reset(0)
         if Settings.Mode.HEAT == settings.mode:
-            settings.comfortMin = \
-                settings.comfortMin + increment
+            settings.comfortMin = settings.comfortMin + increment
         if Settings.Mode.COOL == settings.mode:
-            settings.comfortMax = \
-                settings.comfortMax + increment
+            settings.comfortMax = settings.comfortMax + increment
 
     def __drawRowTwoTarget(self):
         heat = settings.comfortMin
@@ -424,9 +424,15 @@ class GenericThermostatDriver(EventHandler):
             lcd.width, lcd.height, eventBus, loopSleep)
         self.__sampleInvoker = CounterBasedInvoker(
             ticks=max(1, int(5/loopSleep)), handlers=[self.__sampleSensors])
+        self.__checkScheduleInvoker = CounterBasedInvoker(
+            ticks=max(1, int(5/loopSleep)), handlers=[self.__checkSchedule])
         self.__state = ThermostatState.OFF
+        self.__delta = config.resolve('thermostat', 'delta', 1.0)
         self.__backlightTicks = 50
         self.__lcd.setBacklight(True)
+
+        super()._subscribe(
+            PowerPriceChangedEvent, self._powerPriceChanged)
 
         self.__openAllRelays()
         self.__sampleSensors()
@@ -441,8 +447,8 @@ class GenericThermostatDriver(EventHandler):
 
         self.__screen.processEvents()
 
-        # Only update measurements at the sample interval
         self.__sampleInvoker.increment()
+        self.__checkScheduleInvoker.increment()
 
         # Always scan for button presses
         for button in self.__buttons:
@@ -464,6 +470,14 @@ class GenericThermostatDriver(EventHandler):
                 row, 0, self.__screen.lcdBuffer.rowText(row))
         self.__lcd.commit()
 
+    def __checkSchedule(self):
+        values = localtime(time())
+        settings.timeChanged(
+            day=values.tm_wday, hour=values.tm_hour, minute=values.tm_min)
+
+    def _powerPriceChanged(self, event: PowerPriceChangedEvent):
+        settings.priceChanged(event.value)
+
     def __openAllRelays(self):
         for relay in self.__relayMap.values():
             relay.openRelay()
@@ -484,8 +498,8 @@ class GenericThermostatDriver(EventHandler):
             self.__changeState(ThermostatState.OFF)
 
     def __processCooling(self, newTemp: float):
-        runAt = settings.comfortMax+settings.delta
-        runUntil = settings.comfortMax-settings.delta
+        runAt = settings.comfortMax+self.__delta
+        runUntil = settings.comfortMax-self.__delta
 
         if self.__state != ThermostatState.COOLING and newTemp > runAt:
             self.__changeState(ThermostatState.COOLING)
@@ -493,8 +507,8 @@ class GenericThermostatDriver(EventHandler):
             self.__changeState(ThermostatState.OFF)
 
     def __processHeating(self, newTemp: float):
-        runAt = settings.comfortMin-settings.delta
-        runUntil = settings.comfortMin+settings.delta
+        runAt = settings.comfortMin-self.__delta
+        runUntil = settings.comfortMin+self.__delta
 
         if self.__state != ThermostatState.HEATING and newTemp < runAt:
             self.__changeState(ThermostatState.HEATING)
@@ -502,10 +516,10 @@ class GenericThermostatDriver(EventHandler):
             self.__changeState(ThermostatState.OFF)
 
     def __processAuto(self, newTemp: float):
-        runAtHeat = settings.comfortMin-settings.delta
-        runUntilHeat = settings.comfortMin+settings.delta
-        runAtCool = settings.comfortMax+settings.delta
-        runUntilCool = settings.comfortMax-settings.delta
+        runAtHeat = settings.comfortMin-self.__delta
+        runUntilHeat = settings.comfortMin+self.__delta
+        runAtCool = settings.comfortMax+self.__delta
+        runUntilCool = settings.comfortMax-self.__delta
 
         if self.__state != ThermostatState.COOLING and newTemp > runAtCool:
             self.__changeState(ThermostatState.COOLING)

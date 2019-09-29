@@ -1,15 +1,15 @@
 {
     "thermostat": {
-        "defaults": {
-            "comfortMin": 68,
-            "comfortMax": 75,
-            "delta": 1.0
-        },
-        "presets": {
+        "delta": 1.0,
+        "programs": {
+            "_default": {
+                "comfortMin": 68,
+                "comfortMax": 75
+            },
             "overnight": {
                 "comfortMin": 68,
                 "comfortMax": 72,
-                "energy_overrides": [
+                "priceOverrides": [
                     {
                         "price": 0.25, 
                         "comfortMax": 76
@@ -27,7 +27,7 @@
             "home": {
                 "comfortMin": 70,
                 "comfortMax": 76,
-                "energy_overrides": [
+                "priceOverrides": [
                     {
                         "price": 0.50, 
                         "comfortMax": 80
@@ -41,7 +41,7 @@
             "away": {
                 "comfortMin": 64,
                 "comfortMax": 78,
-                "energy_overrides": [
+                "priceOverrides": [
                     { 
                         "price": 0.25, 
                         "comfortMax": 82
@@ -54,16 +54,19 @@
                 "days": [0, 1, 2, 3, 4],
                 "times": [
                     { 
-                        "start": "08:00", 
-                        "preset": "away" 
+                        "hour": 8, 
+                        "minute": 0, 
+                        "program": "away" 
                     },
                     { 
-                        "start": "17:00", 
-                        "preset": "home" 
+                        "hour": 17, 
+                        "minute": 0, 
+                        "program": "home" 
                     },
                     { 
-                        "start": "20:00", 
-                        "preset": "overnight" 
+                        "hour": 20, 
+                        "minute": 0, 
+                        "program": "overnight" 
                     }
                 ]
             },
@@ -71,12 +74,14 @@
                 "days": [5, 6],
                 "times": [
                     { 
-                        "start": "08:00", 
-                        "preset": "home" 
+                        "hour": 8, 
+                        "minute": 0, 
+                        "program": "home" 
                     },
                     { 
-                        "start": "20:00", 
-                        "preset": "overnight" 
+                        "hour": 20, 
+                        "minute": 0, 
+                        "program": "overnight" 
                     }
                 ]
             }

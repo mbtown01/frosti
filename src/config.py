@@ -23,8 +23,8 @@ class Config:
         if self.__config is None:
             raise RuntimeError("No configuration was found")
 
-    @property
-    def json(self):
+    def getJson(self):
+        """ Gets the fully resolved json config data """
         return self.__config
 
     def resolve(self, section, option, default=None):
