@@ -427,7 +427,7 @@ class GenericThermostatDriver(EventHandler):
         self.__relayMap = {r.function: r for r in relays}
         self.__screen = DefaultScreen(
             lcd.width, lcd.height, eventBus, loopSleep)
-        self.__sampleInvoker = CounterBasedInvoker(
+        self._sampleSensorsInvoker = CounterBasedInvoker(
             ticks=max(1, int(5/loopSleep)), handlers=[self.__sampleSensors])
         self.__checkScheduleInvoker = CounterBasedInvoker(
             ticks=max(1, int(5/loopSleep)), handlers=[self.__checkSchedule])
@@ -461,7 +461,7 @@ class GenericThermostatDriver(EventHandler):
 
         self.__screen.processEvents()
 
-        self.__sampleInvoker.increment()
+        self._sampleSensorsInvoker.increment()
         self.__checkScheduleInvoker.increment()
         if self.__inBacklightTimeout:
             self.__backlightTimeoutInvoker.increment()
@@ -475,6 +475,7 @@ class GenericThermostatDriver(EventHandler):
                     self.__lcd.setBacklight(True)
                 self.__inBacklightTimeout = True
                 self.__backlightTimeoutInvoker.reset()
+                self._sampleSensorsInvoker.reset()
                 self.__screen.processButton(button)
 
         # Send buffered updates to the actual display

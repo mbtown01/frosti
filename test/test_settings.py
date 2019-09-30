@@ -125,6 +125,18 @@ class Test_Settings(unittest.TestCase):
         self.assertEqual(self.settings.comfortMin, 68.0)
         self.assertEqual(self.settings.comfortMax, 75.0)
 
+    def test_user_change1(self):
+        """ User override should last until next program """
+        self.settings.timeChanged(3, 0, 30)
+        self.settings.comfortMax = 99.0
+        self.settings.comfortMin = 55.0
+        self.assertEqual(self.settings.comfortMin, 55.0)
+        self.assertEqual(self.settings.comfortMax, 99.0)
+
+        self.settings.timeChanged(3, 10, 0)
+        self.assertEqual(self.settings.comfortMin, 64.0)
+        self.assertEqual(self.settings.comfortMax, 78.0)
+
     def test_price1(self):
         self.settings.timeChanged(0, 9, 0)
         self.settings.priceChanged(2.0)
