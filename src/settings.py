@@ -94,6 +94,11 @@ class Schedule:
         self.__times = sorted(
             self.__times, key=lambda t: t.minutes, reverse=True)
 
+    @property
+    def scheduleTimes(self):
+        """ Get the list of ScheduleTime entries for this schedule """
+        return self.__times
+
     def getProgram(self, hour: int, minute: int):
         """ Returns the name of the program associated with this time """
         for t in self.__times:
@@ -137,6 +142,11 @@ class Settings:
             schedule = json['thermostat']['schedule']
             for name in schedule:
                 self.__schedules[name] = Schedule(name, schedule[name])
+                for t in self.__schedules[name].scheduleTimes:
+                    if t.program not in self.__programs:
+                        raise RuntimeError(
+                            f"Schedule '{name}' refers to " +
+                            f"bad program '{t.program}'")
 
     def __repr__(self):
         return f"[{self.__mode}] heatAt: {self.comfortMin} " + \
