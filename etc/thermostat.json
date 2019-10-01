@@ -1,6 +1,13 @@
 {
     "thermostat": {
         "delta": 1.0,
+        "sensors": {
+            "offsets": {
+                "temperature": -3.0,
+                "pressure": 0.0,
+                "humidity": 0.0
+            }
+        },
         "programs": {
             "_default": {
                 "comfortMin": 68,

@@ -128,6 +128,8 @@ class HD44780Display(GenericLcdDisplay):
         if enabled:
             self.__backlightState = self.LCD_BACKLIGHT
             self.__write_cmd(self.LCD_BACKLIGHT)
+            self.__write(self.LCD_CLEARDISPLAY)
+            self.clear()
         else:
             self.__backlightState = self.LCD_NOBACKLIGHT
             self.__write_cmd(self.LCD_NOBACKLIGHT)

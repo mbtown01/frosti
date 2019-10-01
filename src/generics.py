@@ -409,8 +409,8 @@ class GenericRelay:
 
 class GenericThermostatDriver(EventHandler):
 
-    BACKLIGHT_TIMEOUT = 10      # Number of ticks to wait
-    FAN_RUNOUT = 90             # Seconds to let fan run after mode ends
+    BACKLIGHT_TIMEOUT = 10      # Seconds to run backlight after last touch
+    FAN_RUNOUT = 30             # Seconds to let fan run after mode ends
 
     def __init__(self,
                  lcd: GenericLcdDisplay,
@@ -448,8 +448,9 @@ class GenericThermostatDriver(EventHandler):
             PowerPriceChangedEvent, self._powerPriceChanged)
 
         self.__openAllRelays()
+        self.__checkSchedule()
         self.__sampleSensors()
-        atexit.register(self.__openAllRelays, self=self)
+        # atexit.register(self.__openAllRelays, self=self)
 
     @property
     def state(self):
@@ -485,8 +486,11 @@ class GenericThermostatDriver(EventHandler):
                 row, 0, self.__screen.lcdBuffer.rowText(row))
         self.__lcd.commit()
 
+    def _getLocalTime(self):
+        return localtime(time())
+
     def __checkSchedule(self):
-        values = localtime(time())
+        values = self._getLocalTime()
         settings.timeChanged(
             day=values.tm_wday, hour=values.tm_hour, minute=values.tm_min)
 
