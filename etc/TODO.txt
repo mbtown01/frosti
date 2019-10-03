@@ -13,9 +13,11 @@ To do list
         * Adds to influx at events, data samples, etc
     * For a thermostat configuration
         * Should _default be a keyword?
-        * Can _default have power overrides?
-    * ISSUE! Thermostat starts up in cooling mode?!?!
-
+        * Can _default have power overrides? 
+    * Debug mode for a thermostat that is deployed
+        * physical switch?
+        * Setting to not toggle relays no matter what??
+    
 
 
 Thoughts on board v3

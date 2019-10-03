@@ -5,7 +5,14 @@ import configparser
 
 class Config:
 
-    def __init__(self):
+    def __init__(self, name=None, json: dict={}):
+        if name is None:
+            self.__initFromFile()
+        else:
+            self.__name = name
+            self.__json = json
+
+    def __initFromFile(self):
         localPath = os.path.realpath(__file__)
         searchOrder = (
             os.path.expanduser('~/.thermostat.json'),
@@ -14,26 +21,39 @@ class Config:
                 os.path.dirname(localPath) + '/../etc/thermostat.json')
         )
 
-        self.__config = None
+        self.__json = None
         for fileName in searchOrder:
             if os.path.exists(fileName):
+                self.__name = fileName
                 with open(fileName) as configFile:
-                    self.__config = json.load(configFile)
+                    self.__json = json.load(configFile)
                 break
-        if self.__config is None:
+        if self.__json is None:
             raise RuntimeError("No configuration was found")
 
     def getJson(self):
         """ Gets the fully resolved json config data """
-        return self.__config
+        return self.__json
 
     def resolve(self, section, option, default=None):
         """ Helper method for getting simple properties from json data """
-        if section not in self.__config:
+        if section not in self.__json:
             raise RuntimeError(f'Section {section} is not in config file')
-        if option in self.__config[section]:
-            return self.__config[section][option]
+        if option in self.__json[section]:
+            return self.__json[section][option]
         return default
+
+    def value(self, section: str, default=None):
+        if section not in self.__json:
+            if default is None:
+                raise RuntimeError(
+                    f"'{self.__name}'' does not contain '{section}'")
+            return default
+
+        rtn = self.__json[section]
+        if type(rtn) is dict:
+            return Config(name=f"{self.__name}::{section}", json=rtn)
+        return rtn
 
 
 config = Config()

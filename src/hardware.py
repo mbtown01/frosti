@@ -120,6 +120,7 @@ class HD44780Display(GenericLcdDisplay):
 
     def clear(self):
         """ Clear the contents of the LCD screen """
+        super().clear()
         self.__write(self.LCD_CLEARDISPLAY)
         self.__write(self.LCD_RETURNHOME)
 

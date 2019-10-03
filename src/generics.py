@@ -409,9 +409,6 @@ class GenericRelay:
 
 class GenericThermostatDriver(EventHandler):
 
-    BACKLIGHT_TIMEOUT = 10      # Seconds to run backlight after last touch
-    FAN_RUNOUT = 30             # Seconds to let fan run after mode ends
-
     def __init__(self,
                  lcd: GenericLcdDisplay,
                  sensor: GenericEnvironmentSensor,
@@ -420,6 +417,13 @@ class GenericThermostatDriver(EventHandler):
                  eventBus: EventBus,
                  loopSleep: float=0.05):
         super().__init__(eventBus, loopSleep)
+
+        self.__delta = \
+            config.value('thermostat').value('delta', 1.0)
+        self.__fanRunoutDuration = \
+            config.value('thermostat').value('fanRunout', 30)
+        self.__backlightTimeoutDuration = \
+            config.value('thermostat').value('backlightTimeout', 10)
 
         self.__sensor = sensor
         self.__lcd = lcd
@@ -432,14 +436,13 @@ class GenericThermostatDriver(EventHandler):
         self.__checkScheduleInvoker = CounterBasedInvoker(
             ticks=max(1, int(5/loopSleep)), handlers=[self.__checkSchedule])
         self.__backlightTimeoutInvoker = CounterBasedInvoker(
-            ticks=max(1, int(self.BACKLIGHT_TIMEOUT/loopSleep)),
+            ticks=max(1, int(self.__backlightTimeoutDuration/loopSleep)),
             handlers=[self.__backlightTimeout])
         self.__fanRunoutInvoker = CounterBasedInvoker(
-            ticks=max(1, int(self.FAN_RUNOUT/loopSleep)),
+            ticks=max(1, int(self.__fanRunoutDuration/loopSleep)),
             handlers=[self.__fanRunout])
 
         self.__state = ThermostatState.OFF
-        self.__delta = config.resolve('thermostat', 'delta', 1.0)
         self.__lcd.setBacklight(True)
         self.__inBacklightTimeout = True
         self.__inFanRunout = False

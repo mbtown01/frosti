@@ -1,59 +1,36 @@
 {
     "thermostat": {
         "delta": 1.0,
-        "fanRunout": 30,
-        "backlightTimeout": 10,
-        "sensors": {
-            "offsets": {
-                "temperature": -3.0,
-                "pressure": 0.0,
-                "humidity": 0.0
-            }
-        },
         "programs": {
             "_default": {
                 "comfortMin": 68,
-                "comfortMax": 75
+                "comfortMax": 84
             },
             "overnight": {
                 "comfortMin": 68,
-                "comfortMax": 72,
-                "priceOverrides": [
-                    {
-                        "price": 0.25, 
-                        "comfortMax": 76
-                    },
-                    {
-                        "price": 0.50, 
-                        "comfortMax": 78
-                    },
-                    {
-                        "price": 1.00, 
-                        "comfortMax": 88
-                    }
-                ]
+                "comfortMax": 88
             },
             "home": {
-                "comfortMin": 70,
-                "comfortMax": 76,
+                "comfortMin": 68,
+                "comfortMax": 84,
                 "priceOverrides": [
                     {
                         "price": 0.50, 
-                        "comfortMax": 80
+                        "comfortMax": 86
                     },
                     {
                         "price": 1.00, 
-                        "comfortMax": 88
+                        "comfortMax": 90
                     }
                 ]
             },
             "away": {
                 "comfortMin": 64,
-                "comfortMax": 78,
+                "comfortMax": 88,
                 "priceOverrides": [
                     { 
                         "price": 0.25, 
-                        "comfortMax": 82
+                        "comfortMax": 92
                     }
                 ]
             }
