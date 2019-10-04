@@ -216,10 +216,16 @@ class HardwareThermostatDriver(GenericThermostatDriver):
     def __init__(self, eventBus: EventBus):
         GPIO.setmode(GPIO.BCM)
 
+        try:
+            sensor = Bm280EnvironmentSensor()
+        except:
+            # Debugging w/o the bmp280 on the breadboard
+            sensor = GenericEnvironmentSensor()
+
         super().__init__(
             eventBus=eventBus,
             lcd=HD44780Display(0x27, 20, 4),
-            sensor=Bm280EnvironmentSensor(),
+            sensor=sensor,
             buttons=(
                 GpioPushButton(1, 21),
                 GpioPushButton(2, 20),

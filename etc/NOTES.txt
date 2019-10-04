@@ -1,18 +1,30 @@
+# Build an image of the latest raspbian to setup ssh and come up on WiFi
+# https://www.raspberrypi.org/downloads/raspbian/
+sudo ./scripts/build_image.py \
+    --hostname pi-test \
+    --image ~/Downloads/2019-09-26-raspbian-buster-lite.img \
+    --ssid umbatu-iot \
+    --passwd ################ \
+    --debug
+
 # Update the pi
 sudo apt update
+sudo apt upgrade
+sudo apt dist-upgrade
 
 # use raspi-config to enable the i2c interface
 raspi-config 
 
+# Install Packages
+sudo apt install vim wiringpi python3-pip i2c-tools python3-smbus
+
 # install the bmp280 library (on the pi)
 sudo pip3 install adafruit-circuitpython-bme280
 sudo pip3 install adafruit-blinka adafruit-circuitpython-charlcd
-
-# Install Packages
-sudo apt install vim wiringpi python3-pip i2ctools python3-smbus
-
-# Install debugger on both computers
+sudo pip3 install flask
 sudo python3 -m pip install --upgrade ptvsd
+
+# Debugging command on target pi
 ssh pi@pi-dev python3 -m ptvsd --host 192.168.8.187 --port 3000 --wait /home/pi/thermostat/test.py
 
 # For the mac

@@ -10,27 +10,29 @@ from io import StringIO
 class ImageBuilder:
 
     def __init__(self):
-        userName = os.environ.get('SUDO_USER')
-        if userName is None:
-            userName = os.environ.get('USER')
-
         parser = argparse.ArgumentParser(
             description='Create a bootable Pi image')
         parser.add_argument(
-            '--hostname', type=str, required=True,
+            '--hostname', type=str, default=None,
             help='Name of the host')
         parser.add_argument(
             '--image', type=str, required=True,
             help='Path to input image file')
         parser.add_argument(
-            '--user', type=str, default=userName,
-            help='Name of the user to create, defaults to SUDO_USER')
+            '--user', type=str, default=None,
+            help='Name of the user to create')
         parser.add_argument(
             '--netroot', type=str, default=None,
             help='Build image designed to PXIE mount from NFS location')
         parser.add_argument(
             '--debug', dest='debug', action='store_true',
             help='Add debugging output')
+        parser.add_argument(
+            '--ssid', type=str, default=None,
+            help='SSID of a wifi network to add')
+        parser.add_argument(
+            '--passwd', type=str, default=None,
+            help='Password of a wifi network to add')
         parser.set_defaults(debug=False)
 
         self.args = parser.parse_args()
@@ -134,31 +136,56 @@ class ImageBuilder:
                 )
 
         # Setup ssh user
-        user_home = "/home/" + self.args.user + "/.ssh"
-        if not os.path.isdir(user_home):
-            raise Exception(
-                f"Path '{user_home}' does not exist. " +
-                r"Check that this user has an ssh keypair")
-        pi_home = mount_root + "/home/pi"
-        if not os.path.isdir(pi_home):
-            raise Exception(f"Path '{pi_home}' does not exist")
+        if self.args.user is not None:
+            user_home = "/home/" + self.args.user + "/.ssh"
+            if not os.path.isdir(user_home):
+                raise Exception(
+                    f"Path '{user_home}' does not exist. " +
+                    r"Check that this user has an ssh keypair")
+            pi_home = mount_root + "/home/pi"
+            if not os.path.isdir(pi_home):
+                raise Exception(f"Path '{pi_home}' does not exist")
 
-        # Copy the user's ssh pub key to 'pi's authorized keys
-        self.shell(['mkdir', '-p', pi_home+"/.ssh"], 0)
-        self.shell(
-            [
+            # Copy the user's ssh pub key to 'pi's authorized keys
+            self.shell(['mkdir', '-p', pi_home+"/.ssh"], 0)
+            self.shell([
                 'bash', '-c',
-                f'cat {user_home}/id_rsa.pub >> {pi_home}/.ssh/authorized_keys'
+                f'cat {user_home}/id_rsa.pub >> ' +
+                f'{pi_home}/.ssh/authorized_keys'
             ], 0)
-        self.shell(['chmod', '600', pi_home+"/.ssh/authorized_keys"], 0)
-        self.shell(['chown', '--reference', pi_home, '-R', pi_home+'/.ssh'], 0)
+            self.shell(['chmod', '600', pi_home+"/.ssh/authorized_keys"], 0)
+            self.shell(
+                ['chown', '--reference', pi_home, '-R', pi_home+'/.ssh'], 0)
+
+        if self.args.ssid is not None:
+            with open(mount_boot+'/wpa_supplicant.conf', "w") as outfile:
+                outfile.write(
+                    'country=US\n'
+                    'ctrl_interface=DIR=/var/run/wpa_supplicant '
+                    'GROUP=netdev\n'
+                    'update_config=1\n\n'
+                    'network={\n'
+                    f'    ssid="{self.args.ssid}"\n'
+                    f'    psk="{self.args.passwd}"\n'
+                    '    qqwkey_mgmt=WPA-PSK\n'
+                    '}\n'
+                )
+
+            # self.shell([
+            #     'bash', '-c',
+            #     f'wpa_passphrase {self.args.ssid} {self.args.passwd} | ' +
+            #     f'grep -v "#" >> ' +
+            #     f'{mount_root}/etc/wpa_supplicant/wpa_supplicant.conf'
+            # ], 0)
 
         # Enable ssh on the pi
-        self.shell(
-            [
-                'bash', '-c',
-                f'echo {self.args.hostname} > {mount_root}/etc/hostname'
-            ], 0)
+        if self.args.hostname is not None:
+            self.shell(
+                [
+                    'bash', '-c',
+                    f'echo {self.args.hostname} > {mount_root}/etc/hostname'
+                ], 0)
+
         self.shell(['touch', mount_boot+'/ssh'], 0)
 
 
