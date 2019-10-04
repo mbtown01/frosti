@@ -9,7 +9,7 @@ from src.settings import settings, Settings
 from src.events import Event, EventBus, EventHandler
 from src.generics import PropertyChangedEvent, \
     ThermostatStateChangedEvent, ThermostatState, \
-    TemperatureChangedEvent, PressureChangedEvent, HumidityChangedEvent
+    SensorDataChangedEvent
 
 
 app = Flask(__name__, static_url_path='')
@@ -37,11 +37,7 @@ class ApiEventHandler(EventHandler):
         self.__lastHumidity = 0
 
         super()._subscribe(
-            TemperatureChangedEvent, self.__processTemperatureChanged)
-        super()._subscribe(
-            PressureChangedEvent, self.__processPressureChanged)
-        super()._subscribe(
-            HumidityChangedEvent, self.__processHumidityChanged)
+            SensorDataChangedEvent, self.__processSensorDataChanged)
         super()._subscribe(
             ThermostatStateChangedEvent, self.__processThermostatStateChanged)
 
@@ -49,14 +45,10 @@ class ApiEventHandler(EventHandler):
             self, event: ThermostatStateChangedEvent):
         self.__lastState = event.state
 
-    def __processTemperatureChanged(self, event: TemperatureChangedEvent):
-        self.__lastTemperature = event.value
-
-    def __processPressureChanged(self, event: PressureChangedEvent):
-        self.__lastPressure = event.value
-
-    def __processHumidityChanged(self, event: HumidityChangedEvent):
-        self.__lastHumidity = event.value
+    def __processSensorDataChanged(self, event: SensorDataChangedEvent):
+        self.__lastTemperature = event.temperature
+        self.__lastPressure = event.pressure
+        self.__lastHumidity = event.humidity
 
     @property
     def version(self):

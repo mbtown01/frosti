@@ -3,8 +3,7 @@ from queue import Queue
 from time import sleep
 
 from src.events import Event, EventBus, EventHandler
-from src.generics import \
-    TemperatureChangedEvent, PressureChangedEvent, HumidityChangedEvent
+from src.generics import SensorDataChangedEvent
 
 
 class Test_EventBus(unittest.TestCase):
@@ -12,11 +11,11 @@ class Test_EventBus(unittest.TestCase):
     def test_put(self):
         eventBus = EventBus()
         queue = eventBus.subscribe()
-        event = TemperatureChangedEvent(0.0)
+        event = SensorDataChangedEvent(0.0, 0.0, 0.0)
         eventBus.put(event)
 
         self.assertEqual(1, queue.qsize())
-        self.assertEqual(type(event), TemperatureChangedEvent)
+        self.assertEqual(type(event), SensorDataChangedEvent)
 
 
 class Test_EventHandler(unittest.TestCase):
@@ -37,9 +36,9 @@ class Test_EventHandler(unittest.TestCase):
     def test_processEvents(self):
         self.eventBus = EventBus()
         self.eventHandler = Test_EventHandler.DummyEventHandler(self.eventBus)
-        self.eventBus.put(TemperatureChangedEvent(0.0))
-        self.eventBus.put(PressureChangedEvent(0.0))
-        self.eventBus.put(HumidityChangedEvent(0.0))
+        self.eventBus.put(Event())
+        self.eventBus.put(Event())
+        self.eventBus.put(Event())
 
         self.assertEqual(self.eventHandler.eventCount, 0)
         self.eventHandler.processEvents()
@@ -51,9 +50,9 @@ class Test_EventHandler(unittest.TestCase):
         self.eventHandler.start('Test Event Handler')
 
         self.assertEqual(self.eventHandler.eventCount, 0)
-        self.eventBus.put(TemperatureChangedEvent(0.0))
-        self.eventBus.put(PressureChangedEvent(0.0))
-        self.eventBus.put(HumidityChangedEvent(0.0))
+        self.eventBus.put(Event())
+        self.eventBus.put(Event())
+        self.eventBus.put(Event())
 
         # Thread is sleeping loopSleep seconds, need to be sure we
         # wait long enough for the events to have been processed

@@ -7,12 +7,12 @@ class Config:
 
     def __init__(self, name=None, json: dict={}):
         if name is None:
-            self.__initFromFile()
+            self.__initFromEnviornment()
         else:
             self.__name = name
             self.__json = json
 
-    def __initFromFile(self):
+    def __initFromEnviornment(self):
         localPath = os.path.realpath(__file__)
         searchOrder = (
             os.path.expanduser('~/.thermostat.json'),
@@ -30,6 +30,12 @@ class Config:
                 break
         if self.__json is None:
             raise RuntimeError("No configuration was found")
+        if 'thermostat' not in self.__json:
+            raise RuntimeError("No 'thermostat' section was found in config")
+
+        if 'unitname' not in self.__json['thermostat']:
+            self.__json['thermostat']['unitname'] = \
+                os.environ.get('UNITNAME', 'test')
 
     def getJson(self):
         """ Gets the fully resolved json config data """

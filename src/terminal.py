@@ -6,7 +6,7 @@ from src.logging import log
 from src.generics import GenericLcdDisplay, GenericButton, \
     GenericThermostatDriver, GenericEnvironmentSensor, \
     PowerPriceChangedEvent, GenericRelay, ThermostatState, \
-    TemperatureChangedEvent, CounterBasedInvoker
+    SensorDataChangedEvent, CounterBasedInvoker
 from src.events import EventBus
 
 
@@ -160,12 +160,16 @@ class TerminalThermostatDriver(GenericThermostatDriver):
                 self.__buttonMap[char].press()
             elif char == curses.KEY_UP:
                 self.__environmentSensor.temperature += 1
-                self._fireEvent(TemperatureChangedEvent(
-                    self.__environmentSensor.temperature))
+                self._fireEvent(SensorDataChangedEvent(
+                    temperature=self.__environmentSensor.temperature,
+                    pressure=self.__environmentSensor.pressure,
+                    humidity=self.__environmentSensor.humidity))
             elif char == curses.KEY_DOWN:
                 self.__environmentSensor.temperature -= 1
-                self._fireEvent(TemperatureChangedEvent(
-                    self.__environmentSensor.temperature))
+                self._fireEvent(SensorDataChangedEvent(
+                    temperature=self.__environmentSensor.temperature,
+                    pressure=self.__environmentSensor.pressure,
+                    humidity=self.__environmentSensor.humidity))
             elif char == curses.KEY_RESIZE:
                 y, x = self.__logWin.getmaxyx()
                 self.__logWin.resize(y, x)

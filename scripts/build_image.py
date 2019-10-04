@@ -167,7 +167,7 @@ class ImageBuilder:
                     'network={\n'
                     f'    ssid="{self.args.ssid}"\n'
                     f'    psk="{self.args.passwd}"\n'
-                    '    qqwkey_mgmt=WPA-PSK\n'
+                    '    key_mgmt=WPA-PSK\n'
                     '}\n'
                 )
 

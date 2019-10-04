@@ -31,7 +31,7 @@ cool = 0
 if 'COOLING' == j['state']:
     cool = 1
 heat = 0
-if 'HEAETING' == j['state']:
+if 'HEATING' == j['state']:
     heat = 1
 
 influxdb_entry = \
@@ -42,7 +42,7 @@ influxdb_entry = \
     f'cool={cool},' + \
     f'heat={heat}'
 
-#print(influxdb_entry)
+# print(influxdb_entry)
 
 client.write_points(
     influxdb_entry, protocol=config.resolve("influxdb", "protocol"))

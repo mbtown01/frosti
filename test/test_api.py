@@ -6,7 +6,7 @@ from time import sleep
 from src.api import ApiEventHandler, ApiMessageHandler
 from src.events import Event, EventBus, EventHandler
 from src.generics import \
-    TemperatureChangedEvent, PressureChangedEvent, HumidityChangedEvent
+    SensorDataChangedEvent
 
 
 class Test_ApiEventHandler(unittest.TestCase):
@@ -20,9 +20,10 @@ class Test_ApiEventHandler(unittest.TestCase):
         self.testValueTemperature = 72.5
         self.testValuePressure = 1015.2
         self.testValueHumidity = 42.4
-        self.eventBus.put(TemperatureChangedEvent(self.testValueTemperature))
-        self.eventBus.put(PressureChangedEvent(self.testValuePressure))
-        self.eventBus.put(HumidityChangedEvent(self.testValueHumidity))
+        self.eventBus.put(SensorDataChangedEvent(
+            temperature=self.testValueTemperature,
+            pressure=self.testValuePressure,
+            humidity=self.testValueHumidity))
         apiEventHandler.processEvents()
 
     def test_version(self):

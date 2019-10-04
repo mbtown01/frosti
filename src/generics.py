@@ -254,19 +254,25 @@ class PropertyChangedEvent(Event):
         return float(self._data['value'])
 
 
-class TemperatureChangedEvent(PropertyChangedEvent):
-    def __init__(self, value: float):
-        super().__init__('TemperatureChangedEvent', value)
+class SensorDataChangedEvent(Event):
+    def __init__(self, temperature: float, pressure: float, humidity: float):
+        super().__init__(data={
+            'temperature': temperature,
+            'pressure': pressure,
+            'humidity': humidity
+        })
 
+    @property
+    def temperature(self):
+        return float(self._data['temperature'])
 
-class PressureChangedEvent(PropertyChangedEvent):
-    def __init__(self, value: float):
-        super().__init__('PressureChangedEvent', value)
+    @property
+    def pressure(self):
+        return float(self._data['pressure'])
 
-
-class HumidityChangedEvent(PropertyChangedEvent):
-    def __init__(self, value: float):
-        super().__init__('HumidityChangedEvent', value)
+    @property
+    def humidity(self):
+        return float(self._data['humidity'])
 
 
 class PowerPriceChangedEvent(PropertyChangedEvent):
@@ -301,7 +307,7 @@ class DefaultScreen(GenericScreen):
         super()._subscribe(
             SettingsChangedEvent, self.__processSettingsChanged)
         super()._subscribe(
-            TemperatureChangedEvent, self.__processTemperatureChanged)
+            SensorDataChangedEvent, self.__processSensorDataChanged)
         super()._subscribe(
             ThermostatStateChangedEvent, self.__processStateChanged)
         super()._subscribe(
@@ -320,8 +326,8 @@ class DefaultScreen(GenericScreen):
         self.__lastPrice = event.value
         self.__drawLcdInvoker.invokeCurrent()
 
-    def __processTemperatureChanged(self, event: TemperatureChangedEvent):
-        self.__lastTemperature = event.value
+    def __processSensorDataChanged(self, event: SensorDataChangedEvent):
+        self.__lastTemperature = event.temperature
         self.__drawLcdInvoker.invokeCurrent()
 
     def __processSettingsChanged(self, event: SettingsChangedEvent):
@@ -415,7 +421,7 @@ class GenericThermostatDriver(EventHandler):
                  buttons: list,
                  relays: list,
                  eventBus: EventBus,
-                 loopSleep: float=0.05):
+                 loopSleep: float=0.1):
         super().__init__(eventBus, loopSleep)
 
         self.__delta = \
@@ -514,9 +520,11 @@ class GenericThermostatDriver(EventHandler):
 
     def __sampleSensors(self):
         temperature = self.__sensor.temperature
-        super()._fireEvent(TemperatureChangedEvent(temperature))
-        super()._fireEvent(PressureChangedEvent(self.__sensor.pressure))
-        super()._fireEvent(HumidityChangedEvent(self.__sensor.humidity))
+        super()._fireEvent(SensorDataChangedEvent(
+            temperature=temperature,
+            pressure=self.__sensor.pressure,
+            humidity=self.__sensor.humidity
+        ))
 
         if settings.mode == Settings.Mode.COOL:
             self.__processCooling(temperature)

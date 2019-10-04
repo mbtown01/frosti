@@ -11,6 +11,7 @@ from src.settings import settings, SettingsChangedEvent
 from src.terminal import TerminalThermostatDriver
 from src.power import GoGriddyEventHandler
 from src.config import config
+from src.influx import InfluxExportEventHandler
 
 
 def main(stdscr):
@@ -22,8 +23,8 @@ def main(stdscr):
 
     # Put all the event handlers together
     apiEventHandler = ApiEventHandler(eventBus)
-    apiEventHandler.start('API Event Driver')
     ApiMessageHandler.setup(apiEventHandler)
+    apiEventHandler.start('API Event Driver')
 
     if stdscr is not None:
         messageQueue = Queue(128)
@@ -43,6 +44,12 @@ def main(stdscr):
             powerPriceEventHandler.start("Power Price Event Handler")
         except ConnectionError:
             log.warning("Unable to reach GoGriddy")
+
+    try:
+        influxExportEventHandler = InfluxExportEventHandler(eventBus, 5)
+        influxExportEventHandler.start('Influx Logger')
+    except RuntimeError:
+        log.warning("Influx logger failed to initialize")
 
     log.info('Entering into standard operation')
     eventBus.put(SettingsChangedEvent())

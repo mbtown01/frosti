@@ -4,7 +4,7 @@ from src.events import EventBus, EventHandler
 from src.generics import GenericLcdDisplay, GenericEnvironmentSensor, \
     GenericButton, GenericThermostatDriver, CounterBasedInvoker, \
     GenericRelay, ThermostatState, ThermostatStateChangedEvent, \
-    TemperatureChangedEvent
+    SensorDataChangedEvent
 
 
 class Test_GenericLcdDisplay(unittest.TestCase):
@@ -168,9 +168,9 @@ class Test_GenericHardwareDriver(unittest.TestCase):
         def __init__(self, eventBus: EventBus):
             super().__init__(eventBus)
             super()._subscribe(
-                ThermostatStateChangedEvent, self._thermostatStateChanged)
+                ThermostatStateChangedEvent, self.__thermostatStateChanged)
             super()._subscribe(
-                TemperatureChangedEvent, self._temperatureChanged)
+                SensorDataChangedEvent, self.__sensorDataChanged)
 
             self.__lastState = None
             self.__lastTemperature = None
@@ -183,11 +183,11 @@ class Test_GenericHardwareDriver(unittest.TestCase):
         def lastTemperature(self):
             return self.__lastTemperature
 
-        def _thermostatStateChanged(self, event: ThermostatStateChangedEvent):
+        def __thermostatStateChanged(self, event: ThermostatStateChangedEvent):
             self.__lastState = event.state
 
-        def _temperatureChanged(self, event: TemperatureChangedEvent):
-            self.__lastTemperature = event.value
+        def __sensorDataChanged(self, event: SensorDataChangedEvent):
+            self.__lastTemperature = event.temperature
 
     def setup_method(self, method):
         self.__eventBus = EventBus()

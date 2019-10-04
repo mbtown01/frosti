@@ -21,7 +21,7 @@ sudo apt install vim wiringpi python3-pip i2c-tools python3-smbus
 # install the bmp280 library (on the pi)
 sudo pip3 install adafruit-circuitpython-bme280
 sudo pip3 install adafruit-blinka adafruit-circuitpython-charlcd
-sudo pip3 install flask
+sudo pip3 install flask influxdb
 sudo python3 -m pip install --upgrade ptvsd
 
 # Debugging command on target pi

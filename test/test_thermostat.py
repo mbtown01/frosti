@@ -4,8 +4,8 @@ import time
 from src.events import EventBus, EventHandler
 from src.settings import settings, Settings
 from src.generics import ThermostatStateChangedEvent, ThermostatState, \
-    GenericThermostatDriver, TemperatureChangedEvent, \
-    GenericLcdDisplay, GenericEnvironmentSensor, GenericRelay, GenericButton
+    GenericThermostatDriver, GenericLcdDisplay, GenericEnvironmentSensor, \
+    GenericRelay, GenericButton
 
 
 # Use simple settings with no other program information
@@ -132,7 +132,7 @@ class Test_Thermostat(unittest.TestCase):
             )
 
         def _getLocalTime(self):
-            """ Override local time for testing on a specific day relative 
+            """ Override local time for testing on a specific day relative
             to the json config being used for testing """
             return self.localtime
 
