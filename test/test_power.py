@@ -1,6 +1,5 @@
 import unittest
 import sys
-from time import sleep
 
 from src.power import GoGriddyEventHandler
 from src.generics import PowerPriceChangedEvent
@@ -12,17 +11,15 @@ class Test_GoGriddyInterface(unittest.TestCase):
     class DummyEventHandler(EventHandler):
         def __init__(self, eventBus: EventBus):
             super().__init__(eventBus)
-            super()._subscribe(
+            super()._installEventHandler(
                 PowerPriceChangedEvent, self._powerPriceChangedEvent)
 
-            self.__lastPrice = None
-
-        @property
-        def lastPrice(self):
-            return self.__lastPrice
+            self.lastPrice = None
+            self.netUpdate = None
 
         def _powerPriceChangedEvent(self, event: PowerPriceChangedEvent):
-            self.__lastPrice = event.value
+            self.lastPrice = event.price
+            self.nextUpdate = event.nextUpdate
 
     def setup_method(self, method):
         self.eventBus = EventBus()
@@ -32,7 +29,7 @@ class Test_GoGriddyInterface(unittest.TestCase):
         self.goGriddyEventHandler = GoGriddyEventHandler(self.eventBus)
 
     def test_data(self):
-        self.goGriddyEventHandler.processEvents()
-        self.dummyEventHandler.processEvents()
+        self.eventBus.exec(2)
 
+        self.assertIsNotNone(self.dummyEventHandler.nextUpdate)
         self.assertIsNotNone(self.dummyEventHandler.lastPrice)

@@ -3,7 +3,6 @@
 import json
 import sys
 
-from time import sleep
 from xml.etree import ElementTree
 
 # pylint: disable=import-error

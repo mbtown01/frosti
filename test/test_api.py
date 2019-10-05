@@ -20,11 +20,11 @@ class Test_ApiEventHandler(unittest.TestCase):
         self.testValueTemperature = 72.5
         self.testValuePressure = 1015.2
         self.testValueHumidity = 42.4
-        self.eventBus.put(SensorDataChangedEvent(
+        self.eventBus.fireEvent(SensorDataChangedEvent(
             temperature=self.testValueTemperature,
             pressure=self.testValuePressure,
             humidity=self.testValueHumidity))
-        apiEventHandler.processEvents()
+        self.eventBus.processEvents()
 
     def test_version(self):
         req = requests.get('http://localhost:5000/api/version')

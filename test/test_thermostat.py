@@ -5,7 +5,7 @@ from src.events import EventBus, EventHandler
 from src.settings import settings, Settings
 from src.generics import ThermostatStateChangedEvent, ThermostatState, \
     GenericThermostatDriver, GenericLcdDisplay, GenericEnvironmentSensor, \
-    GenericRelay, GenericButton
+    GenericRelay
 
 
 # Use simple settings with no other program information
@@ -95,7 +95,7 @@ class Test_Thermostat(unittest.TestCase):
     class DummyEventHandler(EventHandler):
         def __init__(self, eventBus: EventBus):
             super().__init__(eventBus)
-            super()._subscribe(
+            super()._installEventHandler(
                 ThermostatStateChangedEvent, self._thermostatStateChanged)
 
             self.__lastState = None
@@ -121,14 +121,7 @@ class Test_Thermostat(unittest.TestCase):
                 eventBus=eventBus,
                 lcd=GenericLcdDisplay(20, 4),
                 sensor=sensor,
-                buttons=(
-                    GenericButton(1),
-                    GenericButton(2),
-                    GenericButton(3),
-                    GenericButton(4),
-                ),
-                relays=relays,
-                loopSleep=100
+                relays=relays
             )
 
         def _getLocalTime(self):
@@ -156,11 +149,12 @@ class Test_Thermostat(unittest.TestCase):
             relays=self.relayList,
             eventBus=self.eventBus
         )
-        self.thermostatDriver.processEvents()
+        self.eventBus.processEvents()
 
     def assertNextTemperature(self, temp: float, state: ThermostatState):
         self.dummySensor.temperature = temp
-        self.thermostatDriver.processEvents()
+        self.thermostatDriver.sampleSensors()
+        self.eventBus.exec(1)
         self.assertEqual(self.thermostatDriver.state, state)
         if ThermostatState.FAN != state and ThermostatState.OFF != state:
             self.assertFalse(self.relayMap[state].isOpen)
@@ -171,7 +165,7 @@ class Test_Thermostat(unittest.TestCase):
 
         self.assertIsNone(self.dummyEventHandler.lastState)
         self.assertNextTemperature(78.0, ThermostatState.COOLING)
-        self.dummyEventHandler.processEvents()
+        self.eventBus.processEvents()
         self.assertIsNotNone(self.dummyEventHandler.lastState)
         self.assertEqual(
             self.dummyEventHandler.lastState, ThermostatState.COOLING)
@@ -181,7 +175,7 @@ class Test_Thermostat(unittest.TestCase):
 
         self.assertIsNone(self.dummyEventHandler.lastState)
         self.assertNextTemperature(60.0, ThermostatState.HEATING)
-        self.dummyEventHandler.processEvents()
+        self.eventBus.processEvents()
         self.assertIsNotNone(self.dummyEventHandler.lastState)
         self.assertEqual(
             self.dummyEventHandler.lastState, ThermostatState.HEATING)

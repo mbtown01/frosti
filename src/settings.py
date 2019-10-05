@@ -166,7 +166,7 @@ class Settings:
             self.__currentProgram.comfortMax,
             self.__currentProgram.comfortMin+2*self.__delta)
         if self.__eventBus is not None:
-            self.__eventBus.put(SettingsChangedEvent())
+            self.__eventBus.fireEvent(SettingsChangedEvent())
 
     @property
     def comfortMax(self):
@@ -182,7 +182,7 @@ class Settings:
             self.__currentProgram.comfortMin,
             self.__currentProgram.comfortMax-2*self.__delta)
         if self.__eventBus is not None:
-            self.__eventBus.put(SettingsChangedEvent())
+            self.__eventBus.fireEvent(SettingsChangedEvent())
 
     def timeChanged(self, day: int, hour: int, minute: int):
         for name in self.__schedules:
@@ -196,7 +196,7 @@ class Settings:
                 if self.__currentProgram.name != newProgram.name:
                     self.__currentProgram = self.__programs[pName]
                     if self.__eventBus is not None:
-                        self.__eventBus.put(SettingsChangedEvent())
+                        self.__eventBus.fireEvent(SettingsChangedEvent())
 
     def priceChanged(self, price: float):
         """ Based on a new power price searches the price overrides to
@@ -214,14 +214,14 @@ class Settings:
                 if override.comfortMax is not None:
                     self.__currentProgram.comfortMax = override.comfortMax
                 if self.__eventBus is not None:
-                    self.__eventBus.put(SettingsChangedEvent())
+                    self.__eventBus.fireEvent(SettingsChangedEvent())
                 return True
 
         if self.__lastOverridePrice is not None:
             self.__currentProgram.reset()
             self.__lastOverridePrice = None
             if self.__eventBus is not None:
-                self.__eventBus.put(SettingsChangedEvent())
+                self.__eventBus.fireEvent(SettingsChangedEvent())
             return True
 
         return False
@@ -235,7 +235,7 @@ class Settings:
     def mode(self, value):
         self.__mode = value
         if self.__eventBus is not None:
-            self.__eventBus.put(SettingsChangedEvent())
+            self.__eventBus.fireEvent(SettingsChangedEvent())
 
     def setEventBus(self, eventBus: EventBus):
         """ Send SettingsChangedEvent notifications to the provided event bus,

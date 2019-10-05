@@ -4,7 +4,7 @@ import atexit
 
 from src.logging import log
 from src.settings import settings, Settings, SettingsChangedEvent
-from src.events import EventBus, EventHandler, Event
+from src.events import EventBus, EventHandler, Event, TimerBasedHandler
 from src.config import config
 
 
@@ -107,69 +107,6 @@ class GenericLcdDisplay:
         return results
 
 
-class GenericButton:
-    """ A logical button provided to the user """
-
-    def __init__(self, id: int):
-        self.__id = id
-        self.__isPressed = False
-
-    @property
-    def id(self):
-        return self.__id
-
-    def press(self):
-        self.__isPressed = True
-
-    def query(self):
-        pressed = self.__isPressed
-        self.__isPressed = False
-        return pressed
-
-
-class CounterBasedInvoker:
-    """ Invokes a handler based on a set number of ticks """
-
-    def __init__(self, ticks: int, handlers: list):
-        """ Creates a new CounterBasedInvoker
-
-        ticks: int
-            Number of calls to increment it takes to invoke the handler
-        handlers: list
-            List of handlers, called in sequential/rotating order
-        """
-        self.__ticks = ticks
-        self.__handlers = handlers
-        self.__lastHandler = 0
-        self.__counter = 0
-        self.__enabled = True
-
-    def increment(self, execute=True):
-        """ Increments the counter and executes the next handler if it is
-        a harmonic of ticks
-
-        execute: bool
-            True if increment should execute the counter, false otherwise
-        """
-        self.__counter += 1
-        if 0 == self.__counter % self.__ticks:
-            if execute:
-                self.invokeCurrent()
-            self.__lastHandler = \
-                (self.__lastHandler + 1) % len(self.__handlers)
-
-    def invokeCurrent(self):
-        """ Force an invoke of the current handler, does not increment the
-        counter """
-        self.__handlers[self.__lastHandler]()
-
-    def reset(self, handler: int=None):
-        """ Resets the counter to zero and the next handler to be the first
-        in the list """
-        self.__lastHandler = handler or 0
-        self.__counter = 1
-
-
 class GenericEnvironmentSensor:
 
     def __init__(self):
@@ -201,31 +138,6 @@ class GenericEnvironmentSensor:
     @humidity.setter
     def humidity(self, value):
         self.__humidity = value
-
-
-class GenericScreen(EventHandler):
-
-    def __init__(self,
-                 width: int,
-                 height: int,
-                 eventBus: EventBus,
-                 loopSleep: int):
-        super().__init__(eventBus, loopSleep)
-        self.__eventBus = eventBus
-        self.__lcdBuffer = GenericLcdDisplay(width=width, height=height)
-
-    def _fireEvent(self, event: Event):
-        self.__eventBus.put(event)
-
-    @property
-    def lcdBuffer(self):
-        return self.__lcdBuffer
-
-    def processButton(self, button: GenericButton):
-        raise NotImplementedError
-
-    def drawLcdDisplay(self, display: GenericLcdDisplay):
-        raise NotImplementedError
 
 
 class ThermostatState(Enum):
@@ -275,117 +187,22 @@ class SensorDataChangedEvent(Event):
         return float(self._data['humidity'])
 
 
-class PowerPriceChangedEvent(PropertyChangedEvent):
+class PowerPriceChangedEvent(Event):
     """ Signals the start of a new power price in $/kW*h """
-    def __init__(self, value: float):
-        super().__init__('PowerPriceChangedEvent', value)
+    def __init__(self, price: float, nextUpdate: float):
+        super().__init__(
+            name='PowerPriceChangedEvent',
+            data={'price': price, 'nextUpdate': nextUpdate})
 
+    @property
+    def price(self):
+        """ Current price """
+        return super().data['price']
 
-class DefaultScreen(GenericScreen):
-
-    def __init__(self,
-                 width: int,
-                 height: int,
-                 eventBus: EventBus,
-                 loopSleep: int):
-        super().__init__(width, height, eventBus, loopSleep)
-
-        self.__lastTemperature = 0.0
-        self.__lastState = ThermostatState.OFF
-        self.__lastPrice = 0.0
-
-        self.__drawLcdInvoker = CounterBasedInvoker(
-            ticks=max(1, int(0.1/loopSleep)), handlers=[self.__drawLcdDisplay])
-        self.__drawRowTwoInvoker = CounterBasedInvoker(
-            ticks=max(1, int(3/loopSleep)), handlers=[
-                self.__drawRowTwoTarget,
-                self.__drawRowTwoState,
-                self.__drawRowTwoPrice])
-
-        self.__rotateRowTwoInterval = int(3/loopSleep)
-
-        super()._subscribe(
-            SettingsChangedEvent, self.__processSettingsChanged)
-        super()._subscribe(
-            SensorDataChangedEvent, self.__processSensorDataChanged)
-        super()._subscribe(
-            ThermostatStateChangedEvent, self.__processStateChanged)
-        super()._subscribe(
-            PowerPriceChangedEvent, self.__powerPriceChanged)
-
-    def processEvents(self):
-        super().processEvents()
-
-        # Update the LCD display with the current page's content
-        self.__drawLcdInvoker.increment()
-        self.__drawRowTwoInvoker.increment(execute=False)
-
-    def __powerPriceChanged(self, event: PowerPriceChangedEvent):
-        log.info(f"DefaultScreen: Power price is now {event.value:.4f}/kW*h")
-        self.__drawRowTwoInvoker.reset(2)
-        self.__lastPrice = event.value
-        self.__drawLcdInvoker.invokeCurrent()
-
-    def __processSensorDataChanged(self, event: SensorDataChangedEvent):
-        self.__lastTemperature = event.temperature
-        self.__drawLcdInvoker.invokeCurrent()
-
-    def __processSettingsChanged(self, event: SettingsChangedEvent):
-        log.debug(f"DefaultScreen: new settings: {settings}")
-        self.__drawLcdInvoker.invokeCurrent()
-
-    def __processStateChanged(self, event: ThermostatStateChangedEvent):
-        log.debug(f"DefaultScreen: new state: {event.state}")
-        self.__lastState = event.state
-        self.__drawLcdInvoker.reset()
-
-    def processButton(self, button: GenericButton):
-        log.debug(f"DefaultScreen.processBUtton saw button {button.id}")
-        if 1 == button.id:
-            self.__modifyComfortSettings(1)
-        elif 2 == button.id:
-            self.__modifyComfortSettings(-1)
-        elif 3 == button.id:
-            self.__drawRowTwoInvoker.reset(1)
-            settings.mode = Settings.Mode(
-                (int(settings.mode.value)+1) % len(Settings.Mode))
-        elif 4 == button.id:
-            self.__drawRowTwoInvoker.increment()
-
-    def __modifyComfortSettings(self, increment: int):
-        self.__drawRowTwoInvoker.reset(0)
-        if Settings.Mode.HEAT == settings.mode:
-            settings.comfortMin = settings.comfortMin + increment
-        if Settings.Mode.COOL == settings.mode:
-            settings.comfortMax = settings.comfortMax + increment
-
-    def __drawRowTwoTarget(self):
-        heat = settings.comfortMin
-        cool = settings.comfortMax
-        self.lcdBuffer.update(1, 0, f'Target:      {heat:<3.0f}/{cool:>3.0f}')
-
-    def __drawRowTwoState(self):
-        state = str(self.__lastState).replace('ThermostatState.', '')
-        self.lcdBuffer.update(1, 0, f'State:     {state:>9s}')
-
-    def __drawRowTwoPrice(self):
-        price = self.__lastPrice
-        self.lcdBuffer.update(1, 0, f'Price:  ${price:.4f}/kW*h')
-        # '01234567890123456789'
-        # 'Price:  $0.0356/kW*h'
-
-    def __drawLcdDisplay(self):
-        now = self.__lastTemperature
-        mode = str(settings.mode).replace('Mode.', '')
-        self.lcdBuffer.update(0, 0, f'Now: {now:<5.1f}    {mode:>6s}')
-        self.lcdBuffer.update(3, 0, r'UP  DOWN  MODE  NEXT')
-        self.__drawRowTwoInvoker.invokeCurrent()
-
-    # 01234567890123456789
-    # Now: ###.#      AUTO
-    # Stat         COOLING
-    #
-    # UP  DOWN  MODE  NEXT
+    @property
+    def nextUpdate(self):
+        """ Seconds between this event and next price update """
+        return super().data['nextUpdate']
 
 
 class GenericRelay:
@@ -418,11 +235,9 @@ class GenericThermostatDriver(EventHandler):
     def __init__(self,
                  lcd: GenericLcdDisplay,
                  sensor: GenericEnvironmentSensor,
-                 buttons: list,
                  relays: list,
-                 eventBus: EventBus,
-                 loopSleep: float=0.1):
-        super().__init__(eventBus, loopSleep)
+                 eventBus: EventBus):
+        super().__init__(eventBus)
 
         self.__delta = \
             config.value('thermostat').value('delta', 1.0)
@@ -431,34 +246,47 @@ class GenericThermostatDriver(EventHandler):
         self.__backlightTimeoutDuration = \
             config.value('thermostat').value('backlightTimeout', 10)
 
-        self.__sensor = sensor
         self.__lcd = lcd
-        self.__buttons = buttons
+        self.__sensor = sensor
         self.__relayMap = {r.function: r for r in relays}
-        self.__screen = DefaultScreen(
-            lcd.width, lcd.height, eventBus, loopSleep)
-        self._sampleSensorsInvoker = CounterBasedInvoker(
-            ticks=max(1, int(5/loopSleep)), handlers=[self.__sampleSensors])
-        self.__checkScheduleInvoker = CounterBasedInvoker(
-            ticks=max(1, int(5/loopSleep)), handlers=[self.__checkSchedule])
-        self.__backlightTimeoutInvoker = CounterBasedInvoker(
-            ticks=max(1, int(self.__backlightTimeoutDuration/loopSleep)),
-            handlers=[self.__backlightTimeout])
-        self.__fanRunoutInvoker = CounterBasedInvoker(
-            ticks=max(1, int(self.__fanRunoutDuration/loopSleep)),
-            handlers=[self.__fanRunout])
-
         self.__state = ThermostatState.OFF
         self.__lcd.setBacklight(True)
         self.__inBacklightTimeout = True
         self.__inFanRunout = False
+        self.__lastTemperature = 0.0
+        self.__lastState = ThermostatState.OFF
+        self.__lastPrice = 0.0
 
-        super()._subscribe(
-            PowerPriceChangedEvent, self._powerPriceChanged)
+        self._sampleSensorsInvoker = self._installTimerHandler(
+            frequency=5.0, handlers=[self.sampleSensors])
+        self.__checkScheduleInvoker = self._installTimerHandler(
+            frequency=5.0, handlers=[self.checkSchedule])
+        self.__backlightTimeoutInvoker = self._installTimerHandler(
+            frequency=self.__backlightTimeoutDuration,
+            handlers=[self.__backlightTimeout])
+        self.__fanRunoutInvoker = self._installTimerHandler(
+            frequency=self.__fanRunoutDuration,
+            handlers=[self.__fanRunout])
+        # self.__drawLcdInvoker = self._installTimerHandler(
+        #     frequency=1.0, handlers=[self.__drawLcdDisplay])
+        self.__drawRowTwoInvoker = self._installTimerHandler(
+            frequency=3.0, handlers=[
+                self.__drawRowTwoTarget,
+                self.__drawRowTwoState,
+                self.__drawRowTwoPrice])
+
+        self._installEventHandler(
+            SettingsChangedEvent, self.__processSettingsChanged)
+        self._installEventHandler(
+            SensorDataChangedEvent, self.__processSensorDataChanged)
+        self._installEventHandler(
+            ThermostatStateChangedEvent, self.__processStateChanged)
+        self._installEventHandler(
+            PowerPriceChangedEvent, self.__powerPriceChanged)
 
         self.__openAllRelays()
-        self.__checkSchedule()
-        self.__sampleSensors()
+        self.checkSchedule()
+        self.sampleSensors()
         # atexit.register(self.__openAllRelays, self=self)
 
     @property
@@ -466,59 +294,12 @@ class GenericThermostatDriver(EventHandler):
         """ Current state of the thermostat """
         return self.__state
 
-    def processEvents(self):
-        super().processEvents()
-
-        self.__screen.processEvents()
-
-        self._sampleSensorsInvoker.increment()
-        self.__checkScheduleInvoker.increment()
-        if self.__inBacklightTimeout:
-            self.__backlightTimeoutInvoker.increment()
-        if self.__inFanRunout:
-            self.__fanRunoutInvoker.increment()
-
-        # Always scan for button presses
-        for button in self.__buttons:
-            if button.query():
-                if not self.__inBacklightTimeout:
-                    self.__lcd.setBacklight(True)
-                self.__inBacklightTimeout = True
-                self.__backlightTimeoutInvoker.reset()
-                self._sampleSensorsInvoker.reset()
-                self.__screen.processButton(button)
-
-        # Send buffered updates to the actual display
-        self.__screen.lcdBuffer.commit()
-        for row in range(self.__lcd.height):
-            self.__lcd.update(
-                row, 0, self.__screen.lcdBuffer.rowText(row))
-        self.__lcd.commit()
-
-    def _getLocalTime(self):
-        return localtime(time())
-
-    def __checkSchedule(self):
+    def checkSchedule(self):
         values = self._getLocalTime()
         settings.timeChanged(
             day=values.tm_wday, hour=values.tm_hour, minute=values.tm_min)
 
-    def __fanRunout(self):
-        self.__relayMap[ThermostatState.FAN].openRelay()
-        self.__inFanRunout = False
-
-    def __backlightTimeout(self):
-        self.__inBacklightTimeout = False
-        self.__lcd.setBacklight(False)
-
-    def _powerPriceChanged(self, event: PowerPriceChangedEvent):
-        settings.priceChanged(event.value)
-
-    def __openAllRelays(self):
-        for relay in self.__relayMap.values():
-            relay.openRelay()
-
-    def __sampleSensors(self):
+    def sampleSensors(self):
         temperature = self.__sensor.temperature
         super()._fireEvent(SensorDataChangedEvent(
             temperature=temperature,
@@ -534,6 +315,30 @@ class GenericThermostatDriver(EventHandler):
             self.__processAuto(temperature)
         else:
             self.__changeState(ThermostatState.OFF)
+
+    def _getLocalTime(self):
+        return localtime(time())
+
+    def _modifyComfortSettings(self, increment: int):
+        if Settings.Mode.HEAT == settings.mode:
+            settings.comfortMin = settings.comfortMin + increment
+        if Settings.Mode.COOL == settings.mode:
+            settings.comfortMax = settings.comfortMax + increment
+
+    def __fanRunout(self):
+        self.__relayMap[ThermostatState.FAN].openRelay()
+        self.__inFanRunout = False
+
+    def __backlightTimeout(self):
+        self.__inBacklightTimeout = False
+        self.__lcd.setBacklight(False)
+
+    def _powerPriceChanged(self, event: PowerPriceChangedEvent):
+        settings.priceChanged(event.price)
+
+    def __openAllRelays(self):
+        for relay in self.__relayMap.values():
+            relay.openRelay()
 
     def __processCooling(self, newTemp: float):
         runAt = settings.comfortMax+self.__delta
@@ -577,3 +382,47 @@ class GenericThermostatDriver(EventHandler):
                 self.__relayMap[ThermostatState.FAN].closeRelay()
                 self.__fanRunoutInvoker.reset()
             self._fireEvent(ThermostatStateChangedEvent(newState))
+
+    def __powerPriceChanged(self, event: PowerPriceChangedEvent):
+        log.info(f"DefaultScreen: Power price is now {event.price:.4f}/kW*h")
+        self.__lastPrice = event.price
+        self.__drawRowTwoInvoker.reset(2)
+        self.__drawRowTwoInvoker.invokeCurrent()
+
+    def __processSettingsChanged(self, event: SettingsChangedEvent):
+        log.debug(f"DefaultScreen: new settings: {settings}")
+        self.__drawRowTwoInvoker.reset(0)
+        self.__drawRowTwoInvoker.invokeCurrent()
+
+    def __processStateChanged(self, event: ThermostatStateChangedEvent):
+        log.debug(f"DefaultScreen: new state: {event.state}")
+        self.__lastState = event.state
+        self.__drawRowTwoInvoker.reset(1)
+        self.__drawRowTwoInvoker.invokeCurrent()
+
+    def __drawRowTwoTarget(self):
+        heat = settings.comfortMin
+        cool = settings.comfortMax
+        self.__lcd.update(1, 0, f'Target:      {heat:<3.0f}/{cool:>3.0f}')
+        self.__lcd.commit()
+
+    def __processSensorDataChanged(self, event: SensorDataChangedEvent):
+        self.__lastTemperature = event.temperature
+        self.__drawLcdDisplay()
+
+    def __drawRowTwoState(self):
+        state = str(self.__lastState).replace('ThermostatState.', '')
+        self.__lcd.update(1, 0, f'State:     {state:>9s}')
+        self.__lcd.commit()
+
+    def __drawRowTwoPrice(self):
+        price = self.__lastPrice
+        self.__lcd.update(1, 0, f'Price:  ${price:.4f}/kW*h')
+        self.__lcd.commit()
+
+    def __drawLcdDisplay(self):
+        now = self.__lastTemperature
+        mode = str(settings.mode).replace('Mode.', '')
+        self.__lcd.update(0, 0, f'Now: {now:<5.1f}    {mode:>6s}')
+        self.__lcd.update(3, 0, r'UP  DOWN  MODE  NEXT')
+        self.__lcd.commit()

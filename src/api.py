@@ -36,9 +36,9 @@ class ApiEventHandler(EventHandler):
         self.__lastPressure = 0
         self.__lastHumidity = 0
 
-        super()._subscribe(
+        super()._installEventHandler(
             SensorDataChangedEvent, self.__processSensorDataChanged)
-        super()._subscribe(
+        super()._installEventHandler(
             ThermostatStateChangedEvent, self.__processThermostatStateChanged)
 
     def __processThermostatStateChanged(

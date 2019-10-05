@@ -1,5 +1,4 @@
 from queue import Queue
-from time import sleep
 from curses import wrapper
 from os import popen
 import logging
@@ -24,7 +23,6 @@ def main(stdscr):
     # Put all the event handlers together
     apiEventHandler = ApiEventHandler(eventBus)
     ApiMessageHandler.setup(apiEventHandler)
-    apiEventHandler.start('API Event Driver')
 
     if stdscr is not None:
         messageQueue = Queue(128)
@@ -41,19 +39,17 @@ def main(stdscr):
     if config.value('gogriddy', 'enabled'):
         try:
             powerPriceEventHandler = GoGriddyEventHandler(eventBus)
-            powerPriceEventHandler.start("Power Price Event Handler")
         except ConnectionError:
             log.warning("Unable to reach GoGriddy")
 
-    try:
-        influxExportEventHandler = InfluxExportEventHandler(eventBus, 5)
-        influxExportEventHandler.start('Influx Logger')
-    except RuntimeError:
-        log.warning("Influx logger failed to initialize")
+    # try:
+    #     influxExportEventHandler = InfluxExportEventHandler(eventBus, 5)
+    # except RuntimeError:
+    #     log.warning("Influx logger failed to initialize")
 
     log.info('Entering into standard operation')
-    eventBus.put(SettingsChangedEvent())
-    hardwareDriver.exec()
+    eventBus.fireEvent(SettingsChangedEvent())
+    eventBus.exec()
 
 if __name__ == '__main__':
     uname = popen('uname -a').read()

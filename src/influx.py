@@ -16,8 +16,8 @@ from src.generics import PropertyChangedEvent, \
 
 class InfluxExportEventHandler(EventHandler):
 
-    def __init__(self, eventBus: EventBus, loopSleep: float):
-        super().__init__(eventBus, loopSleep=loopSleep)
+    def __init__(self, eventBus: EventBus):
+        super().__init__(eventBus)
 
         self.__unitName = config.resolve('thermostat', 'unitname')
         self.__lastState = ThermostatState.OFF
@@ -36,9 +36,9 @@ class InfluxExportEventHandler(EventHandler):
         self.__client.switch_database(config.resolve("influxdb", "dbName"))
         self.__protocol = config.resolve("influxdb", "protocol")
 
-        super()._subscribe(
+        super()._installEventHandler(
             SensorDataChangedEvent, self.__processSensorDataChanged)
-        super()._subscribe(
+        super()._installEventHandler(
             ThermostatStateChangedEvent, self.__processThermostatStateChanged)
 
     def __processThermostatStateChanged(
@@ -71,9 +71,3 @@ class InfluxExportEventHandler(EventHandler):
         log.debug(entry)
 
         self.__client.write_points(entry, protocol=self.__protocol)
-
-    def processEvents(self):
-        super().processEvents()
-
-        if self.__hasData:
-            self.__updateInflux()

@@ -19,10 +19,10 @@ raspi-config
 sudo apt install vim wiringpi python3-pip i2c-tools python3-smbus
 
 # install the bmp280 library (on the pi)
-sudo pip3 install adafruit-circuitpython-bme280
-sudo pip3 install adafruit-blinka adafruit-circuitpython-charlcd
-sudo pip3 install flask influxdb
-sudo python3 -m pip install --upgrade ptvsd
+pip3 install --user adafruit-circuitpython-bme280
+pip3 install --user adafruit-blinka adafruit-circuitpython-charlcd
+pip3 install --user flask influxdb requests pytest pytest-cov
+pip3 install --user --upgrade ptvsd
 
 # Debugging command on target pi
 ssh pi@pi-dev python3 -m ptvsd --host 192.168.8.187 --port 3000 --wait /home/pi/thermostat/test.py
@@ -31,11 +31,6 @@ ssh pi@pi-dev python3 -m ptvsd --host 192.168.8.187 --port 3000 --wait /home/pi/
 # Install homebrew
 brew install python3
 brew install coreutils
-
-# More Packages
-requests
-pytest
-pytest-cov
 
 # Generate reaonable class diagram (from root of projet)
 pyreverse -o png src

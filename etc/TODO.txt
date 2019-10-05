@@ -30,4 +30,5 @@ Thoughts on board v3
     * Route GPIO 17, 27, 22 for relays
     * Indicator for power spike / shutdown
     * Replace relays with only-open-when-voltage-applied
+    * Add a fan to move air across the sensor
     

@@ -1,9 +1,62 @@
 from queue import Queue
-from threading import Thread
-from time import sleep
-from sys import exc_info
+from threading import Event as ThreadingEvent
+from sys import exc_info, maxsize
+from time import time
 
 from src.logging import log
+
+
+class TimerBasedHandler:
+    """ Invokes a handler based on a set number of ticks """
+
+    def __init__(self, frequency: float, handlers: list, sync: ThreadingEvent):
+        """ Creates a new CounterBasedInvoker
+
+        frequency: float
+            Time in fractional seconds to wait between invocations
+        handlers: list
+            List of handlers, called in sequential/rotating order
+        """
+        self.__frequency = frequency
+        self.__handlers = handlers
+        self.__lastHandler = 0
+        self.__lastInvoke = time()
+        self.__eventBusSync = sync
+
+    @property
+    def frequency(self):
+        """ Time in fractional seconds to wait between invocations """
+        return self.__frequency
+
+    @property
+    def lastInvoke(self):
+        """ Time in fraction sections this handler was invoked """
+        return self.__lastInvoke
+
+    def invoke(self, now: float):
+        """ Invoke the current handler and mark the current time """
+        self.__lastInvoke = now
+        self.invokeCurrent()
+        self.__lastHandler = \
+            (self.__lastHandler + 1) % len(self.__handlers)
+
+    def invokeCurrent(self):
+        """ Force an invoke of the current handler, does not update the
+        lastInvoke timestamp """
+        self.__handlers[self.__lastHandler]()
+
+    def reset(self, handler: int=None, frequency: float=None):
+        """ Resets this handler to a new state
+
+        handler: int
+            Integer offset in handler list to fire next, default is 0
+        frequency: float
+            New frequency for this timer, default is no change
+         """
+        self.__lastHandler = handler or 0
+        self.__frequency = frequency or self.__frequency
+        self.__lastInvoke = time()
+        self.__eventBusSync.set()
 
 
 class Event:
@@ -22,83 +75,87 @@ class Event:
 
 
 class EventBus:
+    """ Transceiver for all messaging, and owner of the main
+    application thread """
+
     def __init__(self):
-        self.__queueList = []
-
-    def subscribe(self):
-        queue = Queue()
-        self.__queueList.append(queue)
-        return queue
-
-    def put(self, event: Event):
-        for queue in self.__queueList:
-            queue.put(event)
-
-
-class EventHandler:
-    """ Sits on the event bus and can either consume or produce events. """
-
-    def __init__(self, eventBus: EventBus, loopSleep: float=1.0):
-        self.__eventBus = eventBus
-        self.__eventQueue = eventBus.subscribe()
-        self.__loopSleep = loopSleep
-        self.__shouldStop = False
+        self.__threadingEvent = ThreadingEvent()
+        self.__timerHandlers = []
         self.__eventHandlers = {}
+        self.__eventQueue = Queue()
 
-    @property
-    def loopSleep(self):
-        """ How much time to sleep between processing events, in
-        fractional seconds """
-        return self.__loopSleep
+    def installEventHandler(self, eventType: type, handler):
+        if eventType not in self.__eventHandlers:
+            self.__eventHandlers[eventType] = []
+        self.__eventHandlers[eventType].append(handler)
 
-    def processEvents(self):
-        """ Processes all events currently in this handler's queue """
+    def installTimerHandler(self, frequency: float, handlers: list):
+        handler = TimerBasedHandler(
+            sync=self.__threadingEvent, frequency=frequency, handlers=handlers)
+        self.__timerHandlers.append(handler)
+        return handler
+
+    def fireEvent(self, event: Event):
+        """ Fires the event to all subscribed EventHandlers """
+        self.__eventQueue.put(event)
+        self.__threadingEvent.set()
+
+    def processEvents(self, now: float=time()):
+        """ Process any events that have been generated since the last call,
+        compute and return the time to wait until call method should be
+        called again """
+
+        # For this tick, increment all invokers, potentially calling
+        # processEvents and generating an exception
         while self.__eventQueue.qsize():
             event = self.__eventQueue.get()
             if type(event) in self.__eventHandlers:
-                self.__eventHandlers[type(event)](event)
+                for handler in self.__eventHandlers[type(event)]:
+                    try:
+                        handler(event)
+                    except:
+                        log.warning(
+                            "EventHandler caught exception: " + exc_info())
+
+        timeout = 60
+        for handler in self.__timerHandlers:
+            nextInvoke = handler.lastInvoke + handler.frequency
+            if nextInvoke <= now:
+                timeout = min(timeout, handler.frequency)
+                try:
+                    handler.invoke(now)
+                except:
+                    log.warning(
+                        "Invoker caught exception: " + exc_info())
             else:
-                self._processUnhandled(event)
+                timeout = min(timeout, nextInvoke - now)
 
-    def start(self, threadName: str):
-        """ Runs exec() on another thread and then returns """
-        self.__thread = Thread(target=self.exec, name=threadName)
-        self.__thread.daemon = True
-        self.__thread.start()
+        return timeout
 
-    def join(self):
-        if self.__thread is None:
-            raise RuntimeError("Attempt to join an unthreaded EventHandler")
-        self.__thread.join()
+    def exec(self, iterations: int=maxsize):
+        """ Drive the main application loop for some number of iterations """
+        iterationCount = 0
 
-    def stop(self):
-        """ Stops the exec() loop at the next iteration """
-        self.__shouldStop = True
+        while iterationCount < iterations:
+            timeout = self.processEvents(now=time())
 
-    def exec(self):
-        """ Calls processEvents() and then sleeps for self.loopSleep
-        seconds until stop() is called """
-        while not self.__shouldStop:
-            try:
-                self.processEvents()
-            except:
-                log.warning(
-                    "Threaded EventHandler caught exception: " + exc_info())
-            sleep(self.loopSleep)
+            iterationCount += 1
+            if iterationCount < iterations:
+                self.__threadingEvent.wait(timeout)
+                self.__threadingEvent.clear()
+
+
+class EventHandler:
+    """ Simple helper base class that houses the EventBus """
+
+    def __init__(self, eventBus: EventBus):
+        self.__eventBus = eventBus
 
     def _fireEvent(self, event: Event):
-        """ Places an event on the event queue for all other event
-        handlers to see """
-        self.__eventBus.put(event)
+        self.__eventBus.fireEvent(event)
 
-    def _subscribe(self, eventType: type, handler):
-        """ Subscribes a handler to a specific type of event, which is
-        called during processEvents() should that event appear on the
-        EventBus """
-        self.__eventHandlers[eventType] = handler
+    def _installEventHandler(self, eventType: type, handler):
+        self.__eventBus.installEventHandler(eventType, handler)
 
-    def _processUnhandled(self, event: Event):
-        """ Default method called for an event that this handler has
-        not subscribed to.  Designed to be overridden in derived classes,
-        is a 'pass' by default """
-        pass
+    def _installTimerHandler(self, frequency: float, handlers: list):
+        return self.__eventBus.installTimerHandler(frequency, handlers)

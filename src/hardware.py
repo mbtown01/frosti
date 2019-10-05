@@ -11,9 +11,9 @@ from time import sleep
 
 from src.logging import log
 from src.generics import GenericLcdDisplay, GenericButton, \
-    CounterBasedInvoker, GenericThermostatDriver, GenericEnvironmentSensor, \
+    GenericThermostatDriver, GenericEnvironmentSensor, \
     GenericRelay, ThermostatState
-from src.events import EventBus
+from src.events import EventBus, CounterBasedInvoker
 
 
 class HD44780Display(GenericLcdDisplay):
