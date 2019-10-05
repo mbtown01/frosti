@@ -157,8 +157,7 @@ class TerminalThermostatDriver(GenericThermostatDriver):
         elif char == ord('2'):
             super()._modifyComfortSettings(-1)
         elif char == ord('3'):
-            settings.mode = Settings.Mode(
-                (int(settings.mode.value)+1) % len(Settings.Mode))
+            super()._rotateState()
         elif char == curses.KEY_UP:
             self.__environmentSensor.temperature += 1
             self._fireEvent(SensorDataChangedEvent(

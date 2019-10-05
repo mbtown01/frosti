@@ -1,6 +1,7 @@
 from queue import Queue
 from curses import wrapper
 from os import popen
+from time import sleep
 import logging
 
 from src.logging import log, setupLogging
@@ -50,6 +51,7 @@ def main(stdscr):
     log.info('Entering into standard operation')
     eventBus.fireEvent(SettingsChangedEvent())
     eventBus.exec()
+
 
 if __name__ == '__main__':
     uname = popen('uname -a').read()

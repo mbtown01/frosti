@@ -8,8 +8,14 @@ from src.logging import log
 
 class TimerBasedHandler:
     """ Invokes a handler based on a set number of ticks """
+    ONE_SHOT_COMPLETED = -1
 
-    def __init__(self, frequency: float, handlers: list, sync: ThreadingEvent):
+    def __init__(
+            self,
+            frequency: float,
+            handlers: list,
+            oneShot: bool,
+            sync: ThreadingEvent):
         """ Creates a new CounterBasedInvoker
 
         frequency: float
@@ -20,23 +26,36 @@ class TimerBasedHandler:
         self.__frequency = frequency
         self.__handlers = handlers
         self.__lastHandler = 0
-        self.__lastInvoke = time()
+        self.__lastInvoke = None
         self.__eventBusSync = sync
+        self.__oneShot = oneShot
+
+    @property
+    def isQueued(self):
+        """ True if this handler is active and will be run again"""
+        if self.__oneShot:
+            return self.__lastInvoke != self.ONE_SHOT_COMPLETED
+
+        return True
 
     @property
     def frequency(self):
         """ Time in fractional seconds to wait between invocations """
         return self.__frequency
 
-    @property
-    def lastInvoke(self):
-        """ Time in fraction sections this handler was invoked """
-        return self.__lastInvoke
+    def getNextInvoke(self, now: float):
+        """ Compute the next time this invoker should execute """
+        self.__lastInvoke = self.__lastInvoke or now
+        if self.__oneShot and self.ONE_SHOT_COMPLETED == self.__lastInvoke:
+            return maxsize
+        return self.__lastInvoke + self.__frequency
 
     def invoke(self, now: float):
         """ Invoke the current handler and mark the current time """
-        self.__lastInvoke = now
         self.invokeCurrent()
+        self.__lastInvoke = now
+        if self.__oneShot:
+            self.__lastInvoke = self.ONE_SHOT_COMPLETED
         self.__lastHandler = \
             (self.__lastHandler + 1) % len(self.__handlers)
 
@@ -55,7 +74,7 @@ class TimerBasedHandler:
          """
         self.__lastHandler = handler or 0
         self.__frequency = frequency or self.__frequency
-        self.__lastInvoke = time()
+        self.__lastInvoke = None
         self.__eventBusSync.set()
 
 
@@ -89,9 +108,13 @@ class EventBus:
             self.__eventHandlers[eventType] = []
         self.__eventHandlers[eventType].append(handler)
 
-    def installTimerHandler(self, frequency: float, handlers: list):
+    def installTimerHandler(
+            self, frequency: float, handlers: list, oneShot: bool=False):
         handler = TimerBasedHandler(
-            sync=self.__threadingEvent, frequency=frequency, handlers=handlers)
+            sync=self.__threadingEvent,
+            frequency=frequency,
+            handlers=handlers,
+            oneShot=oneShot)
         self.__timerHandlers.append(handler)
         return handler
 
@@ -119,16 +142,15 @@ class EventBus:
 
         timeout = 60
         for handler in self.__timerHandlers:
-            nextInvoke = handler.lastInvoke + handler.frequency
-            if nextInvoke <= now:
-                timeout = min(timeout, handler.frequency)
+            nextInvoke = handler.getNextInvoke(now)
+            if nextInvoke < (now + 0.2):
                 try:
                     handler.invoke(now)
                 except:
                     log.warning(
                         "Invoker caught exception: " + exc_info())
             else:
-                timeout = min(timeout, nextInvoke - now)
+                timeout = min(timeout, nextInvoke-now)
 
         return timeout
 
@@ -141,6 +163,7 @@ class EventBus:
 
             iterationCount += 1
             if iterationCount < iterations:
+                log.debug(f"wait timout is {timeout}")
                 self.__threadingEvent.wait(timeout)
                 self.__threadingEvent.clear()
 
@@ -155,7 +178,10 @@ class EventHandler:
         self.__eventBus.fireEvent(event)
 
     def _installEventHandler(self, eventType: type, handler):
-        self.__eventBus.installEventHandler(eventType, handler)
+        self.__eventBus.installEventHandler(
+            eventType=eventType, handler=handler)
 
-    def _installTimerHandler(self, frequency: float, handlers: list):
-        return self.__eventBus.installTimerHandler(frequency, handlers)
+    def _installTimerHandler(
+            self, frequency: float, handlers: list, oneShot: bool=False):
+        return self.__eventBus.installTimerHandler(
+            frequency=frequency, handlers=handlers, oneShot=oneShot)

@@ -10,10 +10,11 @@ from enum import Enum
 from time import sleep
 
 from src.logging import log
-from src.generics import GenericLcdDisplay, GenericButton, \
+from src.generics import GenericLcdDisplay, \
     GenericThermostatDriver, GenericEnvironmentSensor, \
     GenericRelay, ThermostatState
-from src.events import EventBus, CounterBasedInvoker
+from src.events import EventBus, Event
+from src.settings import settings, Settings
 
 
 class HD44780Display(GenericLcdDisplay):
@@ -143,25 +144,6 @@ class HD44780Display(GenericLcdDisplay):
                 self.__write_str(change[0], i, change[1])
 
 
-class GpioPushButton(GenericButton):
-    """ A physical button based on a GPIO pin reading high/low voltage """
-
-    def __init__(self, id: int, pin: int):
-        super().__init__(id)
-        self.__pin = pin
-        self.__isPressed = False
-
-        GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-
-    def query(self):
-        """ Returns whether the button was pressed since the last
-        call to query() """
-        isPressed = bool(GPIO.input(self.__pin))
-        rtn = isPressed and not self.__isPressed
-        self.__isPressed = isPressed
-        return rtn
-
-
 class Bm280EnvironmentSensor(GenericEnvironmentSensor):
 
     def __init__(self):
@@ -211,6 +193,22 @@ class PanasonicAgqRelay(GenericRelay):
         GPIO.output(self.__pinIn, False)
 
 
+class Button(Enum):
+    UP = 1
+    DOWN = 2
+    MODE = 3
+    WAKE = 4
+
+
+class ButtonPressedEvent(Event):
+    def __init__(self, button: Button):
+        super().__init__(data={'button': button})
+
+    @property
+    def button(self):
+        return super().data['button']
+
+
 class HardwareThermostatDriver(GenericThermostatDriver):
 
     def __init__(self, eventBus: EventBus):
@@ -226,15 +224,42 @@ class HardwareThermostatDriver(GenericThermostatDriver):
             eventBus=eventBus,
             lcd=HD44780Display(0x27, 20, 4),
             sensor=sensor,
-            buttons=(
-                GpioPushButton(1, 21),
-                GpioPushButton(2, 20),
-                GpioPushButton(3, 16),
-                GpioPushButton(4, 12),
-            ),
             relays=(
                 PanasonicAgqRelay(ThermostatState.FAN, 5, 17),
                 PanasonicAgqRelay(ThermostatState.HEATING, 6, 27),
                 PanasonicAgqRelay(ThermostatState.COOLING, 13, 22),
             )
         )
+
+        super()._installEventHandler(
+            ButtonPressedEvent, self.__buttonPressedHandler)
+
+        self.__pinToButtonMap = {}
+        self.__subscribeToButton(21, Button.UP)
+        self.__subscribeToButton(20, Button.DOWN)
+        self.__subscribeToButton(16, Button.MODE)
+        self.__subscribeToButton(12, Button.WAKE)
+
+        # print("Sleeping to watch buttons")
+        # sleep(10)
+        # print("DONE Sleeping to watch buttons")
+
+    def __buttonPressedHandler(self, event: ButtonPressedEvent):
+        if event.button == Button.UP:
+            super()._modifyComfortSettings(1)
+        elif event.button == Button.DOWN:
+            super()._modifyComfortSettings(-1)
+        elif event.button == Button.MODE:
+            super()._rotateState()
+
+    def __subscribeToButton(self, pin: int, button: Button):
+        self.__pinToButtonMap[pin] = button
+
+        GPIO.setup(
+            pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        GPIO.add_event_detect(
+            pin, GPIO.RISING, callback=self.__buttonCallback, bouncetime=200)
+
+    def __buttonCallback(self, channel):
+        button = self.__pinToButtonMap[channel]
+        self._fireEvent(ButtonPressedEvent(button))

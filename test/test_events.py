@@ -86,3 +86,22 @@ class Test_EventHandler(unittest.TestCase):
         end = time()
         self.assertEqual(self.eventHandler.eventCount, 1)
         self.assertGreater(10.0, end - start)
+
+    def test_oneShot(self):
+        """ Ensure a oneShot timer fires once and can be reset """
+        self.eventBus.exec(1)
+        handler = self.eventBus.installTimerHandler(
+            frequency=60.0,
+            handlers=[self.timerHandler],
+            oneShot=True)
+
+        self.eventBus.processEvents(now=1)
+        self.assertEqual(self.eventHandler.eventCount, 0)
+        self.assertTrue(handler.isQueued)
+        self.eventBus.processEvents(now=70)
+        self.eventBus.processEvents(now=70)
+        self.assertEqual(self.eventHandler.eventCount, 1)
+        self.assertFalse(handler.isQueued)
+        self.eventBus.processEvents(now=7000)
+        self.assertEqual(self.eventHandler.eventCount, 1)
+        self.assertFalse(handler.isQueued)
