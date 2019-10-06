@@ -104,12 +104,31 @@ class EventBus:
         self.__eventQueue = Queue()
 
     def installEventHandler(self, eventType: type, handler):
+        """ Installs the provided handler method as a callback for when
+        events of 'eventType' are fired on the event bus.
+
+        eventType: type
+            Type of event to listen for
+        handler: method
+            Method to register as a callback """
         if eventType not in self.__eventHandlers:
             self.__eventHandlers[eventType] = []
         self.__eventHandlers[eventType].append(handler)
 
     def installTimerHandler(
             self, frequency: float, handlers: list, oneShot: bool=False):
+        """ Installs the provided list of handlers as a series of callbacks
+        to be called at the provided frequency.  If more than one handler is
+        provided, handlers are rotated through one at a time on successive
+        invocations
+
+        frequency: float
+            Frequency at which to fire the series of handlers
+        handlers: list
+            List of handlers to rotate through
+        oneShot: boolean
+            If true, timer is only fired once and not again until it receives
+            a call to reset() """
         handler = TimerBasedHandler(
             sync=self.__threadingEvent,
             frequency=frequency,
@@ -119,53 +138,54 @@ class EventBus:
         return handler
 
     def fireEvent(self, event: Event):
-        """ Fires the event to all subscribed EventHandlers """
+        """ Fires the event to any subscribed EventHandlers """
         self.__eventQueue.put(event)
         self.__threadingEvent.set()
 
-    def processEvents(self, now: float=time()):
+    def processEvents(self, now: float=1):
         """ Process any events that have been generated since the last call,
         compute and return the time to wait until call method should be
-        called again """
+        called again."""
+        if now <= 0:
+            raise RuntimeError(
+                f"EventBus.processEvents:  now must be >0, received {now}")
 
-        # For this tick, increment all invokers, potentially calling
-        # processEvents and generating an exception
-        while self.__eventQueue.qsize():
-            event = self.__eventQueue.get()
-            if type(event) in self.__eventHandlers:
-                for handler in self.__eventHandlers[type(event)]:
-                    try:
-                        handler(event)
-                    except:
-                        log.warning(
-                            "EventHandler caught exception: " + exc_info())
-
+        # Check if any timers need handling
         timeout = 60
         for handler in self.__timerHandlers:
             nextInvoke = handler.getNextInvoke(now)
             if nextInvoke < (now + 0.2):
-                try:
-                    handler.invoke(now)
-                except:
-                    log.warning(
-                        "Invoker caught exception: " + exc_info())
+                handler.invoke(now)
             else:
                 timeout = min(timeout, nextInvoke-now)
+
+        # Check events first, only delivering them to registered subscribers
+        while self.__eventQueue.qsize():
+            event = self.__eventQueue.get()
+            if type(event) in self.__eventHandlers:
+                for handler in self.__eventHandlers[type(event)]:
+                    handler(event)
 
         return timeout
 
     def exec(self, iterations: int=maxsize):
-        """ Drive the main application loop for some number of iterations """
+        """ Drive the main application loop for some number of iterations,
+        using the system time() command to tell processEvents the current
+        time """
         iterationCount = 0
 
         while iterationCount < iterations:
-            timeout = self.processEvents(now=time())
+            try:
+                timeout = self.processEvents(now=time())
 
-            iterationCount += 1
-            if iterationCount < iterations:
-                log.debug(f"wait timout is {timeout}")
-                self.__threadingEvent.wait(timeout)
-                self.__threadingEvent.clear()
+                iterationCount += 1
+                if iterationCount < iterations:
+                    log.debug(f"wait timout is {timeout}")
+                    self.__threadingEvent.wait(timeout)
+                    self.__threadingEvent.clear()
+            except:
+                log.warning(
+                    "Invoker caught exception: " + exc_info())
 
 
 class EventHandler:
