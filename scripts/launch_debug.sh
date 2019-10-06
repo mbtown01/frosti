@@ -9,6 +9,7 @@ source ${RPT_HOME}/scripts/setenv.sh
 RPT_RUN_USER=pi
 RPT_RUN_HOSTNAME=raspberrypi
 RPT_RUN_IPADDR=192.168.8.133
+RPT_RUN_IPADDR=192.168.9.59
 RPT_RUN_PORT=3000
 
 # Shutdown any previously running interpreters
