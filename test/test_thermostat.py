@@ -8,19 +8,6 @@ from src.generics import ThermostatStateChangedEvent, ThermostatState, \
     GenericRelay
 
 
-# Use simple settings with no other program information
-# json = {
-#     "thermostat": {
-#         "delta": 1.0,
-#         "programs": {
-#             "_default": {
-#                 "comfortMin": 68,
-#                 "comfortMax": 75
-#             }
-#         }
-#     }
-# }
-
 json = {
     "thermostat": {
         "delta": 1.0,
@@ -89,6 +76,8 @@ json = {
     }
 }
 
+# TODO: Defaults and current time/price configuration are different, 
+# check that startup sequence doesn't short-cycle the AC/HEAT
 
 class Test_Thermostat(unittest.TestCase):
 
@@ -131,6 +120,7 @@ class Test_Thermostat(unittest.TestCase):
 
     def setup_method(self, method):
         self.eventBus = EventBus()
+        self.now = 1.0
         settings.__init__(json)
         settings.mode = Settings.Mode.COOL
         settings.setEventBus(self.eventBus)
@@ -154,11 +144,16 @@ class Test_Thermostat(unittest.TestCase):
     def assertNextTemperature(self, temp: float, state: ThermostatState):
         self.dummySensor.temperature = temp
         self.thermostatDriver.sampleSensors()
-        self.eventBus.exec(1)
+        self.eventBus.processEvents(self.now)
+        self.now += 100.0
         self.assertEqual(self.thermostatDriver.state, state)
         if ThermostatState.FAN != state and ThermostatState.OFF != state:
-            self.assertFalse(self.relayMap[state].isOpen)
-            self.assertFalse(self.relayMap[ThermostatState.FAN].isOpen)
+            self.assertFalse(
+                self.relayMap[state].isOpen, 
+                f"Relay {state} should be closed")
+            self.assertFalse(
+                self.relayMap[ThermostatState.FAN].isOpen, 
+                "Fan should be closed")
 
     def test_stateChangedCooling(self):
         settings.mode = Settings.Mode.COOL
