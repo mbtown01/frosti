@@ -71,7 +71,11 @@ class HD44780Display(GenericLcdDisplay):
         self.__addr = addr
         self.__bus = smbus.SMBus(1)
         self.__backlightState = self.LCD_BACKLIGHT
+        self.__failCount = 0
 
+        self.__hardReset()
+
+    def __hardReset(self):
         self.__write(0x03)
         self.__write(0x03)
         self.__write(0x03)
@@ -86,8 +90,17 @@ class HD44780Display(GenericLcdDisplay):
         sleep(0.2)
 
     def __write_cmd(self, cmd):
-        self.__bus.write_byte(self.__addr, cmd)
-        sleep(0.0001)
+        try:
+            self.__bus.write_byte(self.__addr, cmd)
+            sleep(0.0001)
+            if self.__failCount:
+                self.__failCount = 0
+                self.__hardReset()
+                self.clear()
+                log.info("Re-connected to LCD, reset failuire count to zero")
+        except:
+            log.error(f"LCD __write_cmd failed, total={self.__failCount}")
+            self.__failCount += 1
 
     # clocks EN to latch command
     def __strobe(self, data):

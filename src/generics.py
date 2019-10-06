@@ -153,7 +153,7 @@ class ThermostatState(Enum):
     FAN_RUNOUT = 4
 
     @property
-    def shouldRunFan(self):
+    def shouldAlsoRunFan(self):
         """ Returns true if this state implies the use of the fan """
         return self == ThermostatState.HEATING or \
             self == ThermostatState.COOLING
@@ -269,14 +269,14 @@ class GenericThermostatDriver(EventHandler):
         self.__fanRunoutInvoker = None
 
         self.__sampleSensorsInvoker = self._installTimerHandler(
-            frequency=5.0,
-            handlers=[self.__sampleSensors])
+            frequency=15.0,
+            handlers=self.__sampleSensors)
         self.__checkScheduleInvoker = self._installTimerHandler(
-            frequency=5.0,
-            handlers=[self.__checkSchedule])
+            frequency=60.0,
+            handlers=self.__checkSchedule)
         self.__backlightTimeoutInvoker = self._installTimerHandler(
             frequency=self.__backlightTimeoutDuration,
-            handlers=[self.__backlightTimeout],
+            handlers=self.__backlightTimeout,
             oneShot=True)
         self.__drawRowTwoInvoker = self._installTimerHandler(
             frequency=3.0,
@@ -286,7 +286,7 @@ class GenericThermostatDriver(EventHandler):
                 self.__drawRowTwoPrice])
         self.__fanRunoutInvoker = self._installTimerHandler(
             frequency=self.__fanRunoutDuration,
-            handlers=[self.__fanRunout],
+            handlers=self.__fanRunout,
             oneShot=True)
 
         self._installEventHandler(
@@ -376,10 +376,7 @@ class GenericThermostatDriver(EventHandler):
         if self.__state != ThermostatState.COOLING and newTemp > runAt:
             self.__changeState(ThermostatState.COOLING)
         elif newTemp <= runUntil:
-            if self.__state == ThermostatState.COOLING:
-                self.__changeState(ThermostatState.FAN_RUNOUT)
-            elif self.__state != ThermostatState.FAN_RUNOUT:
-                self.__changeState(ThermostatState.OFF)
+            self.__changeState(ThermostatState.OFF)
 
     def __processModeHeating(self, newTemp: float):
         runAt = settings.comfortMin-self.__delta
@@ -388,10 +385,7 @@ class GenericThermostatDriver(EventHandler):
         if self.__state != ThermostatState.HEATING and newTemp < runAt:
             self.__changeState(ThermostatState.HEATING)
         elif newTemp >= runUntil:
-            if self.__state == ThermostatState.HEATING:
-                self.__changeState(ThermostatState.FAN_RUNOUT)
-            elif self.__state != ThermostatState.FAN_RUNOUT:
-                self.__changeState(ThermostatState.OFF)
+            self.__changeState(ThermostatState.OFF)
 
     def __processModeAuto(self, newTemp: float):
         runAtHeat = settings.comfortMin-self.__delta
@@ -404,10 +398,7 @@ class GenericThermostatDriver(EventHandler):
         elif self.__state != ThermostatState.HEATING and newTemp < runAtHeat:
             self.__changeState(ThermostatState.HEATING)
         elif newTemp >= runUntilHeat and newTemp <= runUntilCool:
-            if self.__state.shouldRunFan:
-                self.__changeState(ThermostatState.FAN_RUNOUT)
-            elif self.__state != ThermostatState.FAN_RUNOUT:
-                self.__changeState(ThermostatState.OFF)
+            self.__changeState(ThermostatState.OFF)
 
     def __changeState(self, newState: ThermostatState):
         if self.__state != newState:
@@ -415,16 +406,21 @@ class GenericThermostatDriver(EventHandler):
                 self.__relayMap[self.__state].openRelay()
             if newState in self.__relayMap:
                 self.__relayMap[newState].closeRelay()
-                if newState.shouldRunFan:
+                if newState.shouldAlsoRunFan:
                     self.__relayMap[ThermostatState.FAN].closeRelay()
-            if ThermostatState.FAN_RUNOUT == newState:
+            if self.__state.shouldAlsoRunFan and \
+                    ThermostatState.OFF == newState:
+                newState = ThermostatState.FAN_RUNOUT
                 self.__relayMap[ThermostatState.FAN].closeRelay()
                 self.__fanRunoutInvoker.reset()
-            self.__state = newState
-            self._fireEvent(ThermostatStateChangedEvent(newState))
+            if self.__state != ThermostatState.FAN_RUNOUT:
+                self.__state = newState
+                self._fireEvent(ThermostatStateChangedEvent(newState))
 
     def _powerPriceChanged(self, event: PowerPriceChangedEvent):
-        log.info(f"Power price is now {event.price:.4f}/kW*h")
+        log.info(
+            f"Power price is now {event.price:.4f}/kW*h, next update "
+            f"in {event.nextUpdate}s")
         settings.priceChanged(event.price)
         self.__lastPrice = event.price
         self.__drawRowTwoInvoker.reset(2)
@@ -432,6 +428,7 @@ class GenericThermostatDriver(EventHandler):
 
     def __processSettingsChanged(self, event: SettingsChangedEvent):
         log.debug(f"New settings: {settings}")
+        self.__sampleSensors()
         self.__drawLcdDisplay()
         self.__drawRowTwoInvoker.reset(0)
         self.__drawRowTwoInvoker.invokeCurrent()
@@ -455,7 +452,7 @@ class GenericThermostatDriver(EventHandler):
 
     def __drawRowTwoState(self):
         state = str(self.__lastState).replace('ThermostatState.', '')
-        self.__lcd.update(1, 0, f'State:     {state:>9s}')
+        self.__lcd.update(1, 0, f'State:{state:>14s}')
         self.__lcd.commit()
 
     def __drawRowTwoPrice(self):

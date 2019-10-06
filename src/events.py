@@ -25,6 +25,8 @@ class TimerBasedHandler:
         """
         self.__frequency = frequency
         self.__handlers = handlers
+        if type(self.__handlers) is not list:
+            self.__handlers = [handlers]
         self.__lastHandler = 0
         self.__lastInvoke = None
         self.__eventBusSync = sync
@@ -180,7 +182,6 @@ class EventBus:
 
                 iterationCount += 1
                 if iterationCount < iterations:
-                    log.debug(f"wait timout is {timeout}")
                     self.__threadingEvent.wait(timeout)
                     self.__threadingEvent.clear()
             except:

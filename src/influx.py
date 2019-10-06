@@ -4,6 +4,7 @@ import json
 import sys
 
 from influxdb import InfluxDBClient
+from threading import Thread
 
 from src.config import config
 from src.logging import log
@@ -11,7 +12,7 @@ from src.settings import settings, Settings
 from src.events import Event, EventBus, EventHandler
 from src.generics import PropertyChangedEvent, \
     ThermostatStateChangedEvent, ThermostatState, \
-    SensorDataChangedEvent
+    SensorDataChangedEvent, PowerPriceChangedEvent
 
 
 class InfluxExportEventHandler(EventHandler):
@@ -19,15 +20,12 @@ class InfluxExportEventHandler(EventHandler):
     def __init__(self, eventBus: EventBus):
         super().__init__(eventBus)
 
-        self.__unitName = config.resolve('thermostat', 'unitname')
-        self.__lastState = ThermostatState.OFF
-        self.__lastTemperature = 0
-        self.__lastPressure = 0
-        self.__lastHumidity = 0
-        self.__hasData = False
-
         if not config.resolve("influxdb", "enabled", False):
             raise RuntimeError('InfluxDB is not configured')
+
+        self.__unitName = config.resolve('thermostat', 'unitname')
+        self.__influxHeader = f'rpt_status,unit={self.__unitName}'
+        self.__lastSensorChangedEvent = None
 
         self.__client = InfluxDBClient(
             host=config.resolve("influxdb", "host"),
@@ -37,37 +35,30 @@ class InfluxExportEventHandler(EventHandler):
         self.__protocol = config.resolve("influxdb", "protocol")
 
         super()._installEventHandler(
-            SensorDataChangedEvent, self.__processSensorDataChanged)
+            SensorDataChangedEvent, self.__sensorDataChanged)
         super()._installEventHandler(
-            ThermostatStateChangedEvent, self.__processThermostatStateChanged)
+            ThermostatStateChangedEvent, self.__thermostatStateChanged)
+        super()._installEventHandler(
+            PowerPriceChangedEvent, self.__powerPriceChanged)
 
-    def __processThermostatStateChanged(
-            self, event: ThermostatStateChangedEvent):
-        if self.__lastState != event.state:
-            self.__lastState = event.state
-            self.__updateInflux()
+    def __powerPriceChanged(self, event: PowerPriceChangedEvent):
+        self.__updateInflux(f'price={event.price}')
 
-    def __processSensorDataChanged(self, event: SensorDataChangedEvent):
-        self.__lastTemperature = event.temperature
-        self.__lastPressure = event.pressure
-        self.__lastHumidity = event.humidity
-        self.__hasData = True
+    def __thermostatStateChanged(self, event: ThermostatStateChangedEvent):
+        cool = 1 if ThermostatState.COOLING == event.state else 0
+        heat = 1 if ThermostatState.HEATING == event.state else 0
+        fan = 1 if ThermostatState.FAN_RUNOUT == event.state else 0
+        fan = 1 if ThermostatState.FAN == event.state else fan
+        self.__updateInflux(f'cool={cool},heat={heat},fan={fan}')
 
-    def __updateInflux(self):
-        cool = 0
-        heat = 0
-        if ThermostatState.COOLING == self.__lastState:
-            cool = 1
-        if ThermostatState.HEATING == self.__lastState:
-            heat = 1
+    def __sensorDataChanged(self, event: SensorDataChangedEvent):
+        self.__updateInflux(
+            f'temperature={event.temperature},'
+            f'pressure={event.pressure},'
+            f'humidity={event.humidity}'
+        )
 
-        entry = \
-            f'rpt_status,unit={self.__unitName} ' + \
-            f'temperature={self.__lastTemperature},' + \
-            f'pressure={self.__lastPressure},' + \
-            f'humidity={self.__lastHumidity},' + \
-            f'cool={cool},heat={heat}'
-
+    def __updateInflux(self, data: str):
+        entry = f'{self.__influxHeader} {data}'
         log.debug(entry)
-
         self.__client.write_points(entry, protocol=self.__protocol)

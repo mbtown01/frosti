@@ -121,9 +121,9 @@ class TerminalThermostatDriver(GenericThermostatDriver):
         super()._installEventHandler(
             TerminalThermostatDriver.KeyPressedEvent, self.__keyPressedHandler)
         super()._installTimerHandler(
-            frequency=5.0, handlers=[self.__updateDisplay])
+            frequency=5.0, handlers=self.__updateDisplay)
         super()._installTimerHandler(
-            frequency=1.0, handlers=[self.__processMessageQueue])
+            frequency=1.0, handlers=self.__processMessageQueue)
 
         self.__keyPressThread = Thread(
             target=self.__keyPressListener,

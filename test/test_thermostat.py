@@ -1,5 +1,5 @@
 import unittest
-import time
+from time import mktime, strptime
 
 from src.events import EventBus, EventHandler
 from src.settings import settings, Settings
@@ -101,13 +101,13 @@ class Test_Thermostat(unittest.TestCase):
     class TestThermostatDriver(GenericThermostatDriver):
 
         def __init__(self,
+                     localtime: float,
                      sensor: GenericEnvironmentSensor,
                      relays: list,
                      eventBus: EventBus):
             # This is a Tuesday FYI, day '1' of 7 [0-6]
             # All tests should be in the 'away' program above
-            self.localtime = time.strptime(
-                '01/01/19 08:01:00', '%m/%d/%y %H:%M:%S')
+            self.localtime = localtime
 
             super().__init__(
                 eventBus=eventBus,
@@ -123,7 +123,9 @@ class Test_Thermostat(unittest.TestCase):
 
     def setup_method(self, method):
         self.eventBus = EventBus()
-        self.now = 1.0
+        self.localtime = strptime(
+            '01/01/19 08:01:00', '%m/%d/%y %H:%M:%S')
+        self.now = mktime(self.localtime)
         settings.__init__(json)
         settings.mode = Settings.Mode.COOL
         settings.setEventBus(self.eventBus)
@@ -138,6 +140,7 @@ class Test_Thermostat(unittest.TestCase):
         )
         self.relayMap = {r.function: r for r in self.relayList}
         self.thermostatDriver = Test_Thermostat.TestThermostatDriver(
+            localtime=self.localtime,
             sensor=self.dummySensor,
             relays=self.relayList,
             eventBus=self.eventBus
@@ -154,14 +157,24 @@ class Test_Thermostat(unittest.TestCase):
             self.assertFalse(
                 self.relayMap[state].isOpen,
                 f"Relay {state} should be closed for state {state}")
-            if state.shouldRunFan:
+            if state.shouldAlsoRunFan:
                 self.assertFalse(
                     self.relayMap[ThermostatState.FAN].isOpen,
                     f"Relay FAN should be closed for state {state}")
         if state == ThermostatState.FAN_RUNOUT:
             self.assertFalse(
                 self.relayMap[ThermostatState.FAN].isOpen,
-                "Fan relay should be closed for state FAN_RUNOUT")
+                "Relay FAN should be closed for state FAN_RUNOUT")
+        if state == ThermostatState.OFF:
+            self.assertTrue(
+                self.relayMap[ThermostatState.FAN].isOpen,
+                "Relay FAN should be open for state OFF")
+            self.assertTrue(
+                self.relayMap[ThermostatState.COOLING].isOpen,
+                "Relay COOLING should be open for state OFF")
+            self.assertTrue(
+                self.relayMap[ThermostatState.HEATING].isOpen,
+                "Relay HEATING should be open for state OFF")
 
     def test_stateChangedCooling(self):
         settings.mode = Settings.Mode.COOL
@@ -188,21 +201,36 @@ class Test_Thermostat(unittest.TestCase):
         self.assertNextTemperature(60.0, 15, ThermostatState.HEATING)
 
         settings.mode = Settings.Mode.OFF
-        self.assertNextTemperature(60.0, 15, ThermostatState.OFF)
+        self.assertNextTemperature(60.0, 10, ThermostatState.FAN_RUNOUT)
+        self.assertNextTemperature(60.0, 10, ThermostatState.FAN_RUNOUT)
+        self.assertNextTemperature(60.0, 100, ThermostatState.OFF)
+
+    def test_stateChangedCoolToOff(self):
+        settings.mode = Settings.Mode.COOL
+        self.assertNextTemperature(80.0, 15, ThermostatState.COOLING)
+
+        settings.mode = Settings.Mode.OFF
+        self.assertNextTemperature(80.0, 10, ThermostatState.FAN_RUNOUT)
+        self.assertNextTemperature(80.0, 10, ThermostatState.FAN_RUNOUT)
+        self.assertNextTemperature(80.0, 100, ThermostatState.OFF)
 
     def test_stateChangedHeatToCool(self):
         settings.mode = Settings.Mode.HEAT
         self.assertNextTemperature(60.0, 15, ThermostatState.HEATING)
 
         settings.mode = Settings.Mode.COOL
-        self.assertNextTemperature(60.0, 15, ThermostatState.OFF)
+        self.assertNextTemperature(60.0, 10, ThermostatState.FAN_RUNOUT)
+        self.assertNextTemperature(60.0, 10, ThermostatState.FAN_RUNOUT)
+        self.assertNextTemperature(60.0, 100, ThermostatState.OFF)
 
     def test_stateChangedCoolToHeat(self):
         settings.mode = Settings.Mode.COOL
         self.assertNextTemperature(80.0, 15, ThermostatState.COOLING)
 
         settings.mode = Settings.Mode.HEAT
-        self.assertNextTemperature(80.0, 15, ThermostatState.OFF)
+        self.assertNextTemperature(80.0, 10, ThermostatState.FAN_RUNOUT)
+        self.assertNextTemperature(80.0, 10, ThermostatState.FAN_RUNOUT)
+        self.assertNextTemperature(80.0, 100, ThermostatState.OFF)
 
     def test_simpleCool(self):
         settings.mode = Settings.Mode.COOL

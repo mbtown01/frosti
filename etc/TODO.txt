@@ -17,6 +17,9 @@ To do list
     * Debug mode for a thermostat that is deployed
         * physical switch?
         * Setting to not toggle relays no matter what??
+    * Integrate system health
+        * temperature -- vcgencmd measure_temp
+        * load
     
 
 
