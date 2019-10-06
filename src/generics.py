@@ -415,7 +415,7 @@ class GenericThermostatDriver(EventHandler):
                 self.__fanRunoutInvoker.reset()
             if self.__state != ThermostatState.FAN_RUNOUT:
                 self.__state = newState
-                self._fireEvent(ThermostatStateChangedEvent(newState))
+            self._fireEvent(ThermostatStateChangedEvent(newState))
 
     def _powerPriceChanged(self, event: PowerPriceChangedEvent):
         log.info(
