@@ -2,7 +2,7 @@ import unittest
 import sys
 
 from src.events import Event, EventBus, EventHandler
-from src.settings import Settings, SettingsChangedEvent
+from src.settings import Settings
 
 json = {
     "thermostat": {

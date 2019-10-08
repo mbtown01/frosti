@@ -269,7 +269,7 @@ class GenericThermostatDriver(EventHandler):
         self.__fanRunoutInvoker = None
 
         self.__sampleSensorsInvoker = self._installTimerHandler(
-            frequency=15.0,
+            frequency=3.0,
             handlers=self.__sampleSensors)
         self.__checkScheduleInvoker = self._installTimerHandler(
             frequency=60.0,
@@ -367,6 +367,7 @@ class GenericThermostatDriver(EventHandler):
             relay.openRelay()
 
     def __processModeOff(self):
+        # if self.__state != ThermostatState.OFF:
         self.__changeState(ThermostatState.OFF)
 
     def __processModeCooling(self, newTemp: float):
@@ -393,11 +394,25 @@ class GenericThermostatDriver(EventHandler):
         runAtCool = settings.comfortMax+self.__delta
         runUntilCool = settings.comfortMax-self.__delta
 
+        # if self.__state == ThermostatState.COOLING:
+        #     if newTemp <= runUntilCool:
+        #         self.__changeState(ThermostatState.OFF)
+        # elif self.__state == ThermostatState.HEATING:
+        #     if newTemp >= runUntilHeat:
+        #         self.__changeState(ThermostatState.OFF)
+        # elif newTemp > runAtCool:
+        #     self.__changeState(ThermostatState.COOLING)
+        # elif newTemp < runAtHeat:
+        #     self.__changeState(ThermostatState.HEATING)
+        # else:
+        #     raise RuntimeError("Undetermined state in processing mode AUTO")
+
         if self.__state != ThermostatState.COOLING and newTemp > runAtCool:
             self.__changeState(ThermostatState.COOLING)
         elif self.__state != ThermostatState.HEATING and newTemp < runAtHeat:
             self.__changeState(ThermostatState.HEATING)
-        elif newTemp >= runUntilHeat and newTemp <= runUntilCool:
+        elif self.__state != ThermostatState.OFF and \
+                newTemp >= runUntilHeat and newTemp <= runUntilCool:
             self.__changeState(ThermostatState.OFF)
 
     def __changeState(self, newState: ThermostatState):
@@ -415,7 +430,7 @@ class GenericThermostatDriver(EventHandler):
                 self.__fanRunoutInvoker.reset()
             if self.__state != ThermostatState.FAN_RUNOUT:
                 self.__state = newState
-            self._fireEvent(ThermostatStateChangedEvent(newState))
+                self._fireEvent(ThermostatStateChangedEvent(newState))
 
     def _powerPriceChanged(self, event: PowerPriceChangedEvent):
         log.info(
