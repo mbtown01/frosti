@@ -47,8 +47,7 @@ class InfluxExportEventHandler(EventHandler):
     def __thermostatStateChanged(self, event: ThermostatStateChangedEvent):
         cool = 1 if ThermostatState.COOLING == event.state else 0
         heat = 1 if ThermostatState.HEATING == event.state else 0
-        fan = 1 if ThermostatState.FAN_RUNOUT == event.state else 0
-        fan = 1 if ThermostatState.FAN == event.state else fan
+        fan = 1 if ThermostatState.FAN == event.state else 0
         self.__updateInflux(f'cool={cool},heat={heat},fan={fan}')
 
     def __sensorDataChanged(self, event: SensorDataChangedEvent):

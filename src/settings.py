@@ -118,6 +118,7 @@ class Settings:
         AUTO = 1
         COOL = 2
         HEAT = 3
+        FAN = 4
 
     def __init__(self, json: dict=config.getJson()):
         if 'thermostat' not in json:

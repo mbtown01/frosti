@@ -150,7 +150,6 @@ class ThermostatState(Enum):
     COOLING = 1
     HEATING = 2
     FAN = 3
-    FAN_RUNOUT = 4
 
     @property
     def shouldAlsoRunFan(self):
@@ -261,6 +260,9 @@ class GenericThermostatDriver(EventHandler):
         self.__lcd = lcd
         self.__sensor = sensor
         self.__relayMap = {r.function: r for r in relays}
+        if ThermostatState.OFF not in self.__relayMap:
+            self.__relayMap[ThermostatState.OFF] = \
+                GenericRelay(ThermostatState.OFF)
         self.__state = ThermostatState.OFF
         self.__lcd.setBacklight(True)
         self.__lastTemperature = 0.0
@@ -322,16 +324,60 @@ class GenericThermostatDriver(EventHandler):
             humidity=self.__sensor.humidity
         ))
 
-        if settings.mode == Settings.Mode.OFF:
-            self.__processModeOff()
-        elif settings.mode == Settings.Mode.COOL:
-            self.__processModeCooling(temperature)
-        elif settings.mode == Settings.Mode.HEAT:
-            self.__processModeHeating(temperature)
-        elif settings.mode == Settings.Mode.AUTO:
-            self.__processModeAuto(temperature)
+        # Temperature points on a number line
+        # --------(----+----]------------------------[----+----)--------
+        #        h1    H    h2                      c2    C    c1
+        c1 = settings.comfortMax+self.__delta
+        c2 = settings.comfortMax-self.__delta
+        h2 = settings.comfortMin+self.__delta
+        h1 = settings.comfortMin-self.__delta
+
+        modeOff = Settings.Mode.OFF == settings.mode
+        modeFan = Settings.Mode.FAN == settings.mode
+        modeHeat = Settings.Mode.HEAT == settings.mode
+        modeCool = Settings.Mode.COOL == settings.mode
+        modeAuto = Settings.Mode.AUTO == settings.mode
+        couldHeat = modeAuto or modeHeat
+        couldCool = modeAuto or modeCool
+
+        if ThermostatState.OFF == self.__state:
+            if couldHeat and temperature < h1:
+                self.__changeState(ThermostatState.HEATING)
+            if couldCool and temperature > c1:
+                self.__changeState(ThermostatState.COOLING)
+            if Settings.Mode.FAN == settings.mode:
+                self.__changeState(ThermostatState.FAN)
+        elif ThermostatState.HEATING == self.__state:
+            if modeOff or modeFan or (couldHeat and temperature >= h2):
+                self.__changeState(ThermostatState.FAN)
+                self.__fanRunoutInvoker.reset()
+            if modeCool:
+                self.__changeState(ThermostatState.COOLING)
+        elif ThermostatState.COOLING == self.__state:
+            if modeOff or modeFan or (couldCool and temperature <= c2):
+                self.__changeState(ThermostatState.FAN)
+                self.__fanRunoutInvoker.reset()
+            if modeHeat:
+                self.__changeState(ThermostatState.HEATING)
+        elif ThermostatState.FAN == self.__state:
+            if couldHeat and temperature < h1:
+                self.__changeState(ThermostatState.HEATING)
+            if couldCool and temperature > c1:
+                self.__changeState(ThermostatState.COOLING)
+            if modeOff and not self.__fanRunoutInvoker.isQueued:
+                self.__changeState(ThermostatState.OFF)
         else:
-            raise RuntimeError(f"Encountered unknown mode {settings.mode}")
+            raise RuntimeError(f"Encountered unknown state {self.__state}")
+
+    def __changeState(self, newState: ThermostatState):
+        if self.__state != newState:
+            log.debug(f"Thermostat state {self.__state} -> {newState}")
+            self.__relayMap[self.__state].openRelay()
+            self.__relayMap[newState].closeRelay()
+            if newState.shouldAlsoRunFan:
+                self.__relayMap[ThermostatState.FAN].closeRelay()
+            self.__state = newState
+            self._fireEvent(ThermostatStateChangedEvent(newState))
 
     def _getLocalTime(self):
         return localtime(time())
@@ -349,9 +395,9 @@ class GenericThermostatDriver(EventHandler):
             (int(settings.mode.value)+1) % len(Settings.Mode))
 
     def __fanRunout(self):
-        if self.__state == ThermostatState.FAN_RUNOUT:
-            self.__relayMap[ThermostatState.FAN].openRelay()
-            self.__state = ThermostatState.OFF
+        if self.__state == ThermostatState.FAN and \
+                settings.mode != Settings.Mode.FAN:
+            self.__changeState(ThermostatState.OFF)
 
     def __backlightReset(self):
         if not self.__backlightTimeoutInvoker.isQueued:
@@ -365,72 +411,6 @@ class GenericThermostatDriver(EventHandler):
     def __openAllRelays(self):
         for relay in self.__relayMap.values():
             relay.openRelay()
-
-    def __processModeOff(self):
-        # if self.__state != ThermostatState.OFF:
-        self.__changeState(ThermostatState.OFF)
-
-    def __processModeCooling(self, newTemp: float):
-        runAt = settings.comfortMax+self.__delta
-        runUntil = settings.comfortMax-self.__delta
-
-        if self.__state != ThermostatState.COOLING and newTemp > runAt:
-            self.__changeState(ThermostatState.COOLING)
-        elif newTemp <= runUntil:
-            self.__changeState(ThermostatState.OFF)
-
-    def __processModeHeating(self, newTemp: float):
-        runAt = settings.comfortMin-self.__delta
-        runUntil = settings.comfortMin+self.__delta
-
-        if self.__state != ThermostatState.HEATING and newTemp < runAt:
-            self.__changeState(ThermostatState.HEATING)
-        elif newTemp >= runUntil:
-            self.__changeState(ThermostatState.OFF)
-
-    def __processModeAuto(self, newTemp: float):
-        runAtHeat = settings.comfortMin-self.__delta
-        runUntilHeat = settings.comfortMin+self.__delta
-        runAtCool = settings.comfortMax+self.__delta
-        runUntilCool = settings.comfortMax-self.__delta
-
-        # if self.__state == ThermostatState.COOLING:
-        #     if newTemp <= runUntilCool:
-        #         self.__changeState(ThermostatState.OFF)
-        # elif self.__state == ThermostatState.HEATING:
-        #     if newTemp >= runUntilHeat:
-        #         self.__changeState(ThermostatState.OFF)
-        # elif newTemp > runAtCool:
-        #     self.__changeState(ThermostatState.COOLING)
-        # elif newTemp < runAtHeat:
-        #     self.__changeState(ThermostatState.HEATING)
-        # else:
-        #     raise RuntimeError("Undetermined state in processing mode AUTO")
-
-        if self.__state != ThermostatState.COOLING and newTemp > runAtCool:
-            self.__changeState(ThermostatState.COOLING)
-        elif self.__state != ThermostatState.HEATING and newTemp < runAtHeat:
-            self.__changeState(ThermostatState.HEATING)
-        elif self.__state != ThermostatState.OFF and \
-                newTemp >= runUntilHeat and newTemp <= runUntilCool:
-            self.__changeState(ThermostatState.OFF)
-
-    def __changeState(self, newState: ThermostatState):
-        if self.__state != newState:
-            if self.__state in self.__relayMap:
-                self.__relayMap[self.__state].openRelay()
-            if newState in self.__relayMap:
-                self.__relayMap[newState].closeRelay()
-                if newState.shouldAlsoRunFan:
-                    self.__relayMap[ThermostatState.FAN].closeRelay()
-            if self.__state.shouldAlsoRunFan and \
-                    ThermostatState.OFF == newState:
-                newState = ThermostatState.FAN_RUNOUT
-                self.__relayMap[ThermostatState.FAN].closeRelay()
-                self.__fanRunoutInvoker.reset()
-            if self.__state != ThermostatState.FAN_RUNOUT:
-                self.__state = newState
-                self._fireEvent(ThermostatStateChangedEvent(newState))
 
     def _powerPriceChanged(self, event: PowerPriceChangedEvent):
         log.info(
@@ -449,7 +429,6 @@ class GenericThermostatDriver(EventHandler):
         self.__drawRowTwoInvoker.invokeCurrent()
 
     def __processStateChanged(self, event: ThermostatStateChangedEvent):
-        log.debug(f"New state: {event.state}")
         self.__lastState = event.state
         self.__drawLcdDisplay()
         self.__drawRowTwoInvoker.reset(1)

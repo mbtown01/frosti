@@ -43,10 +43,10 @@ def main(stdscr):
         except ConnectionError:
             log.warning("Unable to reach GoGriddy")
 
-    try:
-        influxExportEventHandler = InfluxExportEventHandler(eventBus)
-    except RuntimeError:
-        log.warning("Influx logger failed to initialize")
+    # try:
+    #     influxExportEventHandler = InfluxExportEventHandler(eventBus)
+    # except RuntimeError:
+    #     log.warning("Influx logger failed to initialize")
 
     log.info('Entering into standard operation')
     eventBus.fireEvent(SettingsChangedEvent())
