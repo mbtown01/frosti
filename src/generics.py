@@ -271,7 +271,7 @@ class GenericThermostatDriver(EventHandler):
         self.__fanRunoutInvoker = None
 
         self.__sampleSensorsInvoker = self._installTimerHandler(
-            frequency=3.0,
+            frequency=5.0,
             handlers=self.__sampleSensors)
         self.__checkScheduleInvoker = self._installTimerHandler(
             frequency=60.0,
@@ -303,7 +303,6 @@ class GenericThermostatDriver(EventHandler):
         self.__lcd.setBacklight(True)
         self.__openAllRelays()
         self.__checkSchedule()
-        # self.__sampleSensors()
 
     @property
     def state(self):
@@ -314,7 +313,7 @@ class GenericThermostatDriver(EventHandler):
         values = self._getLocalTime()
         settings.timeChanged(
             day=values.tm_wday, hour=values.tm_hour, minute=values.tm_min)
-        self.__sampleSensors()
+        # self.__sampleSensors()
 
     def __sampleSensors(self):
         temperature = self.__sensor.temperature
@@ -324,8 +323,9 @@ class GenericThermostatDriver(EventHandler):
             humidity=self.__sensor.humidity
         ))
 
-        # Temperature points on a number line
-        # --------(----+----]------------------------[----+----)--------
+        #    HEATING ZONE         COMFORT ZONE           COOLING ZONE
+        # \\\\\\\\\\\\\\\\\\\                        ///////////////////
+        # --------(----+----)------------------------(----+----)--------
         #        h1    H    h2                      c2    C    c1
         c1 = settings.comfortMax+self.__delta
         c2 = settings.comfortMax-self.__delta
@@ -343,28 +343,32 @@ class GenericThermostatDriver(EventHandler):
         if ThermostatState.OFF == self.__state:
             if couldHeat and temperature < h1:
                 self.__changeState(ThermostatState.HEATING)
-            if couldCool and temperature > c1:
+            elif couldCool and temperature > c1:
                 self.__changeState(ThermostatState.COOLING)
-            if Settings.Mode.FAN == settings.mode:
+            elif Settings.Mode.FAN == settings.mode:
                 self.__changeState(ThermostatState.FAN)
         elif ThermostatState.HEATING == self.__state:
-            if modeOff or modeFan or (couldHeat and temperature >= h2):
+            if modeOff or modeFan or \
+                    (couldHeat and temperature > h2) or \
+                    (modeCool and temperature < c2):
                 self.__changeState(ThermostatState.FAN)
                 self.__fanRunoutInvoker.reset()
-            if modeCool:
+            elif modeAuto and temperature > c1:
                 self.__changeState(ThermostatState.COOLING)
         elif ThermostatState.COOLING == self.__state:
-            if modeOff or modeFan or (couldCool and temperature <= c2):
+            if modeOff or modeFan or \
+                    (couldCool and temperature < c2) or \
+                    (modeHeat and temperature > h2):
                 self.__changeState(ThermostatState.FAN)
                 self.__fanRunoutInvoker.reset()
-            if modeHeat:
+            elif modeAuto and temperature < h1:
                 self.__changeState(ThermostatState.HEATING)
         elif ThermostatState.FAN == self.__state:
             if couldHeat and temperature < h1:
                 self.__changeState(ThermostatState.HEATING)
-            if couldCool and temperature > c1:
+            elif couldCool and temperature > c1:
                 self.__changeState(ThermostatState.COOLING)
-            if modeOff and not self.__fanRunoutInvoker.isQueued:
+            elif modeOff and not self.__fanRunoutInvoker.isQueued:
                 self.__changeState(ThermostatState.OFF)
         else:
             raise RuntimeError(f"Encountered unknown state {self.__state}")
@@ -388,11 +392,13 @@ class GenericThermostatDriver(EventHandler):
             settings.comfortMin = settings.comfortMin + increment
         if Settings.Mode.COOL == settings.mode:
             settings.comfortMax = settings.comfortMax + increment
+        self.__sampleSensorsInvoker.reset()
 
     def _rotateState(self):
         self.__backlightReset()
         settings.mode = Settings.Mode(
             (int(settings.mode.value)+1) % len(Settings.Mode))
+        self.__sampleSensorsInvoker.reset()
 
     def __fanRunout(self):
         if self.__state == ThermostatState.FAN and \
@@ -423,7 +429,7 @@ class GenericThermostatDriver(EventHandler):
 
     def __processSettingsChanged(self, event: SettingsChangedEvent):
         log.debug(f"New settings: {settings}")
-        self.__sampleSensors()
+        # self.__sampleSensors()
         self.__drawLcdDisplay()
         self.__drawRowTwoInvoker.reset(0)
         self.__drawRowTwoInvoker.invokeCurrent()

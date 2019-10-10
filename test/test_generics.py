@@ -100,68 +100,6 @@ class Test_GenericLcdDisplay(unittest.TestCase):
             screen.update(2, 4, 'this should throw')
 
 
-# class Test_CounterBasedInvoker(unittest.TestCase):
-
-#     def setup_method(self, method):
-#         self.__invokeCountFoo = 0
-#         self.__invokeCountBar = 0
-
-#     def invoke_foo(self):
-#         self.__invokeCountFoo += 1
-
-#     def invoke_bar(self):
-#         self.__invokeCountBar += 1
-
-#     def test_invoke_simple(self):
-#         invoker = CounterBasedInvoker(2, [self.invoke_foo])
-#         self.assertEqual(0, self.__invokeCountFoo)
-#         invoker.increment()
-#         self.assertEqual(0, self.__invokeCountFoo)
-#         invoker.increment()
-#         self.assertEqual(1, self.__invokeCountFoo)
-
-#     def test_invoke_list(self):
-#         invoker = CounterBasedInvoker(2, [self.invoke_foo, self.invoke_bar])
-#         self.assertEqual(0, self.__invokeCountFoo)
-#         self.assertEqual(0, self.__invokeCountBar)
-#         invoker.increment()
-#         self.assertEqual(0, self.__invokeCountFoo)
-#         self.assertEqual(0, self.__invokeCountBar)
-#         invoker.increment()
-#         self.assertEqual(1, self.__invokeCountFoo)
-#         self.assertEqual(0, self.__invokeCountBar)
-#         invoker.increment()
-#         self.assertEqual(1, self.__invokeCountFoo)
-#         self.assertEqual(0, self.__invokeCountBar)
-#         invoker.increment()
-#         self.assertEqual(1, self.__invokeCountFoo)
-#         self.assertEqual(1, self.__invokeCountBar)
-
-#     def test_force_invoke(self):
-#         invoker = CounterBasedInvoker(2, [self.invoke_foo])
-#         self.assertEqual(0, self.__invokeCountFoo)
-#         invoker.invokeCurrent()
-#         self.assertEqual(1, self.__invokeCountFoo)
-#         invoker.increment()
-#         self.assertEqual(1, self.__invokeCountFoo)
-#         invoker.increment()
-#         self.assertEqual(2, self.__invokeCountFoo)
-
-#     def test_reset(self):
-#         invoker = CounterBasedInvoker(2, [self.invoke_foo, self.invoke_bar])
-#         self.assertEqual(0, self.__invokeCountFoo)
-#         self.assertEqual(0, self.__invokeCountBar)
-#         invoker.increment()
-#         invoker.increment()
-#         self.assertEqual(1, self.__invokeCountFoo)
-#         self.assertEqual(0, self.__invokeCountBar)
-#         invoker.reset()
-#         invoker.increment()
-#         invoker.increment()
-#         self.assertEqual(2, self.__invokeCountFoo)
-#         self.assertEqual(0, self.__invokeCountBar)
-
-
 class Test_GenericHardwareDriver(unittest.TestCase):
 
     class DummyEventHandler(EventHandler):
@@ -200,7 +138,6 @@ class Test_GenericHardwareDriver(unittest.TestCase):
             GenericRelay(ThermostatState.COOLING),
             GenericRelay(ThermostatState.FAN),
         )
-        self.__relayMap = {r.function: r for r in self.__relayList}
 
         self.__hardwareDriver = GenericThermostatDriver(
             eventBus=self.__eventBus,
@@ -208,9 +145,10 @@ class Test_GenericHardwareDriver(unittest.TestCase):
             sensor=self.__environmentSensor,
             relays=self.__relayList
         )
+        self.__eventBus.processEvents()
 
     def test_simple(self):
-        self.__eventBus.processEvents()
+        self.__eventBus.processEvents(10.0)
 
         self.assertEqual(
             self.__environmentSensor.temperature,
