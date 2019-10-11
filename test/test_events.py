@@ -3,7 +3,7 @@ from queue import Queue
 from threading import Timer
 from time import time
 
-from src.events import Event, EventBus, EventHandler
+from src.events import Event, EventBus, EventBusMember
 from src.generics import SensorDataChangedEvent
 from src.services import ServiceProvider
 
@@ -20,7 +20,7 @@ from src.services import ServiceProvider
 #         self.assertEqual(type(event), SensorDataChangedEvent)
 
 
-class Test_EventHandler(unittest.TestCase):
+class Test_EventBus(unittest.TestCase):
 
     class DummyEvent(Event):
         def __init__(self, test: int):
@@ -30,14 +30,14 @@ class Test_EventHandler(unittest.TestCase):
         def test(self):
             return super().data['test']
 
-    class DummyEventHandler(EventHandler):
+    class DummyEventBusMember(EventBusMember):
         def __init__(self):
             self.eventCount = 0
 
         def setServiceProvider(self, provider: ServiceProvider):
             super().setServiceProvider(provider)
             super()._installEventHandler(
-                Test_EventHandler.DummyEvent, self.__processDummyEvent)
+                Test_EventBus.DummyEvent, self.__processDummyEvent)
 
         def __processDummyEvent(self, event: Event):
             self.eventCount += 1
@@ -46,28 +46,28 @@ class Test_EventHandler(unittest.TestCase):
         self.serviceProvider = ServiceProvider()
         self.eventBus = EventBus()
         self.serviceProvider.installService(EventBus, self.eventBus)
-        self.eventHandler = Test_EventHandler.DummyEventHandler()
+        self.eventHandler = Test_EventBus.DummyEventBusMember()
         self.eventHandler.setServiceProvider(self.serviceProvider)
 
     def test_simpleEvent(self):
-        event = Test_EventHandler.DummyEvent(15)
+        event = Test_EventBus.DummyEvent(15)
         self.assertEqual(15, event.data['test'])
         self.assertEqual('DummyEvent', repr(event))
 
     def test_processEvents(self):
-        self.eventBus.fireEvent(Test_EventHandler.DummyEvent(4))
-        self.eventBus.fireEvent(Test_EventHandler.DummyEvent(5))
-        self.eventBus.fireEvent(Test_EventHandler.DummyEvent(6))
+        self.eventBus.fireEvent(Test_EventBus.DummyEvent(4))
+        self.eventBus.fireEvent(Test_EventBus.DummyEvent(5))
+        self.eventBus.fireEvent(Test_EventBus.DummyEvent(6))
 
         self.assertEqual(self.eventHandler.eventCount, 0)
         self.eventBus.processEvents()
         self.assertEqual(self.eventHandler.eventCount, 3)
 
     def timerHandler(self):
-        self.eventBus.fireEvent(Test_EventHandler.DummyEvent(6))
+        self.eventBus.fireEvent(Test_EventBus.DummyEvent(6))
 
     def timerCallback(self):
-        self.eventBus.fireEvent(Test_EventHandler.DummyEvent(8))
+        self.eventBus.fireEvent(Test_EventBus.DummyEvent(8))
 
     def test_timerEventChain(self):
         """ Tests that a timer can fire an event """

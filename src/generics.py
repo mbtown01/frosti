@@ -4,7 +4,7 @@ import atexit
 
 from src.logging import log
 from src.settings import Settings, SettingsChangedEvent
-from src.events import EventBus, EventHandler, Event, TimerBasedHandler
+from src.events import EventBus, EventBusMember, Event, TimerBasedHandler
 from src.config import Config
 from src.services import ServiceProvider
 
@@ -241,7 +241,7 @@ class GenericRelay:
         self.__isOpen = False
 
 
-class GenericThermostatDriver(EventHandler):
+class GenericThermostatDriver(EventBusMember):
 
     def __init__(self,
                  lcd: GenericLcdDisplay,

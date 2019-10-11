@@ -7,7 +7,7 @@ import json
 from src.logging import log
 from src.settings import Settings
 from src.services import ServiceProvider
-from src.events import Event, EventBus, EventHandler
+from src.events import Event, EventBus, EventBusMember
 from src.generics import PropertyChangedEvent, \
     ThermostatStateChangedEvent, ThermostatState, \
     SensorDataChangedEvent
@@ -16,10 +16,9 @@ from src.generics import PropertyChangedEvent, \
 app = Flask(__name__, static_url_path='')
 
 
-class ApiEventHandler(EventHandler):
-    """ Event handler thread dedicated to responding to the REST API for
-    the thermostat.
-    """
+class ApiDataBroker(EventBusMember):
+    """ Thread dedicated to responding to the REST API for the thermostat and
+    brokering any necessary data/events """
     __instance = None
 
     def __init__(self,):
@@ -99,11 +98,11 @@ class ApiEventHandler(EventHandler):
 
 
 class ApiMessageHandler:
-    apiEventHandler = None
+    apiDataBroker = None
 
     @staticmethod
-    def setup(eventHandler: ApiEventHandler):
-        __class__.apiEventHandler = eventHandler
+    def setup(eventHandler: ApiDataBroker):
+        __class__.apiDataBroker = eventHandler
 
     # region Static webserice handlers
     @staticmethod
@@ -111,9 +110,9 @@ class ApiMessageHandler:
     def serve_root():
         return render_template(
             'index.html',
-            temperature=f'{__class__.apiEventHandler.temperature}',
-            pressure=f'{__class__.apiEventHandler.pressure}',
-            humidity=f'{__class__.apiEventHandler.humidity}',
+            temperature=f'{__class__.apiDataBroker.temperature}',
+            pressure=f'{__class__.apiDataBroker.pressure}',
+            humidity=f'{__class__.apiDataBroker.humidity}',
         )
 
     @staticmethod
@@ -129,36 +128,36 @@ class ApiMessageHandler:
     @staticmethod
     @app.route('/api/version')
     def api_version():
-        return __class__.apiEventHandler.version
+        return __class__.apiDataBroker.version
 
     @staticmethod
     @app.route('/api/status')
     def api_status():
-        return __class__.apiEventHandler.getStatusJson()
+        return __class__.apiDataBroker.getStatusJson()
 
     @staticmethod
     @app.route('/api/settings')
     def api_settings():
-        return __class__.apiEventHandler.getSettingsJson()
+        return __class__.apiDataBroker.getSettingsJson()
 
     @staticmethod
     @app.route('/api/action/mode_toggle', methods=['POST'])
     def api_action_mode_toggle():
-        return __class__.apiEventHandler.toggleMode()
+        return __class__.apiDataBroker.toggleMode()
 
     @staticmethod
     @app.route('/api/sensors/temperature')
     def api_sensor_temperature():
-        return f"{__class__.apiEventHandler.temperature}"
+        return f"{__class__.apiDataBroker.temperature}"
 
     @staticmethod
     @app.route('/api/sensors/pressure')
     def api_sensor_pressure():
-        return f"{__class__.apiEventHandler.pressure}"
+        return f"{__class__.apiDataBroker.pressure}"
 
     @staticmethod
     @app.route('/api/sensors/humidity')
     def api_sensor_humidity():
-        return f"{__class__.apiEventHandler.humidity}"
+        return f"{__class__.apiDataBroker.humidity}"
 
     # endregion

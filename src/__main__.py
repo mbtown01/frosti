@@ -6,12 +6,12 @@ import logging
 
 from src.logging import log, setupLogging
 from src.events import EventBus
-from src.api import ApiEventHandler, ApiMessageHandler
+from src.api import ApiDataBroker, ApiMessageHandler
 from src.settings import Settings, SettingsChangedEvent
 from src.terminal import TerminalThermostatDriver
-from src.power import GoGriddyEventHandler
+from src.power import GoGriddyPriceChecker
 from src.config import Config
-from src.influx import InfluxExportEventHandler
+from src.influx import InfluxDataExporter
 from src.services import ServiceProvider
 
 
@@ -32,8 +32,8 @@ def main(stdscr):
     serviceProvider.installService(Settings, settings)
 
     # Put all the event handlers together
-    apiEventHandler = ApiEventHandler()
-    ApiMessageHandler.setup(apiEventHandler)
+    apiDataBroker = ApiDataBroker()
+    ApiMessageHandler.setup(apiDataBroker)
 
     if stdscr is not None:
         messageQueue = Queue(128)
@@ -51,14 +51,14 @@ def main(stdscr):
     # been created so they get the first power events
     if config.value('gogriddy', 'enabled'):
         try:
-            powerPriceEventHandler = GoGriddyEventHandler()
-            powerPriceEventHandler.setServiceProvider(serviceProvider)
+            priceChecker = GoGriddyPriceChecker()
+            priceChecker.setServiceProvider(serviceProvider)
         except ConnectionError:
             log.warning("Unable to reach GoGriddy")
 
     try:
-        influxExportEventHandler = InfluxExportEventHandler()
-        influxExportEventHandler.setServiceProvider(serviceProvider)
+        dataExporter = InfluxDataExporter()
+        dataExporter.setServiceProvider(serviceProvider)
     except RuntimeError:
         log.warning("Influx logger failed to initialize")
 

@@ -142,7 +142,7 @@ class EventBus:
         return handler
 
     def fireEvent(self, event: Event):
-        """ Fires the event to any subscribed EventHandlers """
+        """ Fires the event to any subscribed listeners """
         self.__eventQueue.put(event)
         self.__threadingEvent.set()
 
@@ -200,8 +200,8 @@ class EventBus:
                     "Invoker caught exception: " + exc_info())
 
 
-class EventHandler(ServiceConsumer):
-    """ Simple helper base class that houses the EventBus """
+class EventBusMember(ServiceConsumer):
+    """ Helper base class for service consumers that are event bus aware """
 
     def __init__(self):
         self.__eventBus = None

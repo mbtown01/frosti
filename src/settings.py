@@ -1,6 +1,6 @@
 from enum import Enum
 
-from src.events import Event, EventBus, EventHandler
+from src.events import Event, EventBus, EventBusMember
 from src.logging import log
 from src.config import Config
 from src.services import ServiceProvider
@@ -108,7 +108,7 @@ class Schedule:
         return self.__times[0].program
 
 
-class Settings(EventHandler):
+class Settings(EventBusMember):
     """ Captures the settings for the thermostat.  Settings are changed
     by the user during normal thermostat operation, and an event is
     fired when they are changed.

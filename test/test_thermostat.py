@@ -1,7 +1,7 @@
 import unittest
 from time import mktime, strptime
 
-from src.events import EventBus, EventHandler
+from src.events import EventBus, EventBusMember
 from src.config import Config
 from src.services import ServiceProvider
 from src.settings import Settings
@@ -85,7 +85,7 @@ json = {
 
 class Test_Thermostat(unittest.TestCase):
 
-    class DummyEventHandler(EventHandler):
+    class DummyEventBusMember(EventBusMember):
         def __init__(self):
             self.__lastState = None
 
@@ -130,9 +130,9 @@ class Test_Thermostat(unittest.TestCase):
         self.serviceProvider.installService(Settings, self.settings)
         self.settings.mode = Settings.Mode.COOL
 
-        self.dummyEventHandler = \
-            Test_Thermostat.DummyEventHandler()
-        self.dummyEventHandler.setServiceProvider(self.serviceProvider)
+        self.dummyEventBusMember = \
+            Test_Thermostat.DummyEventBusMember()
+        self.dummyEventBusMember.setServiceProvider(self.serviceProvider)
         self.dummySensor = GenericEnvironmentSensor()
         self.relayList = (
             GenericRelay(ThermostatState.HEATING),
@@ -189,22 +189,22 @@ class Test_Thermostat(unittest.TestCase):
     def test_stateChangedCooling(self):
         self.settings.mode = Settings.Mode.COOL
 
-        self.assertIsNone(self.dummyEventHandler.lastState)
+        self.assertIsNone(self.dummyEventBusMember.lastState)
         self.assertNextTemperature(78.0, 15, ThermostatState.COOLING)
         self.eventBus.processEvents()
-        self.assertIsNotNone(self.dummyEventHandler.lastState)
+        self.assertIsNotNone(self.dummyEventBusMember.lastState)
         self.assertEqual(
-            self.dummyEventHandler.lastState, ThermostatState.COOLING)
+            self.dummyEventBusMember.lastState, ThermostatState.COOLING)
 
     def test_stateChangedHeating(self):
         self.settings.mode = Settings.Mode.HEAT
 
-        self.assertIsNone(self.dummyEventHandler.lastState)
+        self.assertIsNone(self.dummyEventBusMember.lastState)
         self.assertNextTemperature(60.0, 15, ThermostatState.HEATING)
         self.eventBus.processEvents()
-        self.assertIsNotNone(self.dummyEventHandler.lastState)
+        self.assertIsNotNone(self.dummyEventBusMember.lastState)
         self.assertEqual(
-            self.dummyEventHandler.lastState, ThermostatState.HEATING)
+            self.dummyEventBusMember.lastState, ThermostatState.HEATING)
 
     def test_stateChangedHeatToOff(self):
         self.settings.mode = Settings.Mode.HEAT

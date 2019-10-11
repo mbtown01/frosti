@@ -3,21 +3,21 @@ import requests
 import sys
 from time import sleep
 
-from src.api import ApiEventHandler, ApiMessageHandler
+from src.api import ApiDataBroker, ApiMessageHandler
 from src.events import Event, EventBus
 from src.services import ServiceProvider
 from src.generics import SensorDataChangedEvent
 
 
-class Test_ApiEventHandler(unittest.TestCase):
+class Test_ApiDataBroker(unittest.TestCase):
 
     def setup_method(self, method):
         self.eventBus = EventBus()
         self.serviceProvider = ServiceProvider()
         self.serviceProvider.installService(EventBus, self.eventBus)
-        apiEventHandler = ApiEventHandler()
-        apiEventHandler.setServiceProvider(self.serviceProvider)
-        ApiMessageHandler.setup(apiEventHandler)
+        apiDataBroker = ApiDataBroker()
+        apiDataBroker.setServiceProvider(self.serviceProvider)
+        ApiMessageHandler.setup(apiDataBroker)
         sleep(0.1)
 
         self.testValueTemperature = 72.5

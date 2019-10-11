@@ -4,7 +4,7 @@ import sys
 from time import time
 from threading import Thread
 
-from src.events import Event, EventHandler, EventBus
+from src.events import Event, EventBusMember, EventBus
 from src.config import Config
 from src.generics import PowerPriceChangedEvent
 from src.logging import log
@@ -25,8 +25,8 @@ from src.services import ServiceProvider
 # consuming power again
 
 
-class GoGriddyEventHandler(EventHandler):
-    """ EventHandler thread that monitors power prices and fires an event
+class GoGriddyPriceChecker(EventBusMember):
+    """ EventBusMember thread that monitors power prices and fires an event
     if there is a change """
 
     def setServiceProvider(self, provider: ServiceProvider):

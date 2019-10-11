@@ -14,6 +14,7 @@ from src.generics import GenericLcdDisplay, \
     GenericThermostatDriver, GenericEnvironmentSensor, \
     GenericRelay, ThermostatState
 from src.events import EventBus, Event
+from src.services import ServiceProvider
 
 
 class HD44780Display(GenericLcdDisplay):
@@ -242,7 +243,10 @@ class HardwareThermostatDriver(GenericThermostatDriver):
             )
         )
 
-        super()._installEventHandler(
+    def setServiceProvider(self, provider: ServiceProvider):
+        super().setServiceProvider(provider)
+
+        self._installEventHandler(
             ButtonPressedEvent, self.__buttonPressedHandler)
 
         self.__pinToButtonMap = {}
@@ -250,10 +254,6 @@ class HardwareThermostatDriver(GenericThermostatDriver):
         self.__subscribeToButton(20, Button.DOWN)
         self.__subscribeToButton(16, Button.MODE)
         self.__subscribeToButton(12, Button.WAKE)
-
-        # print("Sleeping to watch buttons")
-        # sleep(10)
-        # print("DONE Sleeping to watch buttons")
 
     def __buttonPressedHandler(self, event: ButtonPressedEvent):
         if event.button == Button.UP:

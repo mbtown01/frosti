@@ -1,7 +1,7 @@
 import unittest
 import sys
 
-from src.events import Event, EventBus, EventHandler
+from src.events import Event, EventBus, EventBusMember
 from src.settings import Settings
 from src.services import ServiceProvider
 from src.config import Config

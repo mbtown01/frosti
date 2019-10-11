@@ -3,7 +3,7 @@ import unittest
 from src.config import Config
 from src.services import ServiceProvider
 from src.settings import Settings
-from src.events import EventBus, EventHandler, TimerBasedHandler
+from src.events import EventBus, EventBusMember, TimerBasedHandler
 from src.generics import GenericLcdDisplay, GenericEnvironmentSensor, \
     GenericThermostatDriver, \
     GenericRelay, ThermostatState, ThermostatStateChangedEvent, \
@@ -105,7 +105,7 @@ class Test_GenericLcdDisplay(unittest.TestCase):
 
 class Test_GenericHardwareDriver(unittest.TestCase):
 
-    class DummyEventHandler(EventHandler):
+    class DummyEventBusMember(EventBusMember):
         def __init__(self):
             self.__lastState = None
             self.__lastTemperature = None
@@ -141,9 +141,9 @@ class Test_GenericHardwareDriver(unittest.TestCase):
         self.settings.setServiceProvider(self.serviceProvider)
         self.serviceProvider.installService(Settings, self.settings)
 
-        self.dummyEventHandler = \
-            Test_GenericHardwareDriver.DummyEventHandler()
-        self.dummyEventHandler.setServiceProvider(self.serviceProvider)
+        self.dummyEventBusMember = \
+            Test_GenericHardwareDriver.DummyEventBusMember()
+        self.dummyEventBusMember.setServiceProvider(self.serviceProvider)
         self.environmentSensor = GenericEnvironmentSensor()
         self.display = GenericLcdDisplay(20, 4)
         self.relayList = (
@@ -165,4 +165,4 @@ class Test_GenericHardwareDriver(unittest.TestCase):
 
         self.assertEqual(
             self.environmentSensor.temperature,
-            self.dummyEventHandler.lastTemperature)
+            self.dummyEventBusMember.lastTemperature)

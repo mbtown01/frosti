@@ -9,13 +9,13 @@ from threading import Thread
 from src.config import Config
 from src.services import ServiceProvider
 from src.logging import log
-from src.events import Event, EventBus, EventHandler
+from src.events import Event, EventBus, EventBusMember
 from src.generics import PropertyChangedEvent, \
     ThermostatStateChangedEvent, ThermostatState, \
     SensorDataChangedEvent, PowerPriceChangedEvent
 
 
-class InfluxExportEventHandler(EventHandler):
+class InfluxDataExporter(EventBusMember):
 
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
