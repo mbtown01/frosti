@@ -312,8 +312,9 @@ class GenericThermostatDriver(EventHandler):
 
     def __checkSchedule(self):
         settings = self._getService(Settings)
+        eventBus = self._getService(EventBus)
 
-        values = self._getLocalTime()
+        values = localtime(eventBus.now)
         settings.timeChanged(
             day=values.tm_wday, hour=values.tm_hour, minute=values.tm_min)
         # self.__sampleSensors()
@@ -398,9 +399,6 @@ class GenericThermostatDriver(EventHandler):
                 self.__relayMap[ThermostatState.FAN].closeRelay()
             self.__state = newState
             self._fireEvent(ThermostatStateChangedEvent(newState))
-
-    def _getLocalTime(self):
-        return localtime(time())
 
     def _modifyComfortSettings(self, increment: int):
         settings = self._getService(Settings)

@@ -161,7 +161,7 @@ class Test_GenericHardwareDriver(unittest.TestCase):
         self.eventBus.processEvents()
 
     def test_simple(self):
-        self.eventBus.processEvents(100.0)
+        self.eventBus.processEvents(now=100.0)
 
         self.assertEqual(
             self.environmentSensor.temperature,

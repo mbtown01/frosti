@@ -104,12 +104,8 @@ class Test_Thermostat(unittest.TestCase):
     class TestThermostatDriver(GenericThermostatDriver):
 
         def __init__(self,
-                     localtime: float,
                      sensor: GenericEnvironmentSensor,
                      relays: list):
-            # This is a Tuesday FYI, day '1' of 7 [0-6]
-            # All tests should be in the 'away' program above
-            self.localtime = localtime
 
             super().__init__(
                 lcd=GenericLcdDisplay(20, 4),
@@ -117,25 +113,22 @@ class Test_Thermostat(unittest.TestCase):
                 relays=relays
             )
 
-        def _getLocalTime(self):
-            """ Override local time for testing on a specific day relative
-            to the json config being used for testing """
-            return self.localtime
-
     def setup_method(self, method):
-        self.serviceProvider = ServiceProvider()
-        self.eventBus = EventBus()
-
-        self.serviceProvider.installService(EventBus, self.eventBus)
+        # This is a Tuesday FYI, day '1' of 7 [0-6]
+        # All tests should be in the 'away' program above
         self.localtime = strptime(
             '01/01/19 08:01:00', '%m/%d/%y %H:%M:%S')
         self.now = mktime(self.localtime)
+
+        self.serviceProvider = ServiceProvider()
+        self.eventBus = EventBus()
+        self.serviceProvider.installService(EventBus, self.eventBus)
         self.config = Config()
         self.serviceProvider.installService(Config, self.config)
         self.settings = Settings(json)
         self.settings.setServiceProvider(self.serviceProvider)
-        self.settings.mode = Settings.Mode.COOL
         self.serviceProvider.installService(Settings, self.settings)
+        self.settings.mode = Settings.Mode.COOL
 
         self.dummyEventHandler = \
             Test_Thermostat.DummyEventHandler()
@@ -148,7 +141,6 @@ class Test_Thermostat(unittest.TestCase):
         )
         self.relayMap = {r.function: r for r in self.relayList}
         self.thermostatDriver = Test_Thermostat.TestThermostatDriver(
-            localtime=self.localtime,
             sensor=self.dummySensor,
             relays=self.relayList
         )
@@ -159,7 +151,7 @@ class Test_Thermostat(unittest.TestCase):
             self, temp: float, duration: float, state: ThermostatState):
         self.dummySensor.temperature = temp
         self.now += duration
-        self.eventBus.processEvents(self.now)
+        self.eventBus.processEvents(now=self.now)
         self.assertEqual(self.thermostatDriver.state, state)
         for relay in self.relayMap.values():
             if relay.function == state:

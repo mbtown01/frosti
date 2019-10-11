@@ -60,6 +60,3 @@ class Config:
         if type(rtn) is dict:
             return Config(name=f"{self.__name}::{section}", json=rtn)
         return rtn
-
-
-config = Config()

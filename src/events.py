@@ -105,6 +105,7 @@ class EventBus:
         self.__timerHandlers = []
         self.__eventHandlers = {}
         self.__eventQueue = Queue()
+        self.__now = None
 
     def installEventHandler(self, eventType: type, handler):
         """ Installs the provided handler method as a callback for when
@@ -145,22 +146,31 @@ class EventBus:
         self.__eventQueue.put(event)
         self.__threadingEvent.set()
 
+    @property
+    def now(self):
+        """ Gets the time of the last call to processEvents, or None.  This
+        makes testing more straight forward because it enables an absolute
+        time to be applied and not whatever time the test is running """
+        return self.__now
+
     def processEvents(self, now: float=1):
         """ Process any events that have been generated since the last call,
         compute and return the time to wait until call method should be
         called again."""
-        if now <= 0:
+
+        self.__now = now
+        if self.__now <= 0:
             raise RuntimeError(
-                f"EventBus.processEvents:  now must be >0, received {now}")
+                f"EventBus.processEvents:  now must be >0, got {self.__now}")
 
         # Check if any timers need handling
         timeout = 60
         for handler in self.__timerHandlers:
-            nextInvoke = handler.getNextInvoke(now)
-            if nextInvoke < (now + 0.2):
-                handler.invoke(now)
+            nextInvoke = handler.getNextInvoke(self.__now)
+            if nextInvoke < (self.__now + 0.2):
+                handler.invoke(self.__now)
             else:
-                timeout = min(timeout, nextInvoke-now)
+                timeout = min(timeout, nextInvoke-self.__now)
 
         # Check events first, only delivering them to registered subscribers
         while self.__eventQueue.qsize():
