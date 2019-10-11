@@ -10,7 +10,7 @@ from influxdb import InfluxDBClient
 import serial
 from os.path import dirname
 sys.path.append(dirname(__file__)+'/../')
-from src.config import config
+from src.config import Config
 # pylint: enable=import-error
 
 # https://rainforestautomation.com/wp-content/uploads/2014/02/raven_xml_api_r127.pdf
@@ -32,6 +32,7 @@ class RavenXmlSerialInterface:
 
     def __init__(self, tty: str):
         # Connect and reuse the serial interface until complete
+        self.__config = Config()
         self.__serial = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
 
     def __parseBlock(self, lines, elementName, attrName):
@@ -103,11 +104,11 @@ class RavenXmlSerialInterface:
             'SummationDelivered'
         )
 
-        if config.resolve('influxdb', 'enabled'):
+        if self.__config.resolve('influxdb', 'enabled'):
             client = InfluxDBClient(
-                host=config.resolve('influxdb', 'host'),
-                port=config.resolve('influxdb', 'port'))
-            client.switch_database(config.resolve('influxdb', 'dbName'))
+                host=self.__config.resolve('influxdb', 'host'),
+                port=self.__config.resolve('influxdb', 'port'))
+            client.switch_database(self.__config.resolve('influxdb', 'dbName'))
 
             # <Command><Name>get_current_summation_delivered</Name><Refresh>N</Refresh></Command>
             # <Command><Name>get_instantaneous_demand</Name><Refresh>Y</Refresh></Command>
@@ -122,7 +123,7 @@ class RavenXmlSerialInterface:
             # print(influxdb_entry)
             client.write_points(
                 influxdb_entry,
-                protocol=config.resolve('influxdb', 'protocol'))
+                protocol=self.__config.resolve('influxdb', 'protocol'))
 
 if __name__ == '__main__':
     instance = RavenXmlSerialInterface('/dev/ttyUSB0')

@@ -1,5 +1,6 @@
 import unittest
 
+from src.config import Config
 from src.services import ServiceProvider
 from src.settings import Settings
 from src.events import EventBus, EventHandler, TimerBasedHandler
@@ -134,6 +135,8 @@ class Test_GenericHardwareDriver(unittest.TestCase):
         self.serviceProvider = ServiceProvider()
         self.eventBus = EventBus()
         self.serviceProvider.installService(EventBus, self.eventBus)
+        self.config = Config()
+        self.serviceProvider.installService(Config, self.config)
         self.settings = Settings()
         self.settings.setServiceProvider(self.serviceProvider)
         self.serviceProvider.installService(Settings, self.settings)

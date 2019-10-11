@@ -2,8 +2,8 @@ from enum import Enum
 
 from src.events import Event, EventBus, EventHandler
 from src.logging import log
-from src.config import config
-from src.services import ServiceConsumer
+from src.config import Config
+from src.services import ServiceProvider
 
 
 class SettingsChangedEvent(Event):
@@ -121,7 +121,14 @@ class Settings(EventHandler):
         HEAT = 3
         FAN = 4
 
-    def __init__(self, json: dict=config.getJson()):
+    def __init__(self, json: dict=None):
+        self.__data = json
+
+    def setServiceProvider(self, provider: ServiceProvider):
+        super().setServiceProvider(provider)
+        config = self._getService(Config)
+        json = self.__data or config.getJson()
+
         if 'thermostat' not in json:
             raise RuntimeError("No thermostat configuration found")
         if 'programs' not in json['thermostat']:

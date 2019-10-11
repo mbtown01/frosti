@@ -10,7 +10,7 @@ from src.api import ApiEventHandler, ApiMessageHandler
 from src.settings import Settings, SettingsChangedEvent
 from src.terminal import TerminalThermostatDriver
 from src.power import GoGriddyEventHandler
-from src.config import config
+from src.config import Config
 from src.influx import InfluxExportEventHandler
 from src.services import ServiceProvider
 
@@ -23,6 +23,9 @@ def main(stdscr):
     # Build the initial event bus and connect the settings instance
     eventBus = EventBus()
     serviceProvider.installService(EventBus, eventBus)
+
+    config = Config()
+    serviceProvider.installService(Config, config)
 
     settings = Settings()
     settings.setServiceProvider(serviceProvider)

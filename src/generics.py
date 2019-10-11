@@ -5,7 +5,7 @@ import atexit
 from src.logging import log
 from src.settings import Settings, SettingsChangedEvent
 from src.events import EventBus, EventHandler, Event, TimerBasedHandler
-from src.config import config
+from src.config import Config
 from src.services import ServiceProvider
 
 
@@ -247,14 +247,6 @@ class GenericThermostatDriver(EventHandler):
                  lcd: GenericLcdDisplay,
                  sensor: GenericEnvironmentSensor,
                  relays: list):
-
-        self.__delta = \
-            config.value('thermostat').value('delta', 1.0)
-        self.__fanRunoutDuration = \
-            config.value('thermostat').value('fanRunout', 30)
-        self.__backlightTimeoutDuration = \
-            config.value('thermostat').value('backlightTimeout', 10)
-
         self.__lcd = lcd
         self.__sensor = sensor
         self.__relayMap = {r.function: r for r in relays}
@@ -270,6 +262,15 @@ class GenericThermostatDriver(EventHandler):
 
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
+
+        config = self._getService(Config)
+        self.__delta = \
+            config.value('thermostat').value('delta', 1.0)
+        self.__fanRunoutDuration = \
+            config.value('thermostat').value('fanRunout', 30)
+        self.__backlightTimeoutDuration = \
+            config.value('thermostat').value('backlightTimeout', 10)
+
         self.__sampleSensorsInvoker = self._installTimerHandler(
             frequency=5.0,
             handlers=self.__sampleSensors)

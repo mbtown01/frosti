@@ -5,7 +5,7 @@ from time import time
 from threading import Thread
 
 from src.events import Event, EventHandler, EventBus
-from src.config import config
+from src.config import Config
 from src.generics import PowerPriceChangedEvent
 from src.logging import log
 from src.services import ServiceProvider
@@ -29,16 +29,16 @@ class GoGriddyEventHandler(EventHandler):
     """ EventHandler thread that monitors power prices and fires an event
     if there is a change """
 
-    def __init__(self):
+    def setServiceProvider(self, provider: ServiceProvider):
+        super().setServiceProvider(provider)
+
+        config = self._getService(Config)
         self.__apiUrl = config.resolve('gogriddy', 'apiUrl')
         self.__apiPostData = {
             'meterID': config.resolve('gogriddy', 'meterId'),
             'memberID': config.resolve('gogriddy', 'memberId'),
             'settlement_point': config.resolve('gogriddy', 'settlementPoint')
         }
-
-    def setServiceProvider(self, provider: ServiceProvider):
-        super().setServiceProvider(provider)
         super()._installEventHandler(
             type(PowerPriceChangedEvent), self.__powerPriceChanged)
         self.__startUpdatePriceHandler = \

@@ -2,6 +2,7 @@ import unittest
 from time import mktime, strptime
 
 from src.events import EventBus, EventHandler
+from src.config import Config
 from src.services import ServiceProvider
 from src.settings import Settings
 from src.generics import ThermostatStateChangedEvent, ThermostatState, \
@@ -129,6 +130,8 @@ class Test_Thermostat(unittest.TestCase):
         self.localtime = strptime(
             '01/01/19 08:01:00', '%m/%d/%y %H:%M:%S')
         self.now = mktime(self.localtime)
+        self.config = Config()
+        self.serviceProvider.installService(Config, self.config)
         self.settings = Settings(json)
         self.settings.setServiceProvider(self.serviceProvider)
         self.settings.mode = Settings.Mode.COOL

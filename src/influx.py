@@ -6,7 +6,7 @@ import sys
 from influxdb import InfluxDBClient
 from threading import Thread
 
-from src.config import config
+from src.config import Config
 from src.services import ServiceProvider
 from src.logging import log
 from src.events import Event, EventBus, EventHandler
@@ -17,7 +17,10 @@ from src.generics import PropertyChangedEvent, \
 
 class InfluxExportEventHandler(EventHandler):
 
-    def __init__(self):
+    def setServiceProvider(self, provider: ServiceProvider):
+        super().setServiceProvider(provider)
+
+        config = self._getService(Config)
         if not config.resolve("influxdb", "enabled", False):
             raise RuntimeError('InfluxDB is not configured')
 
@@ -32,8 +35,6 @@ class InfluxExportEventHandler(EventHandler):
         self.__client.switch_database(config.resolve("influxdb", "dbName"))
         self.__protocol = config.resolve("influxdb", "protocol")
 
-    def setServiceProvider(self, provider: ServiceProvider):
-        super().setServiceProvider(provider)
         super()._installEventHandler(
             SensorDataChangedEvent, self.__sensorDataChanged)
         super()._installEventHandler(

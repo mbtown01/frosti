@@ -4,6 +4,7 @@ import sys
 from src.events import Event, EventBus, EventHandler
 from src.settings import Settings
 from src.services import ServiceProvider
+from src.config import Config
 
 json = {
     "thermostat": {
@@ -103,6 +104,8 @@ class Test_Settings(unittest.TestCase):
         self.serviceProvider = ServiceProvider()
         self.eventBus = EventBus()
         self.serviceProvider.installService(EventBus, self.eventBus)
+        self.config = Config()
+        self.serviceProvider.installService(Config, self.config)
         self.settings = Settings(json=json)
         self.settings.setServiceProvider(self.serviceProvider)
         self.serviceProvider.installService(Settings, self.settings)
@@ -195,5 +198,6 @@ class Test_Settings(unittest.TestCase):
             }
         }
 
+        self.settings.__init__(json)
         with self.assertRaises(RuntimeError):
-            self.settings.__init__(json)
+            self.settings.setServiceProvider(self.serviceProvider)
