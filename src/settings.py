@@ -3,6 +3,7 @@ from enum import Enum
 from src.events import Event, EventBus, EventHandler
 from src.logging import log
 from src.config import config
+from src.services import ServiceConsumer
 
 
 class SettingsChangedEvent(Event):
@@ -107,7 +108,7 @@ class Schedule:
         return self.__times[0].program
 
 
-class Settings:
+class Settings(EventHandler):
     """ Captures the settings for the thermostat.  Settings are changed
     by the user during normal thermostat operation, and an event is
     fired when they are changed.
@@ -129,7 +130,6 @@ class Settings:
         if '_default' not in programs:
             raise RuntimeError(f"No default program configured")
 
-        self.__eventBus = None
         self.__delta = config.resolve('thermostat', 'delta', 1.0)
         self.__mode = Settings.Mode.AUTO
         self.__lastOverridePrice = None
@@ -166,8 +166,7 @@ class Settings:
         self.__currentProgram.comfortMax = max(
             self.__currentProgram.comfortMax,
             self.__currentProgram.comfortMin+2*self.__delta)
-        if self.__eventBus is not None:
-            self.__eventBus.fireEvent(SettingsChangedEvent())
+        self._fireEvent(SettingsChangedEvent())
 
     @property
     def comfortMax(self):
@@ -182,8 +181,7 @@ class Settings:
         self.__currentProgram.comfortMin = min(
             self.__currentProgram.comfortMin,
             self.__currentProgram.comfortMax-2*self.__delta)
-        if self.__eventBus is not None:
-            self.__eventBus.fireEvent(SettingsChangedEvent())
+        self._fireEvent(SettingsChangedEvent())
 
     def timeChanged(self, day: int, hour: int, minute: int):
         for name in self.__schedules:
@@ -196,8 +194,7 @@ class Settings:
                 newProgram = self.__programs[pName]
                 if self.__currentProgram.name != newProgram.name:
                     self.__currentProgram = self.__programs[pName]
-                    if self.__eventBus is not None:
-                        self.__eventBus.fireEvent(SettingsChangedEvent())
+                    self._fireEvent(SettingsChangedEvent())
 
     def priceChanged(self, price: float):
         """ Based on a new power price searches the price overrides to
@@ -214,15 +211,13 @@ class Settings:
                     self.__currentProgram.comfortMin = override.comfortMin
                 if override.comfortMax is not None:
                     self.__currentProgram.comfortMax = override.comfortMax
-                if self.__eventBus is not None:
-                    self.__eventBus.fireEvent(SettingsChangedEvent())
+                    self._fireEvent(SettingsChangedEvent())
                 return True
 
         if self.__lastOverridePrice is not None:
             self.__currentProgram.reset()
             self.__lastOverridePrice = None
-            if self.__eventBus is not None:
-                self.__eventBus.fireEvent(SettingsChangedEvent())
+            self._fireEvent(SettingsChangedEvent())
             return True
 
         return False
@@ -235,13 +230,4 @@ class Settings:
     @mode.setter
     def mode(self, value):
         self.__mode = value
-        if self.__eventBus is not None:
-            self.__eventBus.fireEvent(SettingsChangedEvent())
-
-    def setEventBus(self, eventBus: EventBus):
-        """ Send SettingsChangedEvent notifications to the provided event bus,
-        or nowhere if eventBus is None
-        """
-        self.__eventBus = eventBus
-
-settings = Settings()
+        self._fireEvent(SettingsChangedEvent())

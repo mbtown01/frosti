@@ -3,6 +3,7 @@ import sys
 
 from src.events import Event, EventBus, EventHandler
 from src.settings import Settings
+from src.services import ServiceProvider
 
 json = {
     "thermostat": {
@@ -99,9 +100,12 @@ json = {
 class Test_Settings(unittest.TestCase):
 
     def setup_method(self, method):
+        self.serviceProvider = ServiceProvider()
         self.eventBus = EventBus()
+        self.serviceProvider.installService(EventBus, self.eventBus)
         self.settings = Settings(json=json)
-        self.settings.setEventBus(self.eventBus)
+        self.settings.setServiceProvider(self.serviceProvider)
+        self.serviceProvider.installService(Settings, self.settings)
 
     def test_initial(self):
         self.assertEqual(self.settings.comfortMin, 68.0)

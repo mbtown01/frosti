@@ -2,7 +2,8 @@ import unittest
 from time import mktime, strptime
 
 from src.events import EventBus, EventHandler
-from src.settings import settings, Settings
+from src.services import ServiceProvider
+from src.settings import Settings
 from src.generics import ThermostatStateChangedEvent, ThermostatState, \
     GenericThermostatDriver, GenericLcdDisplay, GenericEnvironmentSensor, \
     GenericRelay
@@ -84,12 +85,13 @@ json = {
 class Test_Thermostat(unittest.TestCase):
 
     class DummyEventHandler(EventHandler):
-        def __init__(self, eventBus: EventBus):
-            super().__init__(eventBus)
+        def __init__(self):
+            self.__lastState = None
+
+        def setServiceProvider(self, provider: ServiceProvider):
+            super().setServiceProvider(provider)
             super()._installEventHandler(
                 ThermostatStateChangedEvent, self._thermostatStateChanged)
-
-            self.__lastState = None
 
         @property
         def lastState(self):
@@ -103,14 +105,12 @@ class Test_Thermostat(unittest.TestCase):
         def __init__(self,
                      localtime: float,
                      sensor: GenericEnvironmentSensor,
-                     relays: list,
-                     eventBus: EventBus):
+                     relays: list):
             # This is a Tuesday FYI, day '1' of 7 [0-6]
             # All tests should be in the 'away' program above
             self.localtime = localtime
 
             super().__init__(
-                eventBus=eventBus,
                 lcd=GenericLcdDisplay(20, 4),
                 sensor=sensor,
                 relays=relays
@@ -122,16 +122,21 @@ class Test_Thermostat(unittest.TestCase):
             return self.localtime
 
     def setup_method(self, method):
+        self.serviceProvider = ServiceProvider()
         self.eventBus = EventBus()
+
+        self.serviceProvider.installService(EventBus, self.eventBus)
         self.localtime = strptime(
             '01/01/19 08:01:00', '%m/%d/%y %H:%M:%S')
         self.now = mktime(self.localtime)
-        settings.__init__(json)
-        settings.mode = Settings.Mode.COOL
-        settings.setEventBus(self.eventBus)
+        self.settings = Settings(json)
+        self.settings.setServiceProvider(self.serviceProvider)
+        self.settings.mode = Settings.Mode.COOL
+        self.serviceProvider.installService(Settings, self.settings)
 
         self.dummyEventHandler = \
-            Test_Thermostat.DummyEventHandler(self.eventBus)
+            Test_Thermostat.DummyEventHandler()
+        self.dummyEventHandler.setServiceProvider(self.serviceProvider)
         self.dummySensor = GenericEnvironmentSensor()
         self.relayList = (
             GenericRelay(ThermostatState.HEATING),
@@ -142,9 +147,9 @@ class Test_Thermostat(unittest.TestCase):
         self.thermostatDriver = Test_Thermostat.TestThermostatDriver(
             localtime=self.localtime,
             sensor=self.dummySensor,
-            relays=self.relayList,
-            eventBus=self.eventBus
+            relays=self.relayList
         )
+        self.thermostatDriver.setServiceProvider(self.serviceProvider)
         self.eventBus.processEvents()
 
     def assertNextTemperature(
@@ -187,7 +192,7 @@ class Test_Thermostat(unittest.TestCase):
                 "Relay HEATING should be open for state OFF")
 
     def test_stateChangedCooling(self):
-        settings.mode = Settings.Mode.COOL
+        self.settings.mode = Settings.Mode.COOL
 
         self.assertIsNone(self.dummyEventHandler.lastState)
         self.assertNextTemperature(78.0, 15, ThermostatState.COOLING)
@@ -197,7 +202,7 @@ class Test_Thermostat(unittest.TestCase):
             self.dummyEventHandler.lastState, ThermostatState.COOLING)
 
     def test_stateChangedHeating(self):
-        settings.mode = Settings.Mode.HEAT
+        self.settings.mode = Settings.Mode.HEAT
 
         self.assertIsNone(self.dummyEventHandler.lastState)
         self.assertNextTemperature(60.0, 15, ThermostatState.HEATING)
@@ -207,61 +212,61 @@ class Test_Thermostat(unittest.TestCase):
             self.dummyEventHandler.lastState, ThermostatState.HEATING)
 
     def test_stateChangedHeatToOff(self):
-        settings.mode = Settings.Mode.HEAT
+        self.settings.mode = Settings.Mode.HEAT
         self.assertNextTemperature(60.0, 15, ThermostatState.HEATING)
 
-        settings.mode = Settings.Mode.OFF
+        self.settings.mode = Settings.Mode.OFF
         self.assertNextTemperature(60.0, 10, ThermostatState.FAN)
         self.assertNextTemperature(60.0, 10, ThermostatState.FAN)
         self.assertNextTemperature(60.0, 100, ThermostatState.OFF)
 
     def test_stateChangedAutoHeatToOff(self):
-        settings.mode = Settings.Mode.HEAT
+        self.settings.mode = Settings.Mode.HEAT
         self.assertNextTemperature(60.0, 15, ThermostatState.HEATING)
 
-        settings.mode = Settings.Mode.OFF
+        self.settings.mode = Settings.Mode.OFF
         self.assertNextTemperature(60.0, 10, ThermostatState.FAN)
         self.assertNextTemperature(60.0, 10, ThermostatState.FAN)
         self.assertNextTemperature(60.0, 100, ThermostatState.OFF)
 
     def test_stateChangedCoolToOff(self):
-        settings.mode = Settings.Mode.COOL
+        self.settings.mode = Settings.Mode.COOL
         self.assertNextTemperature(80.0, 15, ThermostatState.COOLING)
 
-        settings.mode = Settings.Mode.OFF
+        self.settings.mode = Settings.Mode.OFF
         self.assertNextTemperature(80.0, 10, ThermostatState.FAN)
         self.assertNextTemperature(80.0, 10, ThermostatState.FAN)
         self.assertNextTemperature(80.0, 100, ThermostatState.OFF)
 
     def test_stateChangedAutoCoolToOff(self):
-        settings.mode = Settings.Mode.AUTO
+        self.settings.mode = Settings.Mode.AUTO
         self.assertNextTemperature(80.0, 15, ThermostatState.COOLING)
 
-        settings.mode = Settings.Mode.OFF
+        self.settings.mode = Settings.Mode.OFF
         self.assertNextTemperature(80.0, 10, ThermostatState.FAN)
         self.assertNextTemperature(80.0, 10, ThermostatState.FAN)
         self.assertNextTemperature(80.0, 100, ThermostatState.OFF)
 
     def test_stateChangedHeatToCool(self):
-        settings.mode = Settings.Mode.HEAT
+        self.settings.mode = Settings.Mode.HEAT
         self.assertNextTemperature(60.0, 15, ThermostatState.HEATING)
 
-        settings.mode = Settings.Mode.COOL
+        self.settings.mode = Settings.Mode.COOL
         self.assertNextTemperature(60.0, 10, ThermostatState.FAN)
         self.assertNextTemperature(60.0, 10, ThermostatState.FAN)
         self.assertNextTemperature(60.0, 100, ThermostatState.OFF)
 
     def test_stateChangedCoolToHeat(self):
-        settings.mode = Settings.Mode.COOL
+        self.settings.mode = Settings.Mode.COOL
         self.assertNextTemperature(80.0, 15, ThermostatState.COOLING)
 
-        settings.mode = Settings.Mode.HEAT
+        self.settings.mode = Settings.Mode.HEAT
         self.assertNextTemperature(80.0, 10, ThermostatState.FAN)
         self.assertNextTemperature(80.0, 10, ThermostatState.FAN)
         self.assertNextTemperature(80.0, 100, ThermostatState.OFF)
 
     def test_simpleCool(self):
-        settings.mode = Settings.Mode.COOL
+        self.settings.mode = Settings.Mode.COOL
 
         self.assertNextTemperature(75.0, 15, ThermostatState.OFF)
         self.assertNextTemperature(78.0, 15, ThermostatState.COOLING)
@@ -271,7 +276,7 @@ class Test_Thermostat(unittest.TestCase):
         self.assertNextTemperature(73.0, 1000, ThermostatState.OFF)
 
     def test_simpleHeat(self):
-        settings.mode = Settings.Mode.HEAT
+        self.settings.mode = Settings.Mode.HEAT
 
         self.assertNextTemperature(68.0, 15, ThermostatState.OFF)
         self.assertNextTemperature(65.0, 15, ThermostatState.HEATING)
@@ -281,7 +286,7 @@ class Test_Thermostat(unittest.TestCase):
         self.assertNextTemperature(70.0, 1000, ThermostatState.OFF)
 
     def test_simpleAuto(self):
-        settings.mode = Settings.Mode.AUTO
+        self.settings.mode = Settings.Mode.AUTO
 
         self.assertNextTemperature(75.0, 15, ThermostatState.OFF)
         self.assertNextTemperature(78.0, 15, ThermostatState.COOLING)
@@ -296,7 +301,7 @@ class Test_Thermostat(unittest.TestCase):
         self.assertNextTemperature(70.0, 1000, ThermostatState.OFF)
 
     def test_coolingRunoutCooling(self):
-        settings.mode = Settings.Mode.AUTO
+        self.settings.mode = Settings.Mode.AUTO
 
         self.assertNextTemperature(75.0, 5, ThermostatState.OFF)
         self.assertNextTemperature(76.0, 5, ThermostatState.OFF)
@@ -311,7 +316,7 @@ class Test_Thermostat(unittest.TestCase):
         self.assertNextTemperature(78.0, 5, ThermostatState.COOLING)
 
     def test_autoOffCooling(self):
-        settings.mode = Settings.Mode.AUTO
+        self.settings.mode = Settings.Mode.AUTO
 
         self.assertNextTemperature(75.0, 5, ThermostatState.OFF)
         self.assertNextTemperature(76.0, 5, ThermostatState.OFF)
@@ -326,7 +331,7 @@ class Test_Thermostat(unittest.TestCase):
         self.assertNextTemperature(77.0, 5, ThermostatState.COOLING)
 
     def test_autoOffToHeating(self):
-        settings.mode = Settings.Mode.AUTO
+        self.settings.mode = Settings.Mode.AUTO
 
         self.assertNextTemperature(69.0, 5, ThermostatState.OFF)
         self.assertNextTemperature(68.0, 5, ThermostatState.OFF)
@@ -336,75 +341,75 @@ class Test_Thermostat(unittest.TestCase):
         self.assertNextTemperature(73.0, 100, ThermostatState.OFF)
 
     def test_coolingToHeating(self):
-        settings.mode = Settings.Mode.AUTO
+        self.settings.mode = Settings.Mode.AUTO
 
         self.assertNextTemperature(66.9, 5, ThermostatState.HEATING)
         self.assertNextTemperature(78, 5, ThermostatState.COOLING)
 
     def test_heatingToCooling(self):
-        settings.mode = Settings.Mode.AUTO
+        self.settings.mode = Settings.Mode.AUTO
 
         self.assertNextTemperature(78, 5, ThermostatState.COOLING)
         self.assertNextTemperature(66.9, 5, ThermostatState.HEATING)
 
     def test_offToFan(self):
-        settings.mode = Settings.Mode.FAN
+        self.settings.mode = Settings.Mode.FAN
 
         self.assertNextTemperature(78, 5, ThermostatState.FAN)
 
     def test_fanToHeatingInHeating(self):
-        settings.mode = Settings.Mode.FAN
+        self.settings.mode = Settings.Mode.FAN
 
         self.assertNextTemperature(78, 5, ThermostatState.FAN)
-        settings.mode = Settings.Mode.HEAT
+        self.settings.mode = Settings.Mode.HEAT
         self.assertNextTemperature(66.9, 5, ThermostatState.HEATING)
 
     def test_fanToHeatingInAuto(self):
-        settings.mode = Settings.Mode.FAN
+        self.settings.mode = Settings.Mode.FAN
 
         self.assertNextTemperature(78, 5, ThermostatState.FAN)
-        settings.mode = Settings.Mode.AUTO
+        self.settings.mode = Settings.Mode.AUTO
         self.assertNextTemperature(66.9, 5, ThermostatState.HEATING)
 
     def test_fanToOff(self):
-        settings.mode = Settings.Mode.FAN
+        self.settings.mode = Settings.Mode.FAN
 
         self.assertNextTemperature(78, 5, ThermostatState.FAN)
-        settings.mode = Settings.Mode.OFF
+        self.settings.mode = Settings.Mode.OFF
         self.assertNextTemperature(66.9, 5, ThermostatState.OFF)
 
     def test_heatToFan(self):
-        settings.mode = Settings.Mode.HEAT
+        self.settings.mode = Settings.Mode.HEAT
 
         self.assertNextTemperature(50, 5, ThermostatState.HEATING)
-        settings.mode = Settings.Mode.FAN
+        self.settings.mode = Settings.Mode.FAN
         self.assertNextTemperature(50, 5, ThermostatState.FAN)
         self.assertNextTemperature(50, 10, ThermostatState.FAN)
         self.assertNextTemperature(50, 100, ThermostatState.FAN)
 
     def test_heatToOff(self):
-        settings.mode = Settings.Mode.HEAT
+        self.settings.mode = Settings.Mode.HEAT
 
         self.assertNextTemperature(50, 5, ThermostatState.HEATING)
-        settings.mode = Settings.Mode.OFF
+        self.settings.mode = Settings.Mode.OFF
         self.assertNextTemperature(50, 5, ThermostatState.FAN)
         self.assertNextTemperature(50, 10, ThermostatState.FAN)
         self.assertNextTemperature(50, 100, ThermostatState.OFF)
 
     def test_coolToFan(self):
-        settings.mode = Settings.Mode.COOL
+        self.settings.mode = Settings.Mode.COOL
 
         self.assertNextTemperature(90, 5, ThermostatState.COOLING)
-        settings.mode = Settings.Mode.FAN
+        self.settings.mode = Settings.Mode.FAN
         self.assertNextTemperature(50, 5, ThermostatState.FAN)
         self.assertNextTemperature(50, 10, ThermostatState.FAN)
         self.assertNextTemperature(50, 100, ThermostatState.FAN)
 
     def test_coolToOff(self):
-        settings.mode = Settings.Mode.COOL
+        self.settings.mode = Settings.Mode.COOL
 
         self.assertNextTemperature(90, 5, ThermostatState.COOLING)
-        settings.mode = Settings.Mode.OFF
+        self.settings.mode = Settings.Mode.OFF
         self.assertNextTemperature(50, 5, ThermostatState.FAN)
         self.assertNextTemperature(50, 10, ThermostatState.FAN)
         self.assertNextTemperature(50, 100, ThermostatState.OFF)

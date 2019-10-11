@@ -14,7 +14,6 @@ from src.generics import GenericLcdDisplay, \
     GenericThermostatDriver, GenericEnvironmentSensor, \
     GenericRelay, ThermostatState
 from src.events import EventBus, Event
-from src.settings import settings, Settings
 
 
 class HD44780Display(GenericLcdDisplay):
@@ -224,7 +223,7 @@ class ButtonPressedEvent(Event):
 
 class HardwareThermostatDriver(GenericThermostatDriver):
 
-    def __init__(self, eventBus: EventBus):
+    def __init__(self):
         GPIO.setmode(GPIO.BCM)
 
         try:
@@ -234,7 +233,6 @@ class HardwareThermostatDriver(GenericThermostatDriver):
             sensor = GenericEnvironmentSensor()
 
         super().__init__(
-            eventBus=eventBus,
             lcd=HD44780Display(0x27, 20, 4),
             sensor=sensor,
             relays=(

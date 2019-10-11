@@ -3,9 +3,10 @@ from time import time, localtime
 import atexit
 
 from src.logging import log
-from src.settings import settings, Settings, SettingsChangedEvent
+from src.settings import Settings, SettingsChangedEvent
 from src.events import EventBus, EventHandler, Event, TimerBasedHandler
 from src.config import config
+from src.services import ServiceProvider
 
 
 class GenericLcdDisplay:
@@ -110,7 +111,6 @@ class GenericLcdDisplay:
 class GenericEnvironmentSensor:
 
     def __init__(self):
-        super().__init__()
         self.__temperature = 72.0
         self.__pressure = 1015.0
         self.__humidity = 40.0
@@ -246,9 +246,7 @@ class GenericThermostatDriver(EventHandler):
     def __init__(self,
                  lcd: GenericLcdDisplay,
                  sensor: GenericEnvironmentSensor,
-                 relays: list,
-                 eventBus: EventBus):
-        super().__init__(eventBus)
+                 relays: list):
 
         self.__delta = \
             config.value('thermostat').value('delta', 1.0)
@@ -270,6 +268,8 @@ class GenericThermostatDriver(EventHandler):
         self.__lastPrice = 0.0
         self.__fanRunoutInvoker = None
 
+    def setServiceProvider(self, provider: ServiceProvider):
+        super().setServiceProvider(provider)
         self.__sampleSensorsInvoker = self._installTimerHandler(
             frequency=5.0,
             handlers=self.__sampleSensors)
@@ -310,6 +310,8 @@ class GenericThermostatDriver(EventHandler):
         return self.__state
 
     def __checkSchedule(self):
+        settings = self._getService(Settings)
+
         values = self._getLocalTime()
         settings.timeChanged(
             day=values.tm_wday, hour=values.tm_hour, minute=values.tm_min)
@@ -317,6 +319,7 @@ class GenericThermostatDriver(EventHandler):
 
     def __sampleSensors(self):
         temperature = self.__sensor.temperature
+        settings = self._getService(Settings)
         super()._fireEvent(SensorDataChangedEvent(
             temperature=temperature,
             pressure=self.__sensor.pressure,
@@ -399,6 +402,8 @@ class GenericThermostatDriver(EventHandler):
         return localtime(time())
 
     def _modifyComfortSettings(self, increment: int):
+        settings = self._getService(Settings)
+
         self.__backlightReset()
         if Settings.Mode.HEAT == settings.mode:
             settings.comfortMin = settings.comfortMin + increment
@@ -407,12 +412,16 @@ class GenericThermostatDriver(EventHandler):
         self.__sampleSensorsInvoker.reset()
 
     def _rotateState(self):
+        settings = self._getService(Settings)
+
         self.__backlightReset()
         settings.mode = Settings.Mode(
             (int(settings.mode.value)+1) % len(Settings.Mode))
         self.__sampleSensorsInvoker.reset()
 
     def __fanRunout(self):
+        settings = self._getService(Settings)
+
         if self.__state == ThermostatState.FAN and \
                 settings.mode != Settings.Mode.FAN:
             self.__changeState(ThermostatState.OFF)
@@ -431,6 +440,8 @@ class GenericThermostatDriver(EventHandler):
             relay.openRelay()
 
     def _powerPriceChanged(self, event: PowerPriceChangedEvent):
+        settings = self._getService(Settings)
+
         log.info(
             f"Power price is now {event.price:.4f}/kW*h, next update "
             f"in {event.nextUpdate}s")
@@ -440,6 +451,8 @@ class GenericThermostatDriver(EventHandler):
         self.__drawRowTwoInvoker.invokeCurrent()
 
     def __processSettingsChanged(self, event: SettingsChangedEvent):
+        settings = self._getService(Settings)
+
         log.debug(f"New settings: {settings}")
         # self.__sampleSensors()
         self.__drawLcdDisplay()
@@ -457,6 +470,8 @@ class GenericThermostatDriver(EventHandler):
         self.__drawLcdDisplay()
 
     def __drawRowTwoTarget(self):
+        settings = self._getService(Settings)
+
         heat = settings.comfortMin
         cool = settings.comfortMax
         self.__lcd.update(1, 0, f'Target:      {heat:<3.0f}/{cool:>3.0f}')
@@ -473,6 +488,8 @@ class GenericThermostatDriver(EventHandler):
         self.__lcd.commit()
 
     def __drawLcdDisplay(self):
+        settings = self._getService(Settings)
+
         now = self.__lastTemperature
         mode = str(settings.mode).replace('Mode.', '')
         self.__lcd.update(0, 0, f'Now: {now:<5.1f}    {mode:>6s}')

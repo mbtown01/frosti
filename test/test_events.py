@@ -5,6 +5,7 @@ from time import time
 
 from src.events import Event, EventBus, EventHandler
 from src.generics import SensorDataChangedEvent
+from src.services import ServiceProvider
 
 
 # class Test_EventBus(unittest.TestCase):
@@ -30,18 +31,23 @@ class Test_EventHandler(unittest.TestCase):
             return super().data['test']
 
     class DummyEventHandler(EventHandler):
-        def __init__(self, eventBus: EventBus):
-            super().__init__(eventBus)
+        def __init__(self):
+            self.eventCount = 0
+
+        def setServiceProvider(self, provider: ServiceProvider):
+            super().setServiceProvider(provider)
             super()._installEventHandler(
                 Test_EventHandler.DummyEvent, self.__processDummyEvent)
-            self.eventCount = 0
 
         def __processDummyEvent(self, event: Event):
             self.eventCount += 1
 
     def setup_method(self, method):
+        self.serviceProvider = ServiceProvider()
         self.eventBus = EventBus()
-        self.eventHandler = Test_EventHandler.DummyEventHandler(self.eventBus)
+        self.serviceProvider.installService(EventBus, self.eventBus)
+        self.eventHandler = Test_EventHandler.DummyEventHandler()
+        self.eventHandler.setServiceProvider(self.serviceProvider)
 
     def test_simpleEvent(self):
         event = Test_EventHandler.DummyEvent(15)

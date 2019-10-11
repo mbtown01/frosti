@@ -9,7 +9,7 @@ from src.generics import GenericLcdDisplay, \
     PowerPriceChangedEvent, GenericRelay, ThermostatState, \
     SensorDataChangedEvent
 from src.events import EventBus, Event, TimerBasedHandler
-from src.settings import settings, Settings
+from src.services import ServiceProvider
 
 
 class TerminalDisplay(GenericLcdDisplay):
@@ -84,7 +84,7 @@ class TerminalThermostatDriver(GenericThermostatDriver):
         def key(self):
             return super().data['key']
 
-    def __init__(self, stdscr, messageQueue: Queue, eventBus: EventBus):
+    def __init__(self, stdscr, messageQueue: Queue):
         self.__stdscr = stdscr
         self.__messageQueue = messageQueue
         self.__environmentSensor = GenericEnvironmentSensor()
@@ -113,11 +113,13 @@ class TerminalThermostatDriver(GenericThermostatDriver):
         )
 
         super().__init__(
-            eventBus=eventBus,
             lcd=TerminalDisplay(self.__displayWin, 20, 4),
             sensor=self.__environmentSensor,
             relays=self.__relayList,
         )
+
+    def setServiceProvider(self, provider: ServiceProvider):
+        super().setServiceProvider(provider)
         super()._installEventHandler(
             TerminalThermostatDriver.KeyPressedEvent, self.__keyPressedHandler)
         super()._installTimerHandler(

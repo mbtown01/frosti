@@ -8,6 +8,7 @@ from src.events import Event, EventHandler, EventBus
 from src.config import config
 from src.generics import PowerPriceChangedEvent
 from src.logging import log
+from src.services import ServiceProvider
 
 # GoGriddy billing is actually based on 15-minute RTSPP intervals indicated
 # here
@@ -28,20 +29,20 @@ class GoGriddyEventHandler(EventHandler):
     """ EventHandler thread that monitors power prices and fires an event
     if there is a change """
 
-    def __init__(self, eventBus: EventBus):
-        super().__init__(eventBus)
-
-        super()._installEventHandler(
-            type(PowerPriceChangedEvent), self.__powerPriceChanged)
-        self.__startUpdatePriceHandler = \
-            super()._installTimerHandler(300.0, self.__startUpdatePrice)
-
+    def __init__(self):
         self.__apiUrl = config.resolve('gogriddy', 'apiUrl')
         self.__apiPostData = {
             'meterID': config.resolve('gogriddy', 'meterId'),
             'memberID': config.resolve('gogriddy', 'memberId'),
             'settlement_point': config.resolve('gogriddy', 'settlementPoint')
         }
+
+    def setServiceProvider(self, provider: ServiceProvider):
+        super().setServiceProvider(provider)
+        super()._installEventHandler(
+            type(PowerPriceChangedEvent), self.__powerPriceChanged)
+        self.__startUpdatePriceHandler = \
+            super()._installTimerHandler(300.0, self.__startUpdatePrice)
 
         self.__startUpdatePrice()
 

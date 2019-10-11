@@ -4,6 +4,7 @@ from sys import exc_info, maxsize
 from time import time
 
 from src.logging import log
+from src.services import ServiceConsumer, ServiceProvider
 
 
 class TimerBasedHandler:
@@ -189,11 +190,15 @@ class EventBus:
                     "Invoker caught exception: " + exc_info())
 
 
-class EventHandler:
+class EventHandler(ServiceConsumer):
     """ Simple helper base class that houses the EventBus """
 
-    def __init__(self, eventBus: EventBus):
-        self.__eventBus = eventBus
+    def __init__(self):
+        self.__eventBus = None
+
+    def setServiceProvider(self, provider: ServiceProvider):
+        super().setServiceProvider(provider)
+        self.__eventBus = self._getService(EventBus)
 
     def _fireEvent(self, event: Event):
         self.__eventBus.fireEvent(event)

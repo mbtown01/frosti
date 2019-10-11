@@ -5,7 +5,8 @@ import logging
 import json
 
 from src.logging import log
-from src.settings import settings, Settings
+from src.settings import Settings
+from src.services import ServiceProvider
 from src.events import Event, EventBus, EventHandler
 from src.generics import PropertyChangedEvent, \
     ThermostatStateChangedEvent, ThermostatState, \
@@ -21,9 +22,7 @@ class ApiEventHandler(EventHandler):
     """
     __instance = None
 
-    def __init__(self, eventBus: EventBus):
-        super().__init__(eventBus)
-
+    def __init__(self,):
         self.__flaskThread = Thread(
             target=app.run,
             name='Flask Driver',
@@ -36,6 +35,8 @@ class ApiEventHandler(EventHandler):
         self.__lastPressure = 0
         self.__lastHumidity = 0
 
+    def setServiceProvider(self, provider: ServiceProvider):
+        super().setServiceProvider(provider)
         super()._installEventHandler(
             SensorDataChangedEvent, self.__processSensorDataChanged)
         super()._installEventHandler(
@@ -67,6 +68,8 @@ class ApiEventHandler(EventHandler):
         return self.__lastHumidity
 
     def toggleMode(self):
+        settings = self._getService(Settings)
+
         settings.mode = Settings.Mode(
             (int(settings.mode.value)+1) % len(Settings.Mode))
         return f"Mode now {settings.mode}"
@@ -84,6 +87,8 @@ class ApiEventHandler(EventHandler):
         return json.dumps(response, indent=4)
 
     def getSettingsJson(self):
+        settings = self._getService(Settings)
+
         response = {
             'version': self.version,
             'comfortMin': settings.comfortMin,
