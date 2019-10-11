@@ -348,21 +348,21 @@ class GenericThermostatDriver(EventHandler):
             elif Settings.Mode.FAN == settings.mode:
                 self.__changeState(ThermostatState.FAN)
         elif ThermostatState.HEATING == self.__state:
-            if modeOff or modeFan or \
+            if modeAuto and temperature > c1:
+                self.__changeState(ThermostatState.COOLING)            
+            elif modeOff or modeFan or \
                     (couldHeat and temperature > h2) or \
                     (modeCool and temperature < c2):
                 self.__changeState(ThermostatState.FAN)
                 self.__fanRunoutInvoker.reset()
-            elif modeAuto and temperature > c1:
-                self.__changeState(ThermostatState.COOLING)
         elif ThermostatState.COOLING == self.__state:
-            if modeOff or modeFan or \
+            if modeAuto and temperature < h1:
+                self.__changeState(ThermostatState.HEATING)
+            elif modeOff or modeFan or \
                     (couldCool and temperature < c2) or \
                     (modeHeat and temperature > h2):
                 self.__changeState(ThermostatState.FAN)
                 self.__fanRunoutInvoker.reset()
-            elif modeAuto and temperature < h1:
-                self.__changeState(ThermostatState.HEATING)
         elif ThermostatState.FAN == self.__state:
             if couldHeat and temperature < h1:
                 self.__changeState(ThermostatState.HEATING)

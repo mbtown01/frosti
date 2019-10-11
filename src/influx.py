@@ -59,5 +59,8 @@ class InfluxExportEventHandler(EventHandler):
 
     def __updateInflux(self, data: str):
         entry = f'{self.__influxHeader} {data}'
-        log.debug(entry)
-        self.__client.write_points(entry, protocol=self.__protocol)
+        try:
+            self.__client.write_points(entry, protocol=self.__protocol)
+            log.debug(entry)
+        except:
+            log.warning("Failed connecting to influx")

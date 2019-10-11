@@ -6,7 +6,7 @@ To do list
         * Shortest cycle time?  
     * Change the fake fan mode into real fan mode after cooling/heating
     * Reset the screen every now and then to fix garbage character issue?!?!
-    * in service mode, don't add the timestamp
+    * When running as a service, don't add the timestamp
         * Note that terminal mode on mac has timestamps, Linux does NOT
     * Integrate influx support directly into the runtime
         * Runs on thread, handles exceptions gracefully
