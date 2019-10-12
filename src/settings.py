@@ -161,6 +161,10 @@ class Settings(EventBusMember):
                f"coolAt: {self.comfortMax}"
 
     @property
+    def currentProgram(self):
+        return self.__currentProgram
+
+    @property
     def comfortMin(self):
         """ Minimum temperature that is comfortable, anything lower
         and outside the delta needs the thermostat to heat

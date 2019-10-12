@@ -286,7 +286,8 @@ class GenericThermostatDriver(EventBusMember):
             handlers=[
                 self.__drawRowTwoTarget,
                 self.__drawRowTwoState,
-                self.__drawRowTwoPrice])
+                self.__drawRowTwoPrice,
+                self.__drawRowTwoProgram])
         self.__fanRunoutInvoker = self._installTimerHandler(
             frequency=self.__fanRunoutDuration,
             handlers=self.__fanRunout,
@@ -484,6 +485,12 @@ class GenericThermostatDriver(EventBusMember):
     def __drawRowTwoPrice(self):
         price = self.__lastPrice
         self.__lcd.update(1, 0, f'Price:  ${price:.4f}/kW*h')
+        self.__lcd.commit()
+
+    def __drawRowTwoProgram(self):
+        settings = self._getService(Settings)
+        name = settings.currentProgram.name
+        self.__lcd.update(1, 0, f'Pgm: {name:>15s}')
         self.__lcd.commit()
 
     def __drawLcdDisplay(self):
