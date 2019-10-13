@@ -44,7 +44,7 @@ class Test_EventBus(unittest.TestCase):
 
     def setup_method(self, method):
         self.serviceProvider = ServiceProvider()
-        self.eventBus = EventBus()
+        self.eventBus = EventBus(now=1)
         self.serviceProvider.installService(EventBus, self.eventBus)
         self.eventHandler = Test_EventBus.DummyEventBusMember()
         self.eventHandler.setServiceProvider(self.serviceProvider)
@@ -71,11 +71,12 @@ class Test_EventBus(unittest.TestCase):
 
     def test_timerEventChain(self):
         """ Tests that a timer can fire an event """
-        self.eventBus.exec(1)
+        self.eventBus.processEvents(self.eventBus.now+2)
         self.eventBus.installTimerHandler(1.0, self.timerHandler)
 
         self.assertEqual(self.eventHandler.eventCount, 0)
-        self.eventBus.exec(3)
+        self.eventBus.processEvents(self.eventBus.now+5)
+        self.eventBus.processEvents(self.eventBus.now+5)
         self.assertEqual(self.eventHandler.eventCount, 1)
 
     def test_timerPreempt(self):
@@ -101,13 +102,13 @@ class Test_EventBus(unittest.TestCase):
             handlers=self.timerHandler,
             oneShot=True)
 
-        self.eventBus.processEvents(now=1)
+        self.eventBus.processEvents(now=self.eventBus.now+1)
         self.assertEqual(self.eventHandler.eventCount, 0)
         self.assertTrue(handler.isQueued)
-        self.eventBus.processEvents(now=70)
-        self.eventBus.processEvents(now=70)
+        self.eventBus.processEvents(now=self.eventBus.now+70)
+        self.eventBus.processEvents(now=self.eventBus.now)
         self.assertEqual(self.eventHandler.eventCount, 1)
         self.assertFalse(handler.isQueued)
-        self.eventBus.processEvents(now=7000)
+        self.eventBus.processEvents(now=self.eventBus.now+7000)
         self.assertEqual(self.eventHandler.eventCount, 1)
         self.assertFalse(handler.isQueued)

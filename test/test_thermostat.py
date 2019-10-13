@@ -116,12 +116,9 @@ class Test_Thermostat(unittest.TestCase):
     def setup_method(self, method):
         # This is a Tuesday FYI, day '1' of 7 [0-6]
         # All tests should be in the 'away' program above
-        self.localtime = strptime(
-            '01/01/19 08:01:00', '%m/%d/%y %H:%M:%S')
-        self.now = mktime(self.localtime)
-
         self.serviceProvider = ServiceProvider()
-        self.eventBus = EventBus()
+        testTime = strptime('01/01/19 08:01:00', '%m/%d/%y %H:%M:%S')
+        self.eventBus = EventBus(now=mktime(testTime))
         self.serviceProvider.installService(EventBus, self.eventBus)
         self.config = Config()
         self.serviceProvider.installService(Config, self.config)
@@ -150,8 +147,7 @@ class Test_Thermostat(unittest.TestCase):
     def assertNextTemperature(
             self, temp: float, duration: float, state: ThermostatState):
         self.dummySensor.temperature = temp
-        self.now += duration
-        self.eventBus.processEvents(now=self.now)
+        self.eventBus.processEvents(now=self.eventBus.now+duration)
         self.assertEqual(self.thermostatDriver.state, state)
         for relay in self.relayMap.values():
             if relay.function == state:
@@ -371,7 +367,7 @@ class Test_Thermostat(unittest.TestCase):
 
         self.assertNextTemperature(78, 5, ThermostatState.FAN)
         self.settings.mode = Settings.Mode.OFF
-        self.assertNextTemperature(66.9, 5, ThermostatState.OFF)
+        self.assertNextTemperature(66.9, 30, ThermostatState.OFF)
 
     def test_heatToFan(self):
         self.settings.mode = Settings.Mode.HEAT

@@ -99,7 +99,7 @@ class HD44780Display(GenericLcdDisplay):
                 self.clear()
                 log.info("Re-connected to LCD, reset failuire count to zero")
         except:
-            log.error(f"LCD __write_cmd failed, total={self.__failCount}")
+            log.error(f"LCD write_cmd failed, total={self.__failCount}")
             self.__failCount += 1
 
     # clocks EN to latch command

@@ -1,20 +1,30 @@
 import unittest
 import requests
 import sys
-from time import sleep
+import json
+from time import sleep, strptime, mktime
 
 from src.api import ApiDataBroker, ApiMessageHandler
 from src.events import Event, EventBus
 from src.services import ServiceProvider
+from src.config import Config
+from src.settings import Settings
 from src.generics import SensorDataChangedEvent
 
 
 class Test_ApiDataBroker(unittest.TestCase):
 
     def setup_method(self, method):
-        self.eventBus = EventBus()
         self.serviceProvider = ServiceProvider()
+        testTime = strptime('01/01/19 08:01:00', '%m/%d/%y %H:%M:%S')
+        self.eventBus = EventBus(now=mktime(testTime))
         self.serviceProvider.installService(EventBus, self.eventBus)
+        self.config = Config()
+        self.serviceProvider.installService(Config, self.config)
+        self.settings = Settings()
+        self.settings.setServiceProvider(self.serviceProvider)
+        self.serviceProvider.installService(Settings, self.settings)
+
         apiDataBroker = ApiDataBroker()
         apiDataBroker.setServiceProvider(self.serviceProvider)
         ApiMessageHandler.setup(apiDataBroker)
@@ -29,18 +39,12 @@ class Test_ApiDataBroker(unittest.TestCase):
             humidity=self.testValueHumidity))
         self.eventBus.processEvents()
 
-    def test_version(self):
-        req = requests.get('http://localhost:5000/api/version')
-        self.assertEqual(req.text, "rpt-0.1")
+    def test_status(self):
+        req = requests.get('http://localhost:5000/api/status')
+        data = json.loads(req.text)
+        self.assertTrue('version' in data)
 
-    def test_temperature(self):
-        req = requests.get('http://localhost:5000/api/sensors/temperature')
-        self.assertEqual(req.text, f"{self.testValueTemperature}")
-
-    def test_pressure(self):
-        req = requests.get('http://localhost:5000/api/sensors/pressure')
-        self.assertEqual(req.text, f"{self.testValuePressure}")
-
-    def test_humidity(self):
-        req = requests.get('http://localhost:5000/api/sensors/humidity')
-        self.assertEqual(req.text, f"{self.testValueHumidity}")
+    def test_settings(self):
+        req = requests.get('http://localhost:5000/api/settings')
+        data = json.loads(req.text)
+        self.assertTrue('version' in data)

@@ -1,5 +1,6 @@
 import unittest
 import sys
+from time import strptime, mktime
 
 from src.power import GoGriddyPriceChecker
 from src.generics import PowerPriceChangedEvent
@@ -25,7 +26,8 @@ class Test_GoGriddyInterface(unittest.TestCase):
 
     def setup_method(self, method):
         self.serviceProvider = ServiceProvider()
-        self.eventBus = EventBus()
+        testTime = strptime('01/01/19 08:01:00', '%m/%d/%y %H:%M:%S')
+        self.eventBus = EventBus(now=mktime(testTime))
         self.serviceProvider.installService(EventBus, self.eventBus)
         self.settings = Settings()
         self.settings.setServiceProvider(self.serviceProvider)

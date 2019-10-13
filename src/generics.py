@@ -292,6 +292,7 @@ class GenericThermostatDriver(EventBusMember):
             frequency=self.__fanRunoutDuration,
             handlers=self.__fanRunout,
             oneShot=True)
+        self.__fanRunoutInvoker.disable()
 
         self._installEventHandler(
             SettingsChangedEvent, self.__processSettingsChanged)
@@ -315,6 +316,8 @@ class GenericThermostatDriver(EventBusMember):
         settings = self._getService(Settings)
         eventBus = self._getService(EventBus)
 
+        if eventBus.now is None:
+            raise RuntimeError("No time on eventBus")
         values = localtime(eventBus.now)
         settings.timeChanged(
             day=values.tm_wday, hour=values.tm_hour, minute=values.tm_min)
@@ -452,9 +455,7 @@ class GenericThermostatDriver(EventBusMember):
 
     def __processSettingsChanged(self, event: SettingsChangedEvent):
         settings = self._getService(Settings)
-
         log.debug(f"New settings: {settings}")
-        # self.__sampleSensors()
         self.__drawLcdDisplay()
         self.__drawRowTwoInvoker.reset(0)
         self.__drawRowTwoInvoker.invokeCurrent()
@@ -490,7 +491,7 @@ class GenericThermostatDriver(EventBusMember):
     def __drawRowTwoProgram(self):
         settings = self._getService(Settings)
         name = settings.currentProgram.name
-        self.__lcd.update(1, 0, f'Pgm: {name:>15s}')
+        self.__lcd.update(1, 0, f'Program: {name:>10s}')
         self.__lcd.commit()
 
     def __drawLcdDisplay(self):

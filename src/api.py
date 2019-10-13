@@ -145,19 +145,4 @@ class ApiMessageHandler:
     def api_action_mode_toggle():
         return __class__.apiDataBroker.toggleMode()
 
-    @staticmethod
-    @app.route('/api/sensors/temperature')
-    def api_sensor_temperature():
-        return f"{__class__.apiDataBroker.temperature}"
-
-    @staticmethod
-    @app.route('/api/sensors/pressure')
-    def api_sensor_pressure():
-        return f"{__class__.apiDataBroker.pressure}"
-
-    @staticmethod
-    @app.route('/api/sensors/humidity')
-    def api_sensor_humidity():
-        return f"{__class__.apiDataBroker.humidity}"
-
     # endregion

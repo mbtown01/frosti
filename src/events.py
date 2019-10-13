@@ -67,6 +67,9 @@ class TimerBasedHandler:
         lastInvoke timestamp """
         self.__handlers[self.__lastHandler]()
 
+    def disable(self):
+        self.__lastInvoke = self.ONE_SHOT_COMPLETED
+
     def reset(self, handler: int=None, frequency: float=None):
         """ Resets this handler to a new state
 
@@ -100,12 +103,12 @@ class EventBus:
     """ Transceiver for all messaging, and owner of the main
     application thread """
 
-    def __init__(self):
+    def __init__(self, now: float=time()):
         self.__threadingEvent = ThreadingEvent()
         self.__timerHandlers = []
         self.__eventHandlers = {}
         self.__eventQueue = Queue()
-        self.__now = None
+        self.__now = now
 
     def installEventHandler(self, eventType: type, handler):
         """ Installs the provided handler method as a callback for when
@@ -153,12 +156,12 @@ class EventBus:
         time to be applied and not whatever time the test is running """
         return self.__now
 
-    def processEvents(self, now: float=1):
+    def processEvents(self, now: float=None):
         """ Process any events that have been generated since the last call,
         compute and return the time to wait until call method should be
         called again."""
 
-        self.__now = now
+        self.__now = now or self.__now
         if self.__now <= 0:
             raise RuntimeError(
                 f"EventBus.processEvents:  now must be >0, got {self.__now}")
@@ -189,7 +192,7 @@ class EventBus:
 
         while iterationCount < iterations:
             try:
-                timeout = self.processEvents(now=time())
+                timeout = self.processEvents(time())
 
                 iterationCount += 1
                 if iterationCount < iterations:

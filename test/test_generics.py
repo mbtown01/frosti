@@ -1,4 +1,5 @@
 import unittest
+from time import strptime, mktime
 
 from src.config import Config
 from src.services import ServiceProvider
@@ -133,7 +134,8 @@ class Test_GenericHardwareDriver(unittest.TestCase):
 
     def setup_method(self, method):
         self.serviceProvider = ServiceProvider()
-        self.eventBus = EventBus()
+        testTime = strptime('01/01/19 08:01:00', '%m/%d/%y %H:%M:%S')
+        self.eventBus = EventBus(now=mktime(testTime))
         self.serviceProvider.installService(EventBus, self.eventBus)
         self.config = Config()
         self.serviceProvider.installService(Config, self.config)
@@ -161,7 +163,7 @@ class Test_GenericHardwareDriver(unittest.TestCase):
         self.eventBus.processEvents()
 
     def test_simple(self):
-        self.eventBus.processEvents(now=100.0)
+        self.eventBus.processEvents(now=self.eventBus.now+100.0)
 
         self.assertEqual(
             self.environmentSensor.temperature,

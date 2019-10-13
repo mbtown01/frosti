@@ -1,5 +1,6 @@
 import unittest
 import sys
+from time import mktime, strptime
 
 from src.events import Event, EventBus, EventBusMember
 from src.settings import Settings
@@ -102,7 +103,8 @@ class Test_Settings(unittest.TestCase):
 
     def setup_method(self, method):
         self.serviceProvider = ServiceProvider()
-        self.eventBus = EventBus()
+        testTime = strptime('01/01/19 08:01:00', '%m/%d/%y %H:%M:%S')
+        self.eventBus = EventBus(now=mktime(testTime))
         self.serviceProvider.installService(EventBus, self.eventBus)
         self.config = Config()
         self.serviceProvider.installService(Config, self.config)

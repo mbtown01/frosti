@@ -1,8 +1,6 @@
 [
-  "test/test_api.py::Test_ApiDataBroker::test_humidity",
-  "test/test_api.py::Test_ApiDataBroker::test_pressure",
-  "test/test_api.py::Test_ApiDataBroker::test_temperature",
-  "test/test_api.py::Test_ApiDataBroker::test_version",
+  "test/test_api.py::Test_ApiDataBroker::test_settings",
+  "test/test_api.py::Test_ApiDataBroker::test_status",
   "test/test_events.py::Test_EventBus::test_oneShot",
   "test/test_events.py::Test_EventBus::test_processEvents",
   "test/test_events.py::Test_EventBus::test_simpleEvent",
