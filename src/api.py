@@ -10,7 +10,7 @@ from src.services import ServiceProvider
 from src.events import Event, EventBus, EventBusMember
 from src.generics import PropertyChangedEvent, \
     ThermostatStateChangedEvent, ThermostatState, \
-    SensorDataChangedEvent
+    SensorDataChangedEvent, UserThermostatInteractionEvent
 
 
 app = Flask(__name__, static_url_path='')
@@ -67,11 +67,16 @@ class ApiDataBroker(EventBusMember):
         return self.__lastHumidity
 
     def toggleMode(self):
-        settings = self._getService(Settings)
+        self._fireEvent(UserThermostatInteractionEvent(
+            UserThermostatInteractionEvent.MODE_NEXT))
 
-        settings.mode = Settings.Mode(
-            (int(settings.mode.value)+1) % len(Settings.Mode))
-        return f"Mode now {settings.mode}"
+    def raiseTarget(self):
+        self._fireEvent(UserThermostatInteractionEvent(
+            UserThermostatInteractionEvent.TARGET_RAISE))
+
+    def lowerTarget(self):
+        self._fireEvent(UserThermostatInteractionEvent(
+            UserThermostatInteractionEvent.TARGET_LOWER))
 
     def getStatusJson(self):
         response = {

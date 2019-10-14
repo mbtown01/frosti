@@ -241,6 +241,21 @@ class GenericRelay:
         self.__isOpen = False
 
 
+class UserThermostatInteractionEvent(Event):
+    MODE_NEXT = 1
+    TARGET_RAISE = 2
+    TARGET_LOWER = 3
+
+    def __init__(self, interaction: int):
+        super().__init__(
+            name='UserThermostatInteractionEvent',
+            data={'interaction': interaction})
+
+    @property
+    def interaction(self):
+        return super().data['interaction']
+
+
 class GenericThermostatDriver(EventBusMember):
 
     def __init__(self,
@@ -302,6 +317,8 @@ class GenericThermostatDriver(EventBusMember):
             ThermostatStateChangedEvent, self.__processStateChanged)
         self._installEventHandler(
             PowerPriceChangedEvent, self._powerPriceChanged)
+        self._installEventHandler(
+            UserThermostatInteractionEvent, self.__userThermostatInteraction)
 
         self.__lcd.setBacklight(True)
         self.__openAllRelays()
@@ -393,6 +410,15 @@ class GenericThermostatDriver(EventBusMember):
                 self.__changeState(ThermostatState.OFF)
         else:
             raise RuntimeError(f"Encountered unknown state {self.__state}")
+
+    def __userThermostatInteraction(
+            self, event: UserThermostatInteractionEvent):
+        if event.interaction == UserThermostatInteractionEvent.MODE_NEXT:
+            self._rotateState()
+        if event.interaction == UserThermostatInteractionEvent.TARGET_LOWER:
+            self._modifyComfortSettings(-1)
+        if event.interaction == UserThermostatInteractionEvent.TARGET_RAISE:
+            self._modifyComfortSettings(1)
 
     def __changeState(self, newState: ThermostatState):
         if self.__state != newState:
