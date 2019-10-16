@@ -33,6 +33,7 @@ def main(stdscr):
 
     # Put all the event handlers together
     apiDataBroker = ApiDataBroker()
+    apiDataBroker.setServiceProvider(serviceProvider)
     ApiMessageHandler.setup(apiDataBroker)
 
     if stdscr is not None:

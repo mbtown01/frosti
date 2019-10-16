@@ -243,8 +243,8 @@ class GenericRelay:
 
 class UserThermostatInteractionEvent(Event):
     MODE_NEXT = 1
-    TARGET_RAISE = 2
-    TARGET_LOWER = 3
+    COMFORT_RAISE = 2
+    COMFORT_LOWER = 3
 
     def __init__(self, interaction: int):
         super().__init__(
@@ -414,21 +414,11 @@ class GenericThermostatDriver(EventBusMember):
     def __userThermostatInteraction(
             self, event: UserThermostatInteractionEvent):
         if event.interaction == UserThermostatInteractionEvent.MODE_NEXT:
-            self._rotateState()
-        if event.interaction == UserThermostatInteractionEvent.TARGET_LOWER:
+            self._nextMode()
+        if event.interaction == UserThermostatInteractionEvent.COMFORT_LOWER:
             self._modifyComfortSettings(-1)
-        if event.interaction == UserThermostatInteractionEvent.TARGET_RAISE:
+        if event.interaction == UserThermostatInteractionEvent.COMFORT_RAISE:
             self._modifyComfortSettings(1)
-
-    def __changeState(self, newState: ThermostatState):
-        if self.__state != newState:
-            log.debug(f"Thermostat state {self.__state} -> {newState}")
-            self.__relayMap[self.__state].openRelay()
-            self.__relayMap[newState].closeRelay()
-            if newState.shouldAlsoRunFan:
-                self.__relayMap[ThermostatState.FAN].closeRelay()
-            self.__state = newState
-            self._fireEvent(ThermostatStateChangedEvent(newState))
 
     def _modifyComfortSettings(self, increment: int):
         settings = self._getService(Settings)
@@ -440,13 +430,23 @@ class GenericThermostatDriver(EventBusMember):
             settings.comfortMax = settings.comfortMax + increment
         self.__sampleSensorsInvoker.reset()
 
-    def _rotateState(self):
+    def _nextMode(self):
         settings = self._getService(Settings)
 
         self.__backlightReset()
         settings.mode = Settings.Mode(
             (int(settings.mode.value)+1) % len(Settings.Mode))
         self.__sampleSensorsInvoker.reset()
+
+    def __changeState(self, newState: ThermostatState):
+        if self.__state != newState:
+            log.debug(f"Thermostat state {self.__state} -> {newState}")
+            self.__relayMap[self.__state].openRelay()
+            self.__relayMap[newState].closeRelay()
+            if newState.shouldAlsoRunFan:
+                self.__relayMap[ThermostatState.FAN].closeRelay()
+            self.__state = newState
+            self._fireEvent(ThermostatStateChangedEvent(newState))
 
     def __fanRunout(self):
         settings = self._getService(Settings)

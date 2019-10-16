@@ -19,8 +19,17 @@ function update() {
     })
 }
 
-function toggleMode() {
-    fetch("/api/action/mode_toggle", {method: 'POST'})
-    update()
+function nextMode() {
+    fetch("/api/action/nextMode", {method: 'POST'})
+    .then(function(response) {
+        update();
+    });
 }
 
+function raiseComfort() {
+    fetch("/api/action/raiseComfort", {method: 'POST'}).then(update());
+}
+
+function lowerComfort() {
+    fetch("/api/action/lowerComfort", {method: 'POST'}).then(update());
+}

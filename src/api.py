@@ -66,17 +66,17 @@ class ApiDataBroker(EventBusMember):
     def humidity(self):
         return self.__lastHumidity
 
-    def toggleMode(self):
+    def nextMode(self):
         self._fireEvent(UserThermostatInteractionEvent(
             UserThermostatInteractionEvent.MODE_NEXT))
 
-    def raiseTarget(self):
+    def raiseComfort(self):
         self._fireEvent(UserThermostatInteractionEvent(
-            UserThermostatInteractionEvent.TARGET_RAISE))
+            UserThermostatInteractionEvent.COMFORT_RAISE))
 
-    def lowerTarget(self):
+    def lowerComfort(self):
         self._fireEvent(UserThermostatInteractionEvent(
-            UserThermostatInteractionEvent.TARGET_LOWER))
+            UserThermostatInteractionEvent.COMFORT_LOWER))
 
     def getStatusJson(self):
         response = {
@@ -146,8 +146,18 @@ class ApiMessageHandler:
         return __class__.apiDataBroker.getSettingsJson()
 
     @staticmethod
-    @app.route('/api/action/mode_toggle', methods=['POST'])
-    def api_action_mode_toggle():
-        return __class__.apiDataBroker.toggleMode()
+    @app.route('/api/action/nextMode', methods=['POST'])
+    def api_action_next_mode():
+        return __class__.apiDataBroker.nextMode()
+
+    @staticmethod
+    @app.route('/api/action/raiseComfort', methods=['POST'])
+    def api_action_raise_comfort():
+        return __class__.apiDataBroker.raiseComfort()
+
+    @staticmethod
+    @app.route('/api/action/lowerComfort', methods=['POST'])
+    def api_action_lower_comfort():
+        return __class__.apiDataBroker.lowerComfort()
 
     # endregion

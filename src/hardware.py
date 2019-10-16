@@ -261,7 +261,7 @@ class HardwareThermostatDriver(GenericThermostatDriver):
         elif event.button == Button.DOWN:
             super()._modifyComfortSettings(-1)
         elif event.button == Button.MODE:
-            super()._rotateState()
+            super()._nextMode()
 
     def __subscribeToButton(self, pin: int, button: Button):
         self.__pinToButtonMap[pin] = button
