@@ -1,0 +1,25 @@
+@startuml ThermostatStates
+
+[*] -down-> OFF
+
+OFF : Not running
+OFF -down-> HEATING: mode in (HEAT|AUTO) and\nt < h1
+OFF -down-> COOLING: mode in (COOL|AUTO) and\nt > c1
+OFF -down-> FAN: mode == FAN
+
+HEATING : Raising temperature to target
+HEATING -down-> FAN: mode in (FAN|OFF) or\nmode in (HEAT|AUTO) and t > h2 or\n mode in (COOL|AUTO) and t < c2
+HEATING -up-> OFF: mode == OFF
+HEATING -right-> COOLING: mode == AUTO and\nt > c1
+
+COOLING : Lowering temperature to target
+COOLING -down-> FAN: mode in (FAN|OFF) or\nmode in (HEAT|AUTO) and t > h2 or\n mode in (COOL|AUTO) and t < c2
+COOLING -up-> OFF: mode == OFF
+COOLING -left-> HEATING: mode == AUTO and\nt < h1
+
+FAN : Moving air through the system
+FAN -up-> OFF
+FAN -up-> HEATING: mode in (HEAT|AUTO) and\nt < h1
+FAN -up-> COOLING: mode in (COOL|AUTO) and\nt > c1
+
+@enduml
