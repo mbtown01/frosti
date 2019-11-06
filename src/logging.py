@@ -26,3 +26,4 @@ def setupLogging(queue: Queue=None):
     logging.getLogger('').addHandler(handler)
 
     logging.getLogger('chardet.charsetprober').setLevel(logging.INFO)
+    logging.getLogger('requests').setLevel(logging.INFO)

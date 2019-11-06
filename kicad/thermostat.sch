@@ -277,7 +277,7 @@ F 3 "" H 800 7550 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Text Label 6550 1050 0    50   ~ 0
-GPIO19(SPI1_MISO)
+GPIO17(GEN0)
 Wire Wire Line
 	6550 1050 6350 1050
 Wire Wire Line
@@ -306,7 +306,7 @@ F 5 "1" H 6200 1950 50  0001 C CNN "Populate"
 	1    0    0    -1  
 $EndComp
 Text Label 6550 1750 0    50   ~ 0
-GPIO19(SPI1_MISO)
+GPIO27(GEN2)
 Wire Wire Line
 	6550 1750 6350 1750
 Wire Wire Line
@@ -335,7 +335,7 @@ F 5 "1" V 6200 2650 50  0001 C CNN "Populate"
 	1    0    0    -1  
 $EndComp
 Text Label 6550 2450 0    50   ~ 0
-GPIO19(SPI1_MISO)
+GPIO22(GEN3)
 Wire Wire Line
 	6550 2450 6350 2450
 Wire Wire Line

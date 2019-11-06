@@ -517,7 +517,7 @@ class GenericThermostatDriver(EventBusMember):
     def __drawRowTwoProgram(self):
         settings = self._getService(Settings)
         name = settings.currentProgram.name
-        self.__lcd.update(1, 0, f'Program: {name:>10s}')
+        self.__lcd.update(1, 0, f'Program: {name:>11s}')
         self.__lcd.commit()
 
     def __drawLcdDisplay(self):
