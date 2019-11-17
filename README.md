@@ -4,20 +4,23 @@ RaspberryPi-powered Griddy-enabled thermostat
 
 ## Overview
 
-RPT is yet-another RaspberryPi powered thermostat, with the added twist that GoGriddy customers can vary temperature targets based on the current cost of electricity.
+RPT is yet another Python-based, Raspberry Pi powered thermostat, with the added twist that [GoGriddy](https://www.gogriddy.com/) customers can vary temperature targets based on the current cost of electricity.
 
-### Running
+![RPT board v1.0 rendering](docs/images/board_v1.jpeg)
 
-Start the main process with python by calling `python -m src` from the rpt directory.
+## Features
 
-## For Developers
+* Simple user interface at the thermostat for setting temperature targets
+* Simple web interface (hosted by the thermostat) for configuring from remote
+* RESTful API for getting current environmental data as well as changing settings
 
-### Setup a development environment
+## More Topics
 
-### Creating a new RaspberryPi image
+* [Movations](docs/motivation.md) for yet another thermostat
+* [Design](docs/design.md) overview
+* [Gettings started](docs/setup.md) with rpt
+  * This is currently targeted for developers
 
-### Debugging
+## Credits
 
-Though it's not impossible, it's far better to have a dedicated development machine and not work directly on the RaspberryPi.  It's a great little computer, but just doesn't have much horsepower to really host an IDE.
-
-At start-up, RPT checks to see if `uname -a` contains the 'armv' architecture.  If detected, RPT starts in hardware mode and assumes it's attached to an RPT board.  Otherwise, it assumes it's in simulation mode and uses the terminal as a fake LCD, using keys 1-4 as proxies for the 4 buttons.
+I'd like to thank Ray at Rays Hobby for a [great write-up on 24V AC to 5V DC power conversion](https://rayshobby.net/wordpress/24vac-to-5vdc-conversion/).  I personally run Ray's [OpenSprinkler Pi (OSPi) platform](https://opensprinkler.com/product/opensprinkler-pi/) (with the 8-zone extender!) and was inspired to take a shot at my own board by reading his blog posts.
