@@ -27,13 +27,19 @@ class InfluxDataExporter(EventBusMember):
         self.__unitName = config.resolve('thermostat', 'unitname')
         self.__influxHeader = f'rpt_status,unit={self.__unitName}'
         self.__lastSensorChangedEvent = None
+        self.__protocol = config.resolve("influxdb", "protocol")
 
         self.__client = InfluxDBClient(
             host=config.resolve("influxdb", "host"),
             port=config.resolve("influxdb", "port")
         )
-        self.__client.switch_database(config.resolve("influxdb", "dbName"))
-        self.__protocol = config.resolve("influxdb", "protocol")
+
+        dbName = config.resolve("influxdb", "dbName")
+        hashList = self.__client.get_list_database()
+        nameList = list(map(lambda x: x['name'], hashList))
+        if dbName not in nameList:
+            self.__client.create_database(dbName)
+        self.__client.switch_database(dbName)
 
         super()._installEventHandler(
             SensorDataChangedEvent, self.__sensorDataChanged)
@@ -63,5 +69,6 @@ class InfluxDataExporter(EventBusMember):
         try:
             self.__client.write_points(entry, protocol=self.__protocol)
             log.debug(entry)
-        except:
+        except Exception as e:
             log.warning("Failed connecting to influx")
+            log.warning(str(e))

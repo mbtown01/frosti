@@ -1,0 +1,50 @@
+# docker-compose --file docker/develop.yaml build
+# docker-compose --file docker/develop.yaml run rpt
+
+version: "3.7"
+services:
+
+  influxdb:
+    image: influxdb:latest
+    container_name: rpt-influxdb
+    ports:
+      - "8083:8083"
+      - "8086:8086"
+      - "8090:8090"
+    env_file:
+      - 'env.influxdb'
+    volumes:
+      - type: volume
+        source: influxdb
+        target: /var/lib/influxdb
+
+  rpt:
+    image: rpt/develop:latest
+    build:
+      context: ../
+      dockerfile: ./docker/develop
+    container_name: rpt
+    ports:
+      - "5000:5000"
+    depends_on:
+      - influxdb
+      - grafana
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: rpt-grafana
+    ports:
+      - "3000:3000"
+    env_file:
+      - 'env.grafana'
+    user: "0"
+    depends_on:
+      - influxdb
+    volumes:
+      - type: volume
+        source: grafana
+        target: /var/lib/grafana
+
+volumes:
+  influxdb:
+  grafana:

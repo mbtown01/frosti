@@ -107,8 +107,8 @@
     "influxdb": {
         "enabled": true,
         "protocol": "line",
-        "host": "influx.local.madllama.net",
+        "host": "influxdb",
         "port": 8086,
-        "dbName": "griddy"
+        "dbName": "rpt"
     }
 }
