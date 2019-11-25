@@ -107,7 +107,7 @@
     "influxdb": {
         "enabled": true,
         "protocol": "line",
-        "host": "influxdb",
+        "host": "localhost",
         "port": 8086,
         "dbName": "rpt"
     }

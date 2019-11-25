@@ -2,6 +2,7 @@
 .coverage
 *.log
 .pytest_cache
+.DS_store
 kicad/fp-info-cache
 kicad/thermostat.kicad_pcb-bak
 kicad/thermostat.sch-bak

@@ -2,7 +2,45 @@
 
 RPT is based on python3.   I personally use pip3 for bringing in packages.  Depending on your development platform, you may have several ways of installing both python and your own packages. 
 
-## On the RaspberryPi
+## Containerization Strategy
+
+Containers are the way to go for development and  deployment.  On first run, volumes are created for influx and grafana and default installations need to occur.  
+
+For influx, need to create and permission the database.  This may include changing/setting admin userid/password.  Need to be careful so we don't stomp already existing data should it exist. 
+
+So that we don't have to fork and create a custom container for influxdb, could create a setup/initialize script in rpt that tests if the db is there and if not creates it on first touch.  Think that's already in the RPT code.
+
+At development time, modifications to the grafana configuration should be captured in source control somehow.  That is a different way of running the container than a production version.  At dev time, a local directory needs inserted.  At production time, a clean volume needs to be populated with the context from git.  MAY be able to do this with one configuration.
+
+# Docker
+
+To get the documentation locally
+```
+docker run -ti -p 4000:4000 docs/docker.github.io:latest
+```
+
+For development, you'll need to run the influx and grafana backend
+```
+docker-compose --file docker/develop.yaml build
+docker-compose --file docker/develop.yaml run grafana
+```
+
+On MacOS, get connected to the VM hosting docker
+```
+screen ~/Library/Containers/com.docker.docker/Data/vms/0/tty
+```
+
+RPT uses a docker volume for storing the influx database
+```
+docker volume inspect docker_influxdb
+```
+
+To remove the local volumes and start over
+```
+docker-compose --file docker/develop.yaml down --volumes
+```
+
+# On the RaspberryPi
 
 ```
 sudo apt install python3 wiringpi python3-pip i2c-tools python3-smbus

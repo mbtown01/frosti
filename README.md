@@ -8,6 +8,9 @@ RPT is yet another Python-based, Raspberry Pi powered thermostat, with the added
 
 ![RPT board v1.0 rendering](docs/images/board_v1.png)
 
+## 
+
+
 ## Features
 
 * Simple user interface at the thermostat for setting temperature targets

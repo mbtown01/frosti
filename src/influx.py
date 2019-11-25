@@ -9,6 +9,7 @@ from threading import Thread
 from src.config import Config
 from src.services import ServiceProvider
 from src.logging import log
+from src.settings import Settings, SettingsChangedEvent
 from src.events import Event, EventBus, EventBusMember
 from src.generics import PropertyChangedEvent, \
     ThermostatStateChangedEvent, ThermostatState, \
@@ -31,25 +32,39 @@ class InfluxDataExporter(EventBusMember):
 
         self.__client = InfluxDBClient(
             host=config.resolve("influxdb", "host"),
-            port=config.resolve("influxdb", "port")
+            port=config.resolve("influxdb", "port"),
+            username='rpt',
+            password='rpt'
         )
 
-        dbName = config.resolve("influxdb", "dbName")
-        hashList = self.__client.get_list_database()
-        nameList = list(map(lambda x: x['name'], hashList))
-        if dbName not in nameList:
-            self.__client.create_database(dbName)
-        self.__client.switch_database(dbName)
+        try:
+            dbName = config.resolve("influxdb", "dbName")
+            hashList = self.__client.get_list_database()
+            nameList = list(map(lambda x: x['name'], hashList))
+            if dbName not in nameList:
+                self.__client.create_database(dbName)
+            self.__client.switch_database(dbName)
 
-        super()._installEventHandler(
-            SensorDataChangedEvent, self.__sensorDataChanged)
-        super()._installEventHandler(
-            ThermostatStateChangedEvent, self.__thermostatStateChanged)
-        super()._installEventHandler(
-            PowerPriceChangedEvent, self.__powerPriceChanged)
+            super()._installEventHandler(
+                SensorDataChangedEvent, self.__sensorDataChanged)
+            super()._installEventHandler(
+                ThermostatStateChangedEvent, self.__thermostatStateChanged)
+            super()._installEventHandler(
+                PowerPriceChangedEvent, self.__powerPriceChanged)
+            super()._installEventHandler(
+                SettingsChangedEvent, self.__processSettingsChanged)
+        except:
+            log.warning('Unable to connect to local influx instance')
 
     def __powerPriceChanged(self, event: PowerPriceChangedEvent):
         self.__updateInflux(f'price={event.price}')
+
+    def __processSettingsChanged(self, event: SettingsChangedEvent):
+        settings = self._getService(Settings)
+        self.__updateInflux(
+            f'comfortMin={settings.comfortMin},'
+            f'comfortMax={settings.comfortMax}'
+        )
 
     def __thermostatStateChanged(self, event: ThermostatStateChangedEvent):
         cool = 1 if ThermostatState.COOLING == event.state else 0

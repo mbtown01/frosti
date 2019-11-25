@@ -1,5 +1,12 @@
 # docker-compose --file docker/develop.yaml build
 # docker-compose --file docker/develop.yaml run rpt
+# For running rpt directly and docker/grafana in the container
+# docker-compose --file docker/develop.yaml rup
+# screen ~/Library/Containers/com.docker.docker/Data/vms/0/tty
+# docker volume inspect docker_grafana
+# docker volume inspect docker_influxdb
+# docker-compose --file
+
 
 version: "3.7"
 services:
@@ -7,22 +14,38 @@ services:
   influxdb:
     image: influxdb:latest
     container_name: rpt-influxdb
+    build:
+      context: ../
+      dockerfile: ./docker/influxdb/Dockerfile
     ports:
       - "8083:8083"
       - "8086:8086"
       - "8090:8090"
-    env_file:
-      - 'env.influxdb'
+    environment:
+      INFLUXDB_ADMIN_USER: "rpt"
+      INFLUXDB_ADMIN_PASSWORD: "rpt"
+      INFLUXDB_HTTP_AUTH_ENABLED: "true"
     volumes:
       - type: volume
         source: influxdb
         target: /var/lib/influxdb
 
+  grafana:
+    image: grafana/grafana:latest
+    container_name: rpt-grafana
+    ports:
+      - "3000:3000"
+    user: "0"
+    depends_on:
+      - influxdb
+    volumes:
+      - ./grafana:/var/lib/grafana:delegated
+
   rpt:
     image: rpt/develop:latest
     build:
       context: ../
-      dockerfile: ./docker/develop
+      dockerfile: ./docker/rpt/Dockerfile
     container_name: rpt
     ports:
       - "5000:5000"
@@ -30,21 +53,5 @@ services:
       - influxdb
       - grafana
 
-  grafana:
-    image: grafana/grafana:latest
-    container_name: rpt-grafana
-    ports:
-      - "3000:3000"
-    env_file:
-      - 'env.grafana'
-    user: "0"
-    depends_on:
-      - influxdb
-    volumes:
-      - type: volume
-        source: grafana
-        target: /var/lib/grafana
-
 volumes:
   influxdb:
-  grafana:
