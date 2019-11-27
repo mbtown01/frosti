@@ -55,20 +55,5 @@ services:
     volumes:
       - ../:/usr/local/rpt
 
-  # rpt-debug:
-  #   image: rpt/develop:latest
-  #   build:
-  #     context: ../
-  #     dockerfile: ./docker/rpt-debug/Dockerfile
-  #   container_name: rpt-debug
-  #   ports:
-  #     - "5000:5000"
-  #     - "3001:3001"
-  #   depends_on:
-  #     - influxdb
-  #     - grafana
-  #   stdin_open: true
-  #   tty: true
-
 volumes:
   influxdb:
