@@ -19,10 +19,20 @@ To get the documentation locally
 docker run -ti -p 4000:4000 docs/docker.github.io:latest
 ```
 
-For development, you'll need to run the influx and grafana backend
+For development, here are some useful docker commands
 ```
-docker-compose --file docker/develop.yaml build
-docker-compose --file docker/develop.yaml run grafana
+# Build and run the services
+docker-compose --file docker/docker-compose.yaml run --build rpt
+
+# After a build, debug the rpt server
+docker-compose --file docker/docker-compose.yaml run -p 3001:3001 -p 5000:5000 \
+    --entrypoint '/bin/bash -c "cd /usr/local/rpt && python3 -m ptvsd --host 0.0.0.0 --port 3001 --wait -m src"' rpt
+
+```
+
+To get a terminal in one of your composed containers (e.g. rpt)
+```
+docker-compose --file docker/docker-compose.yaml exec rpt sh
 ```
 
 On MacOS, get connected to the VM hosting docker
@@ -37,7 +47,7 @@ docker volume inspect docker_influxdb
 
 To remove the local volumes and start over
 ```
-docker-compose --file docker/develop.yaml down --volumes
+docker-compose --file docker/docker-compose.yaml down --volumes
 ```
 
 # On the RaspberryPi

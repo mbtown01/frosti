@@ -12,7 +12,6 @@ RUN pip3 install \
     flask influxdb requests \
     ptvsd
 
-ADD ./src/ /rpt/src
 ADD ./etc/thermostat.json /etc/thermostat.json
 
-ENTRYPOINT cd /rpt && python3 -m src
+ENTRYPOINT cd /usr/local/rpt && python3 -m src

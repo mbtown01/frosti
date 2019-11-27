@@ -5,6 +5,19 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: Container Attach",
+            "type": "python",
+            "request": "attach",
+            "port": 3001,
+            "host": "localhost",
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}",
+                    "remoteRoot": "/usr/local/rpt"
+                }
+            ],
+        },
+        {
             "name": "Python: Remote Attach",
             "type": "python",
             "request": "attach",
