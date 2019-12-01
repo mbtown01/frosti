@@ -184,6 +184,8 @@ class TerminalThermostatDriver(GenericThermostatDriver):
                 super()._fireEvent(
                     TerminalThermostatDriver.KeyPressedEvent(char))
 
+        super()._getService(EventBus).stop()
+
     def __processMessageQueue(self):
         # Update any pending log messages to the log window
         while self.__messageQueue.qsize():

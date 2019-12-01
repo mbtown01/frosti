@@ -17,12 +17,17 @@ class TimerBasedHandler:
             handlers: list,
             oneShot: bool,
             sync: ThreadingEvent):
-        """ Creates a new CounterBasedInvoker
+        """ Creates a new TimerBasedHandler
 
         frequency: float
             Time in fractional seconds to wait between invocations
         handlers: list
             List of handlers, called in sequential/rotating order
+        oneShot: bool
+            True if this timer is intended on only firing once and not at a
+            set frequency
+        sync: ThreadingEvent
+            Threading object, for internal use
         """
         self.__frequency = frequency
         self.__handlers = handlers
@@ -109,6 +114,7 @@ class EventBus:
         self.__eventHandlers = {}
         self.__eventQueue = Queue()
         self.__now = now
+        self.__stop = False
 
     def installEventHandler(self, eventType: type, handler):
         """ Installs the provided handler method as a callback for when
@@ -156,6 +162,11 @@ class EventBus:
         time to be applied and not whatever time the test is running """
         return self.__now
 
+    def stop(self):
+        """ Stop all event processing, effectively initiating shutdown """
+        self.__stop = True
+        self.__threadingEvent.set()
+
     def processEvents(self, now: float=None):
         """ Process any events that have been generated since the last call,
         compute and return the time to wait until call method should be
@@ -190,7 +201,7 @@ class EventBus:
         time """
         iterationCount = 0
 
-        while iterationCount < iterations:
+        while not self.__stop and iterationCount < iterations:
             try:
                 timeout = self.processEvents(time())
 

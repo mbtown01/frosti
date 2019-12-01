@@ -22,7 +22,8 @@ docker run -ti -p 4000:4000 docs/docker.github.io:latest
 For development, here are some useful docker commands
 ```
 # Build and run the services
-docker-compose --file docker/docker-compose.yaml run --build rpt
+docker-compose --file docker/docker-compose.yaml build rpt
+docker-compose --file docker/docker-compose.yaml run rpt
 
 # After a build, debug the rpt server
 docker-compose --file docker/docker-compose.yaml run -p 3001:3001 -p 5000:5000 \
@@ -35,7 +36,9 @@ To get a terminal in one of your composed containers (e.g. rpt)
 docker-compose --file docker/docker-compose.yaml exec rpt sh
 ```
 
-On MacOS, get connected to the VM hosting docker
+On MacOS, docker runs in its own VM.  Using docker volumes creates space in
+the VM and not on the local machine.  To inspect the volume contents, you 
+can get console on the VM with the following command:
 ```
 screen ~/Library/Containers/com.docker.docker/Data/vms/0/tty
 ```
@@ -51,6 +54,24 @@ docker-compose --file docker/docker-compose.yaml down --volumes
 ```
 
 # On the RaspberryPi
+
+Get the Raspberry Pi docker environment setup
+
+```
+curl -sSL https://get.docker.com | sh
+sudo usermod -aG docker pi
+sudo apt-get install libffi-dev libssl-dev
+sudo apt-get install -y python python-pip
+sudo pip install docker-compose
+```
+The first time I tried this, the docker installation process had issues with 
+conflicting versions of python v2.7.  I had to do the following two commands
+in addition to the ones above to make things work:
+```
+sudo cp -r /usr/local/lib/python2.7/dist-packages/backports/ssl_match_hostname /usr/lib/python2.7/dist-packages/backports/
+sudo cp -r /usr/local/lib/python2.7/dist-packages/backports/shutil_get_terminal_size /usr/lib/python2.7/dist-packages/backports/
+
+```
 
 ```
 sudo apt install python3 wiringpi python3-pip i2c-tools python3-smbus
