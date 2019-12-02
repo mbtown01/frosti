@@ -40,16 +40,16 @@ class GoGriddyPriceChecker(EventBusMember):
             'settlement_point': config.resolve('gogriddy', 'settlementPoint')
         }
         super()._installEventHandler(
-            type(PowerPriceChangedEvent), self.__powerPriceChanged)
+            PowerPriceChangedEvent, self.__powerPriceChanged)
         self.__startUpdatePriceHandler = \
-            super()._installTimerHandler(300.0, self.__startUpdatePrice)
-
-        self.__startUpdatePrice()
+            super()._installTimerHandler(
+                5.0, self.__startUpdatePrice, oneShot=True)
 
     def __startUpdatePrice(self):
+        """ Kickoff a 2nd thread to get the actual power price """
         Thread(target=self.__updatePrice, name="GoGriddy updater").start()
 
-    def __updatePrice(self, wait: float=0):
+    def __updatePrice(self):
         """ Gets the current price info and fires a PowerPriceChangedEvent.
         Designed to be called on another thread to not block execution """
         result = requests.post(
@@ -62,5 +62,9 @@ class GoGriddyPriceChecker(EventBusMember):
         ))
 
     def __powerPriceChanged(self, event: PowerPriceChangedEvent):
-        log.info(f"GoGriddy power price is now {event.price:.4f}/kW*h")
+        """ Handle the results from the update thread and schedule the next
+        update call """
         self.__startUpdatePriceHandler.reset(frequency=event.nextUpdate)
+        log.info(
+            f"Power price is now {event.price:.4f}/kW*h, next update "
+            f"in {event.nextUpdate}s")

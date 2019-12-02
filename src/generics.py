@@ -471,9 +471,6 @@ class GenericThermostatDriver(EventBusMember):
     def _powerPriceChanged(self, event: PowerPriceChangedEvent):
         settings = self._getService(Settings)
 
-        log.info(
-            f"Power price is now {event.price:.4f}/kW*h, next update "
-            f"in {event.nextUpdate}s")
         settings.priceChanged(event.price)
         self.__lastPrice = event.price
         self.__drawRowTwoInvoker.reset(2)
