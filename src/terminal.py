@@ -25,6 +25,9 @@ class TerminalDisplay(GenericLcdDisplay):
         self.__backlightEnabled = enabled
         self.commit()
 
+    def refresh(self):
+        self.__window.refresh()
+
     def commit(self):
         """ Commits all pending changes to the display """
         results = super().commit()
@@ -109,8 +112,9 @@ class TerminalThermostatDriver(GenericThermostatDriver):
             TerminalRelay(ThermostatState.FAN, 3, 2, 32),
         )
 
+        self.__lcd = TerminalDisplay(self.__displayWin, 20, 4)
         super().__init__(
-            lcd=TerminalDisplay(self.__displayWin, 20, 4),
+            lcd=self.__lcd,
             sensor=self.__environmentSensor,
             relays=self.__relayList,
         )
@@ -138,6 +142,8 @@ class TerminalThermostatDriver(GenericThermostatDriver):
         # Redraw the relay status
         for relay in self.__relayList:
             relay.redraw()
+        self.__logWin.refresh()
+        self.__lcd.refresh()
 
     def __keyPressedHandler(self, event: KeyPressedEvent):
         # Handle any key presses
@@ -145,6 +151,7 @@ class TerminalThermostatDriver(GenericThermostatDriver):
         if char == ord('l'):
             self.__stdscr.clear()
             self.__stdscr.refresh()
+            self.__updateDisplay()
         elif char == ord('9'):
             super()._fireEvent(PowerPriceChangedEvent(
                 price=self.__lastPrice-0.25, nextUpdate=1))
@@ -152,13 +159,13 @@ class TerminalThermostatDriver(GenericThermostatDriver):
             super()._fireEvent(PowerPriceChangedEvent(
                 price=self.__lastPrice+0.25, nextUpdate=1))
         elif char == ord('1'):
-            if not super().relayIsClosing:
+            if not super().relayToggled:
                 super()._modifyComfortSettings(1)
         elif char == ord('2'):
-            if not super().relayIsClosing:
+            if not super().relayToggled:
                 super()._modifyComfortSettings(-1)
         elif char == ord('3'):
-            if not super().relayIsClosing:
+            if not super().relayToggled:
                 super()._nextMode()
             else:
                 log.debug("Ignoring button during relay closure")
@@ -190,6 +197,8 @@ class TerminalThermostatDriver(GenericThermostatDriver):
 
     def __processMessageQueue(self):
         # Update any pending log messages to the log window
+        if self.__messageQueue.qsize():
+            self.__updateDisplay()
         while self.__messageQueue.qsize():
             message = self.__messageQueue.get()
             y, x = self.__logWin.getmaxyx()

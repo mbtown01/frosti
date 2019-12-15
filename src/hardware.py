@@ -270,6 +270,6 @@ class HardwareThermostatDriver(GenericThermostatDriver):
     def __buttonCallback(self, channel):
         """ Callback happens on another thread, so this method is marshaling
         ButtonPressedEvent instances to the main thread to handle """
-        if not super().relayIsClosing:
+        if not super().relayToggled:
             button = self.__pinToButtonMap[channel]
             self._fireEvent(ButtonPressedEvent(button))

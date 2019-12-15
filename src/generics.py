@@ -234,21 +234,21 @@ class GenericRelay:
         return self.__function
 
     def addCallback(self, callback):
-        """ Provide a callback in the form of callback(isOpening: boolean) to
-        notify when the relay is openign or closing """
+        """ Provide a callback in the form of callback(relay: GenericRelay) to
+        notify when the relay is opening or closing """
         self.__callbackList.append(callback)
 
     def openRelay(self):
         """ Open the relay, break circuit, disabling the function """
         for callback in self.__callbackList:
-            callback(False)
+            callback(self)
         self._openRelay()
         self.__isOpen = True
 
     def closeRelay(self):
         """ Close the relay, connect circuit, enabling the function """
         for callback in self.__callbackList:
-            callback(True)
+            callback(self)
         self._closeRelay()
         self.__isOpen = False
 
@@ -282,7 +282,7 @@ class GenericThermostatDriver(EventBusMember):
                  relays: list):
         self.__lcd = lcd
         self.__sensor = sensor
-        self.__relayIsClosing = False
+        self.__relayToggled = False
         self.__relayMap = {r.function: r for r in relays}
         for relay in relays:
             relay.addCallback(self.__relayCallback)
@@ -317,8 +317,8 @@ class GenericThermostatDriver(EventBusMember):
             frequency=self.__backlightTimeoutDuration,
             handlers=self.__backlightTimeout,
             oneShot=True)
-        self.__relayClosingTimeoutInvoker = self._installTimerHandler(
-            frequency=3.0, handlers=self.__relayClosingTimeout,
+        self.__relayToggledTimeoutInvoker = self._installTimerHandler(
+            frequency=3.0, handlers=self.__relayToggledTimeout,
             oneShot=True)
         self.__drawRowTwoInvoker = self._installTimerHandler(
             frequency=3.0,
@@ -354,8 +354,8 @@ class GenericThermostatDriver(EventBusMember):
         return self.__state
 
     @property
-    def relayIsClosing(self):
-        return self.__relayIsClosing
+    def relayToggled(self):
+        return self.__relayToggled
 
     def __checkSchedule(self):
         settings = self._getService(Settings)
@@ -476,13 +476,14 @@ class GenericThermostatDriver(EventBusMember):
             self.__state = newState
             self._fireEvent(ThermostatStateChangedEvent(newState))
 
-    def __relayCallback(self, isClosing: bool):
-        if isClosing:
-            self.__relayIsClosing = True
-            self.__relayClosingTimeoutInvoker.reset()
+    def __relayCallback(self, relay: GenericRelay):
+        self.__relayToggled = True
+        self.__relayToggledTimeoutInvoker.reset()
+        log.debug("Driver ENTERING relay toggle timeout")
 
-    def __relayClosingTimeout(self):
-        self.__relayIsClosing = False
+    def __relayToggledTimeout(self):
+        self.__relayToggled = False
+        log.debug("Driver COMPLETED relay toggle timeout")
 
     def __fanRunout(self):
         settings = self._getService(Settings)
