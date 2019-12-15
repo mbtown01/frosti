@@ -188,7 +188,7 @@ class PanasonicAgqRelay(GenericRelay):
         GPIO.setup(self.__pinOut, GPIO.OUT)
         self.openRelay()
 
-    def openRelay(self):
+    def _openRelay(self):
         super().openRelay()
 
         # NEGATIVE 3V from IN->OUT opens the relay
@@ -197,7 +197,7 @@ class PanasonicAgqRelay(GenericRelay):
         sleep(0.1)
         GPIO.output(self.__pinOut, False)
 
-    def closeRelay(self):
+    def _closeRelay(self):
         super().closeRelay()
 
         # POSITIVE 3V from IN->OUT opens the relay
@@ -239,7 +239,7 @@ class HardwareThermostatDriver(GenericThermostatDriver):
             relays=(
                 PanasonicAgqRelay(ThermostatState.FAN, 5, 17),
                 PanasonicAgqRelay(ThermostatState.HEATING, 6, 27),
-                PanasonicAgqRelay(ThermostatState.COOLING, 13, 22),
+                PanasonicAgqRelay(ThermostatState.COOLING, 13, 22)
             )
         )
 
@@ -272,5 +272,8 @@ class HardwareThermostatDriver(GenericThermostatDriver):
             pin, GPIO.RISING, callback=self.__buttonCallback, bouncetime=200)
 
     def __buttonCallback(self, channel):
-        button = self.__pinToButtonMap[channel]
-        self._fireEvent(ButtonPressedEvent(button))
+        """ Callback happens on another thread, so this method is marshaling
+        ButtonPressedEvent instances to the main thread to handle """
+        if not super().relayIsClosing:
+            button = self.__pinToButtonMap[channel]
+            self._fireEvent(ButtonPressedEvent(button))

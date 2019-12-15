@@ -221,6 +221,7 @@ class GenericRelay:
     def __init__(self, function: ThermostatState):
         self.__function = function
         self.__isOpen = None
+        self.__callbackList = []
 
     @property
     def isOpen(self):
@@ -232,13 +233,30 @@ class GenericRelay:
         """ Gets the ThermostatState function this relay handles """
         return self.__function
 
+    def addCallback(self, callback):
+        """ Provide a callback in the form of callback(isOpening: boolean) to
+        notify when the relay is openign or closing """
+        self.__callbackList.append(callback)
+
     def openRelay(self):
         """ Open the relay, break circuit, disabling the function """
+        for callback in self.__callbackList:
+            callback(False)
+        self._openRelay()
         self.__isOpen = True
 
     def closeRelay(self):
         """ Close the relay, connect circuit, enabling the function """
+        for callback in self.__callbackList:
+            callback(True)
+        self._closeRelay()
         self.__isOpen = False
+
+    def _openRelay(self):
+        pass
+
+    def _closeRelay(self):
+        pass
 
 
 class UserThermostatInteractionEvent(Event):
@@ -264,7 +282,10 @@ class GenericThermostatDriver(EventBusMember):
                  relays: list):
         self.__lcd = lcd
         self.__sensor = sensor
+        self.__relayIsClosing = False
         self.__relayMap = {r.function: r for r in relays}
+        for relay in relays:
+            relay.addCallback(self.__relayCallback)
         if ThermostatState.OFF not in self.__relayMap:
             self.__relayMap[ThermostatState.OFF] = \
                 GenericRelay(ThermostatState.OFF)
@@ -295,6 +316,9 @@ class GenericThermostatDriver(EventBusMember):
         self.__backlightTimeoutInvoker = self._installTimerHandler(
             frequency=self.__backlightTimeoutDuration,
             handlers=self.__backlightTimeout,
+            oneShot=True)
+        self.__relayClosingTimeoutInvoker = self._installTimerHandler(
+            frequency=3.0, handlers=self.__relayClosingTimeout,
             oneShot=True)
         self.__drawRowTwoInvoker = self._installTimerHandler(
             frequency=3.0,
@@ -328,6 +352,10 @@ class GenericThermostatDriver(EventBusMember):
     def state(self):
         """ Current state of the thermostat """
         return self.__state
+
+    @property
+    def relayIsClosing(self):
+        return self.__relayIsClosing
 
     def __checkSchedule(self):
         settings = self._getService(Settings)
@@ -447,6 +475,14 @@ class GenericThermostatDriver(EventBusMember):
                 self.__relayMap[ThermostatState.FAN].closeRelay()
             self.__state = newState
             self._fireEvent(ThermostatStateChangedEvent(newState))
+
+    def __relayCallback(self, isClosing: bool):
+        if isClosing:
+            self.__relayIsClosing = True
+            self.__relayClosingTimeoutInvoker.reset()
+
+    def __relayClosingTimeout(self):
+        self.__relayIsClosing = False
 
     def __fanRunout(self):
         settings = self._getService(Settings)

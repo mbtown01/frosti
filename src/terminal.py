@@ -47,30 +47,27 @@ class TerminalRelay(GenericRelay):
         super().__init__(function)
 
         self.__displayWin = curses.newwin(1, 16, row, col)
-        self.__isClosed = None
         self.__colorPair = curses.color_pair(colorPair)
 
     def redraw(self):
         self.__displayWin.clear()
-        if self.__isClosed is None:
+        if self.isOpen is None:
             self.__displayWin.addstr(
                 0, 0, self.function.name + ' UNKNOWN')
-        elif self.__isClosed:
+        elif self.isOpen:
+            self.__displayWin.addstr(
+                0, 0, self.function.name + ' OPEN')
+        else:
             self.__displayWin.addstr(
                 0, 0, self.function.name + ' CLOSED',
                 curses.A_REVERSE | self.__colorPair)
-        else:
-            self.__displayWin.addstr(
-                0, 0, self.function.name + ' OPEN')
 
         self.__displayWin.refresh()
 
-    def openRelay(self):
-        self.__isClosed = False
+    def _openRelay(self):
         self.redraw()
 
-    def closeRelay(self):
-        self.__isClosed = True
+    def _closeRelay(self):
         self.redraw()
 
 
@@ -155,11 +152,16 @@ class TerminalThermostatDriver(GenericThermostatDriver):
             super()._fireEvent(PowerPriceChangedEvent(
                 price=self.__lastPrice+0.25, nextUpdate=1))
         elif char == ord('1'):
-            super()._modifyComfortSettings(1)
+            if not super().relayIsClosing:
+                super()._modifyComfortSettings(1)
         elif char == ord('2'):
-            super()._modifyComfortSettings(-1)
+            if not super().relayIsClosing:
+                super()._modifyComfortSettings(-1)
         elif char == ord('3'):
-            super()._nextMode()
+            if not super().relayIsClosing:
+                super()._nextMode()
+            else:
+                log.debug("Ignoring button during relay closure")
         elif char == curses.KEY_UP:
             self.__environmentSensor.temperature += 1
             self._fireEvent(SensorDataChangedEvent(
