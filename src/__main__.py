@@ -69,8 +69,8 @@ def main(stdscr):
 
 
 if __name__ == '__main__':
-    uname = popen('uname -a').read()
-    if uname.find(' armv') >= 0:
-        main(None)
-    else:
-        wrapper(main)
+#    uname = popen('uname -a').read()
+#    if uname.find(' armv') >= 0:
+    main(None)
+#    else:
+#    wrapper(main)

@@ -5,7 +5,7 @@ import configparser
 
 class Config:
 
-    def __init__(self, name=None, json: dict={}):
+    def __init__(self, name: str = None, json: dict = {}):
         if name is None:
             self.__initFromEnviornment()
         else:

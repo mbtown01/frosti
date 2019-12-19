@@ -33,7 +33,7 @@ docker-compose --file docker/docker-compose.yaml run -p 3001:3001 -p 5000:5000 \
 
 To get a terminal in one of your composed containers (e.g. rpt)
 ```
-docker-compose --file docker/docker-compose.yaml exec rpt sh
+docker-compose --file docker/docker-compose.yaml run --entrypoint sh rpt
 ```
 
 On MacOS, docker runs in its own VM.  Using docker volumes creates space in
@@ -55,7 +55,7 @@ docker-compose --file docker/docker-compose.yaml down --volumes
 
 # On the RaspberryPi
 
-Get the Raspberry Pi docker environment setup
+This was what I had to do the first time I got the Raspberry Pi docker environment setup.  It's unclear whether it's at ALL necessary and that you can't simply just apt-get install docker and docker-compose and be done with it.  Need to test again...
 
 ```
 curl -sSL https://get.docker.com | sh
