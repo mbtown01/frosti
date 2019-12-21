@@ -1,8 +1,7 @@
 from queue import Queue
 from curses import wrapper
-from os import popen
-from time import sleep
 import logging
+import argparse
 
 from src.logging import log, setupLogging
 from src.events import EventBus
@@ -15,62 +14,74 @@ from src.influx import InfluxDataExporter
 from src.services import ServiceProvider
 
 
-def main(stdscr):
-    log.info('Starting thermostat main thread')
+class RootDriver(ServiceProvider):
 
-    serviceProvider = ServiceProvider()
+    def __init__(self):
+        super().__init__()
 
-    # Build the initial event bus and connect the settings instance
-    eventBus = EventBus()
-    serviceProvider.installService(EventBus, eventBus)
+        parser = argparse.ArgumentParser(
+            description='RPT main process')
+        parser.add_argument(
+            '--sim', dest='sim', action='store_true',
+            help='Run the thermostat in simulation mode')
+        self.__args = parser.parse_args()
 
-    config = Config()
-    serviceProvider.installService(Config, config)
+        self.__eventBus = EventBus()
+        self.installService(EventBus, self.__eventBus)
 
-    settings = Settings()
-    settings.setServiceProvider(serviceProvider)
-    serviceProvider.installService(Settings, settings)
+        self.__config = Config()
+        self.installService(Config, self.__config)
 
-    # Put all the event handlers together
-    apiDataBroker = ApiDataBroker()
-    apiDataBroker.setServiceProvider(serviceProvider)
-    ApiMessageHandler.setup(apiDataBroker)
+        self.__settings = Settings()
+        self.__settings.setServiceProvider(self)
+        self.installService(Settings, self.__settings)
 
-    if stdscr is not None:
-        messageQueue = Queue(128)
-        setupLogging(messageQueue)
-        hardwareDriver = TerminalThermostatDriver(
-            stdscr, messageQueue)
-        hardwareDriver.setServiceProvider(serviceProvider)
-    else:
-        from src.hardware import HardwareThermostatDriver
-        hardwareDriver = HardwareThermostatDriver()
-        hardwareDriver.setServiceProvider(serviceProvider)
-        setupLogging()
+        # Put all the event handlers together
+        self.__apiDataBroker = ApiDataBroker()
+        self.__apiDataBroker.setServiceProvider(self)
+        ApiMessageHandler.setup(self.__apiDataBroker)
 
-    # Setup the power price handler after the other event handlers have
-    # been created so they get the first power events
-    if config.value('gogriddy', 'enabled'):
+    def __start(self, stdscr):
+        if stdscr is not None:
+            messageQueue = Queue(128)
+            setupLogging(messageQueue)
+            hardwareDriver = TerminalThermostatDriver(
+                stdscr, messageQueue)
+            hardwareDriver.setServiceProvider(self)
+        else:
+            from src.hardware import HardwareThermostatDriver
+            hardwareDriver = HardwareThermostatDriver()
+            hardwareDriver.setServiceProvider(self)
+            setupLogging()
+
+        # Setup the power price handler after the other event handlers have
+        # been created so they get the first power events
+        if self.__config.value('gogriddy', 'enabled'):
+            try:
+                priceChecker = GoGriddyPriceChecker()
+                priceChecker.setServiceProvider(self)
+            except ConnectionError:
+                log.warning("Unable to reach GoGriddy")
+
         try:
-            priceChecker = GoGriddyPriceChecker()
-            priceChecker.setServiceProvider(serviceProvider)
-        except ConnectionError:
-            log.warning("Unable to reach GoGriddy")
+            dataExporter = InfluxDataExporter()
+            dataExporter.setServiceProvider(self)
+        except RuntimeError:
+            log.warning("Influx logger failed to initialize")
 
-    try:
-        dataExporter = InfluxDataExporter()
-        dataExporter.setServiceProvider(serviceProvider)
-    except RuntimeError:
-        log.warning("Influx logger failed to initialize")
+        log.info('Entering into standard operation')
+        self.__eventBus.fireEvent(SettingsChangedEvent())
+        self.__eventBus.exec()
 
-    log.info('Entering into standard operation')
-    eventBus.fireEvent(SettingsChangedEvent())
-    eventBus.exec()
+    def start(self):
+        if self.__args.sim:
+            wrapper(self.__start)
+        else:
+            self.__start(None)
 
 
 if __name__ == '__main__':
-#    uname = popen('uname -a').read()
-#    if uname.find(' armv') >= 0:
-    main(None)
-#    else:
-#    wrapper(main)
+    log.info('Starting thermostat main thread')
+
+    rootDriver = RootDriver()
+    rootDriver.start()

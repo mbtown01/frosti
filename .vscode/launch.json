@@ -38,6 +38,7 @@
             "module": "src",
             "console": "integratedTerminal",
             "stopOnEntry": false,
+            "args": ["--sim"],
         },
         {
             "name": "Python: Query GoGriddy",
