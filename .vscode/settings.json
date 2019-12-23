@@ -13,12 +13,13 @@
         "**/bower_components": true,
         ".pytest_cache": true,
         "kicad": true
-    },    
+    },
+    "editor.rulers": [80],
     "python.pythonPath": "/usr/bin/python3",
     "python.linting.pylintEnabled": true,
     "python.linting.enabled": true,
-    "python.linting.pep8Enabled": true,
-    "python.linting.pep8Args": [
+    "python.linting.pycodestyleEnabled": true,
+    "python.linting.pycodestyleArgs": [
         "--ignore=E402,E226"
     ],
     "python.testing.pytestArgs": [
