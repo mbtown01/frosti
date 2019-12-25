@@ -8,6 +8,7 @@
             "name": "Python: Container Attach",
             "type": "python",
             "request": "attach",
+            "preLaunchTask": "Start Debug Containers",
             "port": 3001,
             "host": "localhost",
             "pathMappings": [

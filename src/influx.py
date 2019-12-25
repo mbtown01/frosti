@@ -45,6 +45,21 @@ class InfluxDataExporter(EventBusMember):
                 self.__client.create_database(dbName)
             self.__client.switch_database(dbName)
 
+            # Grab the last settings for this thermostat
+            query = \
+                "select last(comfortMin) as min, " \
+                "       last(comfortMax) as max " \
+                "from rpt_status " \
+                f"where unit='{self.__unitName}'"
+            resultSet = self.__client.query(query)
+            if resultSet.error is not None:
+                raise RuntimeError(str(resultSet.error))
+            values = list(resultSet.get_points())
+            if len(values):
+                settings = self._getService(Settings)
+                settings.comfortMin = values[0]['min']
+                settings.comfortMax = values[0]['max']
+
             super()._installEventHandler(
                 SensorDataChangedEvent, self.__sensorDataChanged)
             super()._installEventHandler(

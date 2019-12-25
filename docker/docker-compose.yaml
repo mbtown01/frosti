@@ -2,7 +2,8 @@ version: "3.7"
 services:
 
   influxdb:
-    image: arm32v5/influxdb:latest
+    image: influxdb/latest
+    # image: arm32v5/influxdb:latest
     container_name: rpt-influxdb
     build:
       context: ../
@@ -21,7 +22,8 @@ services:
         target: /var/lib/influxdb
 
   grafana:
-    image: unibaktr/grafana:latest
+    image: grafana/grafana:latest
+    # image: unibaktr/grafana:latest
     container_name: rpt-grafana
     ports:
       - "3000:3000"
