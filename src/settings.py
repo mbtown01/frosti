@@ -195,6 +195,8 @@ class Settings(EventBusMember):
         self._fireEvent(SettingsChangedEvent())
 
     def timeChanged(self, day: int, hour: int, minute: int):
+        """ Called when a relevent amount of time has passed so any new settings
+        can potentially be applied."""
         for name in self.__schedules:
             schedule = self.__schedules[name]
             if day in schedule.days:
