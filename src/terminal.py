@@ -30,16 +30,13 @@ class TerminalDisplay(GenericLcdDisplay):
 
     def commit(self):
         """ Commits all pending changes to the display """
+        changed = False
         results = super().commit()
-        filtered = [l for l in results if len(l)]
-        if len(filtered):
-            for row in range(self.height):
-                if self.__backlightEnabled:
-                    self.__window.addstr(
-                        row, 0, super().rowText(row), curses.A_REVERSE)
-                else:
-                    self.__window.addstr(
-                        row, 0, super().rowText(row))
+        for i in range(len(results)):
+            for change in results[i]:
+                self.__window.addstr(i, change[0], change[1])
+                changed = True
+        if changed:
             self.__window.refresh()
 
 
