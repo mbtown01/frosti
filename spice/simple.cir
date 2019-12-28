@@ -1,0 +1,51 @@
+.title Spice Simulation 1-1
+
+.include "/home/mbtowns/projects/thermostat/spice/models/lm2596_5.lib"
+.include "/home/mbtowns/projects/thermostat/spice/models/led_green.lib"
+.include "/home/mbtowns/projects/thermostat/spice/models/s1a.lib"
+.include "/home/mbtowns/projects/thermostat/spice/models/ss24.lib"
+
+*.OPTION ABSTOL=1e-15.
+*.OPTION GMIN=1.0e-12.
+*.OPTION ITL1=1e5
+*.OPTION RSHUNT=1e12
+*.OPTION RELTOL=1e-5
+*.OPTION GMINSTEPS=1000
+*.OPTION ITL3=100
+
+V24v    VIN GND AC 24 0 SIN(0V 34V 60Hz)
+D1      VIN S1A_OUT DI_S1A
+C1      S1A_OUT GND 100uF
+* LM2596_5P0_TRANS VIN FB OUT GND ON_OFF_N
+XIC1    S1A_OUT PWR_5V IC1_OUT 0 0 LM2596_5P0_TRANS
+XD2     GND IC1_OUT SS24
+L1      IC1_OUT PWR_5V 150uH
+C2      PWR_5V GND 100uF
+
+*** S<name> <+sw node> <-sw node> <+ctrl node> <-ctrl node>
+*** S_TEST1  VIN TESTPRB1 VIN 0 TEST_SW1
+*** RT1 TESTPRB1 GND 1k
+*** .MODEL  TEST_SW1 VSWITCH Roff=1e7 Ron=1.0m Voff=0.8 Von=0.2
+*** S_TEST2 VIN TESTPRB2 VIN 0 TEST_SW2
+*** RT2 TESTPRB2 GND 1k
+*** .MODEL  TEST_SW2 SW ROFF=1e7 RON=1.0m VT=0.5 VH=0.3
+
+*** * LM2596_5P0_TRANS VIN FB OUT GND ON_OFF_N
+*** V24v VIN GND SIN(0V 34V 60Hz)
+*** * V24v VIN GND AC 24 0 SIN(0V 34V 60Hz)
+*** D1 VIN S1A_OUT DI_S1A
+*** C1 S1A_OUT GND 100uF
+*** XIC1 S1A_OUT PWR_5V IC1_OUT GND GND LM2596_5P0_TRANS
+*** XD2 GND IC1_OUT SS24
+*** L1 IC1_OUT PWR_5V 150uH
+*** C2 PWR_5V GND 100uF
+
+*** SIMULATION Commands ***
+.tran 1ms 20ms 0 UIC
+.control
+run
+plot v(VIN), v(PWR_5V), v(S1A_OUT), v(IC1_OUT)
+*plot v(TESTPRB2)
+.endc
+
+.end
