@@ -18,8 +18,8 @@
 * Simulator: PSPICE
 * Simulator Version: 16.2.0.p001
 * EVM Order Number: 
-* EVM User's Guide: SNOA406B–July 2001–Revised April 2013
-* Datasheet: SNVS124C–NOVEMBER 1999–REVISED APRIL 2013
+* EVM User's Guide: SNOA406Bï¿½July 2001ï¿½Revised April 2013
+* Datasheet: SNVS124Cï¿½NOVEMBER 1999ï¿½REVISED APRIL 2013
 *
 * Model Version: Final 1.00
 *
@@ -118,29 +118,25 @@ R_R2         GND ON_OFF_N  1E6 TC=0,0
 .SUBCKT  Current_Limit_U2_S1 1 2 3 4  
 S_U2_S1         3 4 1 2 _U2_S1
 RS_U2_S1         1 2 1G
-*** .MODEL         _U2_S1 VSWITCH Roff=1e6 Ron=1e-6 Voff=0.0V Von=1.0V
-.MODEL  _U2_S1 SW ROFF=1e6 RON=1e-6 VT=0.5 VH=0.5
+.MODEL         _U2_S1 VSWITCH Roff=1e6 Ron=1e-6 Voff=0.0V Von=1.0V
 .ENDS Current_Limit_U2_S1
 *$
 .SUBCKT  Soft_Start_U1_S1 1 2 3 4  
 S_U1_S1         3 4 1 2 _U1_S1
 RS_U1_S1         1 2 1G
-*** .MODEL         _U1_S1 VSWITCH Roff=1e6 Ron=0.125 Voff=0.2 Von=0.8
-.MODEL  _U1_S1 SW ROFF=1e6 RON=0.125 VT=0.5 VH=0.3
+.MODEL         _U1_S1 VSWITCH Roff=1e6 Ron=0.125 Voff=0.2 Von=0.8
 .ENDS Soft_Start_U1_S1
 *$
 .SUBCKT  Soft_Start_U1_S4 1 2 3 4  
 S_U1_S4         3 4 1 2 _U1_S4
 RS_U1_S4         1 2 1G
-*** .MODEL         _U1_S4 VSWITCH Roff=1e6 Ron=10u Voff=0.2 Von=0.8
-.MODEL  _U1_S4 SW ROFF=1e6 RON=10u VT=0.5 VH=0.3
+.MODEL         _U1_S4 VSWITCH Roff=1e6 Ron=10u Voff=0.2 Von=0.8
 .ENDS Soft_Start_U1_S4
 *$
 .SUBCKT  Soft_Start_U1_S3 1 2 3 4  
 S_U1_S3         3 4 1 2 _U1_S3
 RS_U1_S3         1 2 1G
-*** .MODEL         _U1_S3 VSWITCH Roff=1e7 Ron=1.0m Voff=0.8 Von=0.2
-.MODEL  _U1_S3 SW ROFF=1e7 RON=1m VT=0.5 VH=0.3
+.MODEL         _U1_S3 VSWITCH Roff=1e7 Ron=1.0m Voff=0.8 Von=0.2
 .ENDS Soft_Start_U1_S3
 *$
 .SUBCKT COMP_BASIC_GEN INP INM Y PARAMS: VDD=1 VSS=0 VTHRESH=0.5	
@@ -177,7 +173,7 @@ d1 1 2 dd1
 .SUBCKT srlatchrhp_basic_gen s r q qb params: vdd=1 vss=0 vthresh=0.5 
 gq 0 qint value = {if(v(r) > {vthresh},-5,if(v(s)>{vthresh},5, 0))}
 cqint qint 0 1n
-rqint qint 0 1000meg
+rqint qint 0 1000Meg
 d_d10 qint my5 d_d1
 v1 my5 0 {vdd}
 d_d11 myvss qint d_d1
