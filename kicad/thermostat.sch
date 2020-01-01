@@ -193,14 +193,12 @@ Wire Wire Line
 Wire Wire Line
 	1700 1100 1700 750 
 Connection ~ 1700 1100
-Text Label 2100 3200 0    50   ~ 0
-GND
 Wire Wire Line
 	2500 2700 2500 3200
 Wire Wire Line
 	1800 3000 1800 3200
 Wire Wire Line
-	1800 3200 2500 3200
+	1800 3200 2150 3200
 Text Label 6600 1400 0    50   ~ 0
 HVAC_PWR(RED)
 Text Label 6600 1500 0    50   ~ 0
@@ -398,19 +396,6 @@ F 5 "538-22-28-4044" H 7600 2150 50  0001 C CNN "Mouser"
 	1    7600 2150
 	1    0    0    -1  
 $EndComp
-$Comp
-L Connector_Generic:Conn_01x04 J2
-U 1 1 5D67AFA8
-P 7600 2650
-F 0 "J2" H 7680 2642 50  0000 L CNN
-F 1 "Sensor i2c" H 7680 2551 50  0000 L CNN
-F 2 "Socket_Strips:Socket_Strip_Straight_1x04_Pitch2.54mm" H 7600 2650 50  0001 C CNN
-F 3 "~" H 7600 2650 50  0001 C CNN
-F 4 "99" H 7600 2650 50  0001 C CNN "Populate"
-F 5 "200-SLW10401SS" H 7600 2650 50  0001 C CNN "Mouser"
-	1    7600 2650
-	1    0    0    -1  
-$EndComp
 Text Label 7200 2050 2    50   ~ 0
 GND
 Text Label 7200 2150 2    50   ~ 0
@@ -419,14 +404,6 @@ Text Label 7200 2250 2    50   ~ 0
 GPIO2(SDA1)
 Text Label 7200 2350 2    50   ~ 0
 GPIO3(SCL1)
-Text Label 7200 2550 2    50   ~ 0
-GPIO2(SDA1)
-Text Label 7200 2650 2    50   ~ 0
-GPIO3(SCL1)
-Text Label 7200 2750 2    50   ~ 0
-GND
-Text Label 7200 2850 2    50   ~ 0
-PWR_5V
 Wire Wire Line
 	7200 2050 7400 2050
 Wire Wire Line
@@ -435,14 +412,6 @@ Wire Wire Line
 	7400 2250 7200 2250
 Wire Wire Line
 	7200 2350 7400 2350
-Wire Wire Line
-	7400 2550 7200 2550
-Wire Wire Line
-	7400 2650 7200 2650
-Wire Wire Line
-	7200 2750 7400 2750
-Wire Wire Line
-	7400 2850 7200 2850
 $Comp
 L thermostat:LM2596S-12-RENUM IC1
 U 1 1 5D6B23A7
@@ -1172,7 +1141,7 @@ Wire Wire Line
 Wire Wire Line
 	9400 4450 9500 4450
 Connection ~ 9500 4450
-Text Label 9500 3500 2    50   ~ 0
+Text Label 9500 3400 2    50   ~ 0
 PWR_3.3V
 Text Label 8500 4300 3    50   ~ 0
 GPIO2(SDA1)
@@ -1304,8 +1273,6 @@ Connection ~ 9500 3550
 Wire Wire Line
 	9500 3550 10100 3550
 Wire Wire Line
-	9500 3500 9500 3550
-Wire Wire Line
 	9400 3700 9400 3550
 Connection ~ 9400 3550
 Wire Wire Line
@@ -1336,6 +1303,22 @@ Connection ~ 8800 3900
 Wire Wire Line
 	8500 4300 8500 4000
 Connection ~ 8500 4000
-Text Notes 7750 3400 0    50   ~ 0
+Text Notes 7750 3300 0    50   ~ 0
 Based on https://www.electroschematics.com/bmp280-diy-project-primer/
+$Comp
+L thermostat:GND #PWR?
+U 1 1 5E0DA227
+P 2150 3200
+F 0 "#PWR?" H 2150 2950 50  0001 C CNN
+F 1 "GND" H 2155 3027 50  0000 C CNN
+F 2 "" H 2150 3200 50  0000 C CNN
+F 3 "" H 2150 3200 50  0000 C CNN
+	1    2150 3200
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2150 3200 2500 3200
+Connection ~ 2150 3200
+Wire Wire Line
+	9500 3400 9500 3550
 $EndSCHEMATC
