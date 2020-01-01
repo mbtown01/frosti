@@ -27,20 +27,12 @@ To do list
 
 
 Thoughts on board v3
-    * Include the heat sink for the voltage regulator and 
-      move somewhere not under the RPI?
     * Include LEDs for each relay for debugging purposes
-    * Add BMP280 circuit directly to the board or flip the adder so the
-      sensor is on top and not on bottom
     * Indicator LED for power spike / shutdown
     * Replace relays with only-open-when-voltage-applied
     * Shrink board and connect w/ ribbon cable or flip so zero hangs off top
-    * Add capacitors (w/ resistance) to stablize LCD power
     * Change screw terminals to something that can be easily unplugged
-    
 
 Ready to build the rest when...
     * Solved the LCD display going bad issue 
-    * Integrated the bmp280 onto the board
     * Built a case for the unit to hang on the wall
-    * 
