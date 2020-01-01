@@ -28,4 +28,12 @@ K Step-Down Voltage Regulator Adjustable 3A
 F http://www.ti.com/lit/ds/symlink/lm2596.pdf
 $ENDCMP
 #
+$CMP LTC4041
+F https://www.analog.com/media/en/technical-documentation/eval-board-schematic/710-DC2642A-A_REV04_PCA_SCHEMATIC.pdf
+$ENDCMP
+#
+$CMP SIR424DP
+F https://www.mouser.com/datasheet/2/427/sir424dp-244427.pdf
+$ENDCMP
+#
 #End Doc Library
