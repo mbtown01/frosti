@@ -1,3 +1,4 @@
 (sym_lib_table
   (lib (name thermostat)(type Legacy)(uri ${KIPRJMOD}/thermostat.lib)(options "")(descr ""))
+  (lib (name thermostat-rescue)(type Legacy)(uri ${KIPRJMOD}/thermostat-rescue.lib)(options "")(descr ""))
 )

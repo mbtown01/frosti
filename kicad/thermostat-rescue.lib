@@ -1,0 +1,24 @@
+EESchema-LIBRARY Version 2.4
+#encoding utf-8
+#
+# Relay?-thermostat
+#
+DEF Relay?-thermostat U 0 0 Y N 1 F N
+F0 "U" 150 200 50 V I C CNN
+F1 "Relay?-thermostat" 0 350 50 H V C CNN
+F2 "" 150 200 50 V I C CNN
+F3 "" 150 200 50 V I C CNN
+DRAW
+S -150 -200 150 250 0 1 0 f
+X ~ 1 250 200 100 L 50 50 0 0 I
+X ~ 2 250 50 100 L 50 50 0 0 O
+X ~ 3 250 -50 100 L 50 50 1 1 I
+X ~ 4 250 -150 100 L 50 50 1 1 O
+X ~ 5 -250 -150 100 R 50 50 1 1 O
+X ~ 6 -250 -50 100 R 50 50 1 1 I
+X ~ 7 -250 50 100 R 50 50 1 1 O
+X ~ 8 -250 200 100 R 50 50 1 1 O
+ENDDRAW
+ENDDEF
+#
+#End Library
