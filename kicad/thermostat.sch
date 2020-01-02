@@ -1,6 +1,5 @@
 EESchema Schematic File Version 4
-LIBS:thermostat-cache
-EELAYER 29 0
+EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
@@ -906,7 +905,7 @@ Connection ~ 3400 5800
 Wire Wire Line
 	2850 5450 2950 5450
 $Comp
-L thermostat:LTC4041 U11
+L thermostat-rescue:LTC4041-thermostat U11
 U 1 1 5E1374C4
 P 2500 6250
 F 0 "U11" V 2700 6350 50  0000 C CNN
@@ -932,34 +931,14 @@ Wire Wire Line
 	2250 5150 2250 5450
 Wire Wire Line
 	2550 5150 2550 5450
-Connection ~ 2550 5150
 Wire Wire Line
 	2950 5450 3200 5450
 Wire Wire Line
 	3200 5450 3200 5150
-Wire Wire Line
-	3200 5150 3050 5150
 Connection ~ 2950 5450
 Wire Wire Line
 	3200 5150 3400 5150
 Connection ~ 3200 5150
-Wire Wire Line
-	2700 5400 2700 5450
-Wire Wire Line
-	3050 5250 3050 5150
-Connection ~ 3050 5150
-$Comp
-L thermostat:SIR424DP U12
-U 1 1 5E21048A
-P 2900 5200
-F 0 "U12" H 2750 5450 50  0000 L CNN
-F 1 "SIR424DP" H 2600 5350 50  0000 L CNN
-F 2 "Housings_SOIC:PowerPAK_SO-8_Single" V 2750 4950 50  0001 C CNN
-F 3 "https://www.mouser.com/datasheet/2/427/sir424dp-244427.pdf" H 2900 5250 50  0001 C CNN
-F 4 "781-SIR424DP-GE3" V 2850 5200 50  0001 C CNN "Mouser"
-	1    2900 5200
-	1    0    0    -1  
-$EndComp
 $Comp
 L Device:R_US R10
 U 1 1 5E14D4D6
@@ -1321,4 +1300,21 @@ Wire Wire Line
 Connection ~ 2150 3200
 Wire Wire Line
 	9500 3400 9500 3550
+$Comp
+L Transistor_FET:BUK9M9R1-40EX T1
+U 1 1 5E0E0418
+P 2750 5250
+F 0 "T1" V 3092 5250 50  0000 C CNN
+F 1 "SIR424DP" V 3001 5250 50  0000 C CNN
+F 2 "Housings_SOIC:PowerPAK_SO-8_Single" H 2950 5175 50  0001 L CIN
+F 3 "https://www.mouser.com/datasheet/2/427/sir424dp-244427.pdf" V 2750 5250 50  0001 L CNN
+F 4 "781-SIR424DP-GE3" H 2750 5250 50  0001 C CNN "Mouser"
+	1    2750 5250
+	0    1    -1   0   
+$EndComp
+Connection ~ 2550 5150
+Wire Wire Line
+	2700 5450 2750 5450
+Wire Wire Line
+	2950 5150 3200 5150
 $EndSCHEMATC
