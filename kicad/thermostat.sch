@@ -477,8 +477,6 @@ Wire Wire Line
 	2450 4550 1950 4550
 Wire Wire Line
 	1950 4050 1950 4550
-Wire Wire Line
-	1750 4250 1750 3850
 $Comp
 L Device:CP C2
 U 1 1 5D767EF7
@@ -955,7 +953,6 @@ Connection ~ 1750 4550
 Connection ~ 1950 4550
 Wire Wire Line
 	1750 3850 1950 3850
-Connection ~ 1750 3850
 Wire Wire Line
 	1450 3850 1550 3850
 Wire Wire Line
@@ -1579,4 +1576,7 @@ F 3 "" H 8000 5300 50  0000 C CNN
 	1    8000 5300
 	1    0    0    -1  
 $EndComp
+Connection ~ 1750 3850
+Wire Wire Line
+	1750 4250 1750 3850
 $EndSCHEMATC
