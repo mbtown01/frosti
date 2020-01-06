@@ -165,6 +165,7 @@ F 2 "Connector_PinSocket_2.54mm:PinSocket_2x20_P2.54mm_Vertical" H -2750 1050 50
 F 3 "https://www.mouser.com/datasheet/2/445/61304021821-1626922.pdf" H -2750 1050 50  0001 C CNN
 F 4 "485-2243" H 2100 2000 50  0001 C CNN "Mouser"
 F 5 "1" H 2100 2000 50  0001 C CNN "Populate"
+F 6 "485-2243" H 2100 2000 50  0001 C CNN "MPN"
 	1    2100 2000
 	1    0    0    -1  
 $EndComp
@@ -224,6 +225,7 @@ F 2 "project_footprints:AGQ210A03" V 5300 1350 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/315/mech_eng_gq-1299323.pdf" V 5300 1350 50  0001 C CNN
 F 4 "769-AGQ210A03" H 5150 1150 50  0001 C CNN "Mouser"
 F 5 "1" H 5150 1150 50  0001 C CNN "Populate"
+F 6 "769-AGQ210A03" H 5150 1150 50  0001 C CNN "MPN"
 	1    5150 1150
 	1    0    0    -1  
 $EndComp
@@ -289,6 +291,7 @@ F 2 "project_footprints:AGQ210A03" V 5300 2050 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/315/mech_eng_gq-1299323.pdf" V 5300 2050 50  0001 C CNN
 F 4 "769-AGQ210A03" H 5150 1850 50  0001 C CNN "Mouser"
 F 5 "1" H 5150 1850 50  0001 C CNN "Populate"
+F 6 "769-AGQ210A03" H 5150 1850 50  0001 C CNN "MPN"
 	1    5150 1850
 	1    0    0    -1  
 $EndComp
@@ -318,6 +321,7 @@ F 2 "project_footprints:AGQ210A03" V 5300 2750 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/315/mech_eng_gq-1299323.pdf" V 5300 2750 50  0001 C CNN
 F 4 "769-AGQ210A03" H 5150 2550 50  0001 C CNN "Mouser"
 F 5 "1" V 5150 2550 50  0001 C CNN "Populate"
+F 6 "769-AGQ210A03" H 5150 2550 50  0001 C CNN "MPN"
 	1    5150 2550
 	1    0    0    -1  
 $EndComp
@@ -379,6 +383,7 @@ F 2 "Button_Switch_SMD:SW_SPST_EVPBF" H 9950 1250 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/315/ATK0000C432-1596775.pdf" H 9950 1250 50  0001 C CNN
 F 4 "667-EVP-BFAC1A000" H 9950 1050 50  0001 C CNN "Mouser"
 F 5 "1" H 9950 1050 50  0001 C CNN "Populate"
+F 6 "667-EVP-BFAC1A000" H 9950 1050 50  0001 C CNN "MPN"
 	1    9950 1050
 	1    0    0    -1  
 $EndComp
@@ -392,6 +397,7 @@ F 2 "Connector_PinSocket_2.54mm:PinSocket_1x04_P2.54mm_Vertical" H 7600 1700 50 
 F 3 "https://www.mouser.com/datasheet/2/276/0022284044_PCB_HEADERS-228091.pdf" H 7600 1700 50  0001 C CNN
 F 4 "99" H 7600 1700 50  0001 C CNN "Populate"
 F 5 "538-22-28-4044" H 7600 1700 50  0001 C CNN "Mouser"
+F 6 "538-22-28-4044" H 7600 1700 50  0001 C CNN "MPN"
 	1    7600 1700
 	1    0    0    -1  
 $EndComp
@@ -421,6 +427,7 @@ F 2 "Package_TO_SOT_SMD:TO-263-5_TabPin3" H 2500 3700 50  0001 L CIN
 F 3 "http://www.ti.com/lit/ds/symlink/lm2596.pdf" H 2450 3950 50  0001 C CNN
 F 4 "926-LM2596S-50" H 2450 3950 50  0001 C CNN "Mouser"
 F 5 "1" H 2450 3950 50  0001 C CNN "Populate"
+F 6 "926-LM2596S-50" H 2450 3950 50  0001 C CNN "MPN"
 	1    2450 3950
 	1    0    0    -1  
 $EndComp
@@ -434,6 +441,7 @@ F 2 "project_footprints:CUI_TB004-508-05BE" H 7600 1150 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/670/tb004-508-1550640.pdf" H 7600 1150 50  0001 C CNN
 F 4 "490-TB004-508-05BE" H 7600 1150 50  0001 C CNN "Mouser"
 F 5 "1" H 7600 1150 50  0001 C CNN "Populate"
+F 6 "490-TB004-508-05BE" H 7600 1150 50  0001 C CNN "MPN"
 	1    7600 1150
 	1    0    0    -1  
 $EndComp
@@ -453,6 +461,7 @@ F 2 "Diode_SMD:D_SMB" V 3000 4350 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/427/ss22-59686.pdf" V 3000 4350 50  0001 C CNN
 F 4 "625-SS24-E3" V 3000 4350 50  0001 C CNN "Mouser"
 F 5 "1" H 3000 4350 50  0001 C CNN "Populate"
+F 6 "625-SS24-E3" H 3000 4350 50  0001 C CNN "MPN"
 	1    3000 4350
 	0    1    1    0   
 $EndComp
@@ -466,6 +475,7 @@ F 2 "Inductor_SMD:L_Wuerth_WE-PD-Typ-M-Typ-S" H 3300 3850 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/445/7447773151-1526088.pdf" H 3300 3850 50  0001 C CNN
 F 4 "710-7447773151" H 3300 3850 50  0001 C CNN "Mouser"
 F 5 "1" H 3300 3850 50  0001 C CNN "Populate"
+F 6 "710-7447773151" H 3300 3850 50  0001 C CNN "MPN"
 	1    3300 3850
 	1    0    0    -1  
 $EndComp
@@ -487,6 +497,7 @@ F 2 "Capacitor_SMD:C_Elec_8x10.2" H 3638 4050 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/315/ABA0000C1184-947404.pdf" H 3600 4200 50  0001 C CNN
 F 4 "667-EEE-FP1H101AV" H 3600 4200 50  0001 C CNN "Mouser"
 F 5 "1" H 3600 4200 50  0001 C CNN "Populate"
+F 6 "667-EEE-FP1H101AV" H 3600 4200 50  0001 C CNN "MPN"
 	1    3600 4200
 	1    0    0    -1  
 $EndComp
@@ -522,6 +533,7 @@ F 2 "Capacitor_SMD:C_Elec_8x10.2" H 1788 4250 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/315/ABA0000C1184-947404.pdf" H 1750 4400 50  0001 C CNN
 F 4 "667-EEE-FP1H101AV" H 1750 4400 50  0001 C CNN "Mouser"
 F 5 "1" H 1750 4400 50  0001 C CNN "Populate"
+F 6 "667-EEE-FP1H101AV" H 1750 4400 50  0001 C CNN "MPN"
 	1    1750 4400
 	1    0    0    -1  
 $EndComp
@@ -535,6 +547,7 @@ F 2 "Button_Switch_SMD:SW_SPST_EVPBF" H 9950 1550 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/315/ATK0000C432-1596775.pdf" H 9950 1550 50  0001 C CNN
 F 4 "667-EVP-BFAC1A000" H 9950 1350 50  0001 C CNN "Mouser"
 F 5 "1" H 9950 1350 50  0001 C CNN "Populate"
+F 6 "667-EVP-BFAC1A000" H 9950 1350 50  0001 C CNN "MPN"
 	1    9950 1350
 	1    0    0    -1  
 $EndComp
@@ -548,6 +561,7 @@ F 2 "Button_Switch_SMD:SW_SPST_EVPBF" H 9950 1850 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/315/ATK0000C432-1596775.pdf" H 9950 1850 50  0001 C CNN
 F 4 "667-EVP-BFAC1A000" H 9950 1650 50  0001 C CNN "Mouser"
 F 5 "1" H 9950 1650 50  0001 C CNN "Populate"
+F 6 "667-EVP-BFAC1A000" H 9950 1650 50  0001 C CNN "MPN"
 	1    9950 1650
 	1    0    0    -1  
 $EndComp
@@ -561,6 +575,7 @@ F 2 "Button_Switch_SMD:SW_SPST_EVPBF" H 9950 2150 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/315/ATK0000C432-1596775.pdf" H 9950 2150 50  0001 C CNN
 F 4 "667-EVP-BFAC1A000" H 9950 1950 50  0001 C CNN "Mouser"
 F 5 "1" H 9950 1950 50  0001 C CNN "Populate"
+F 6 "667-EVP-BFAC1A000" H 9950 1950 50  0001 C CNN "MPN"
 	1    9950 1950
 	1    0    0    -1  
 $EndComp
@@ -595,6 +610,7 @@ F 1 "25F" H 4118 6305 50  0000 L CNN
 F 2 "Capacitor_THT:CP_Radial_D18.0mm_P7.50mm" H 4038 6200 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/427/225edlc-renycap-1314940.pdf" H 4000 6350 50  0001 C CNN
 F 4 "594-MAL222591004E3" H 4000 6350 50  0001 C CNN "Mouser"
+F 5 "594-MAL222591004E3" H 4000 6350 50  0001 C CNN "MPN"
 	1    4000 6350
 	1    0    0    -1  
 $EndComp
@@ -793,6 +809,7 @@ F 1 "2.2uH" V 3200 6200 50  0000 C CNN
 F 2 "Inductor_SMD:L_Coilcraft_XAL5030" H 3250 6200 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/597/xal50xx-270657.pdf" H 3250 6200 50  0001 C CNN
 F 4 "994-XAL5030-222MEC" V 3250 6200 50  0001 C CNN "Mouser"
+F 5 "994-XAL5030-222MEC" H 3250 6200 50  0001 C CNN "MPN"
 	1    3250 6200
 	0    1    1    0   
 $EndComp
@@ -878,6 +895,7 @@ F 1 "LTC4041" V 2600 6350 50  0000 C CNN
 F 2 "project_footprints:ltc4041" H 1950 8400 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/609/LTC4041-1504291.pdf" H 2500 6500 50  0001 C CNN
 F 4 "584-4041EUFDPB" H 2500 6250 50  0001 C CNN "Mouser"
+F 5 "584-4041EUFDPB" H 2500 6250 50  0001 C CNN "MPN"
 	1    2500 6250
 	1    0    0    -1  
 $EndComp
@@ -942,6 +960,7 @@ F 2 "Diode_SMD:D_SOD-123F" V 1650 3850 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/308/US1AFA-1301710.pdf" V 1650 3850 50  0001 C CNN
 F 4 "512-US1AFA" H 1650 3850 50  0001 C CNN "Mouser"
 F 5 "1" H 1650 3850 50  0001 C CNN "Populate"
+F 6 "512-US1AFA" H 1650 3850 50  0001 C CNN "MPN"
 	1    1650 3850
 	-1   0    0    1   
 $EndComp
@@ -998,6 +1017,7 @@ F 1 "BMP280" H 9630 3305 50  0000 L CNN
 F 2 "Package_LGA:Bosch_LGA-8_2x2.5mm_P0.65mm_ClockwisePinNumbering" H 9400 2600 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/783/BST-BMP280-DS001-1509562.pdf" H 9400 3300 50  0001 C CNN
 F 4 "262-BMP280" H 9400 3300 50  0001 C CNN "Mouser"
+F 5 "262-BMP280" H 9400 3300 50  0001 C CNN "MPN"
 	1    9400 3300
 	1    0    0    -1  
 $EndComp
@@ -1208,6 +1228,7 @@ F 1 "SIR424DP" V 3001 5250 50  0000 C CNN
 F 2 "Package_SO:Vishay_PowerPAK_1212-8_Single" H 2950 5175 50  0001 L CIN
 F 3 "https://www.mouser.com/datasheet/2/427/sis434dn-1324395.pdf" V 2750 5250 50  0001 L CNN
 F 4 "781-SIS434DN-GE3" H 2750 5250 50  0001 C CNN "Mouser"
+F 5 "781-SIS434DN-GE3" H 2750 5250 50  0001 C CNN "MPN"
 	1    2750 5250
 	0    1    -1   0   
 $EndComp
