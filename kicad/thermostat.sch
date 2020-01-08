@@ -229,50 +229,6 @@ F 6 "769-AGQ210A03" H 5150 1150 50  0001 C CNN "MPN"
 	1    5150 1150
 	1    0    0    -1  
 $EndComp
-$Comp
-L thermostat:Mounting_Hole-Mechanical MK1
-U 1 1 5D5E9722
-P 4675 7350
-F 0 "MK1" H 4775 7396 50  0000 L CNN
-F 1 "Mounting_Hole-Mechanical" H 4775 7305 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.5mm" H 4675 7350 50  0001 C CNN
-F 3 "" H 4675 7350 50  0001 C CNN
-	1    4675 7350
-	1    0    0    -1  
-$EndComp
-$Comp
-L thermostat:Mounting_Hole-Mechanical MK2
-U 1 1 5D5F78A7
-P 4675 7550
-F 0 "MK2" H 4775 7596 50  0000 L CNN
-F 1 "Mounting_Hole-Mechanical" H 4775 7505 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.5mm" H 4675 7550 50  0001 C CNN
-F 3 "" H 4675 7550 50  0001 C CNN
-	1    4675 7550
-	1    0    0    -1  
-$EndComp
-$Comp
-L thermostat:Mounting_Hole-Mechanical MK3
-U 1 1 5D5F9275
-P 4675 6950
-F 0 "MK3" H 4775 6996 50  0000 L CNN
-F 1 "Mounting_Hole-Mechanical" H 4775 6905 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.5mm" H 4675 6950 50  0001 C CNN
-F 3 "" H 4675 6950 50  0001 C CNN
-	1    4675 6950
-	1    0    0    -1  
-$EndComp
-$Comp
-L thermostat:Mounting_Hole-Mechanical MK4
-U 1 1 5D5FAC9B
-P 4675 7150
-F 0 "MK4" H 4775 7196 50  0000 L CNN
-F 1 "Mounting_Hole-Mechanical" H 4775 7105 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.5mm" H 4675 7150 50  0001 C CNN
-F 3 "" H 4675 7150 50  0001 C CNN
-	1    4675 7150
-	1    0    0    -1  
-$EndComp
 Text Label 5600 950  0    50   ~ 0
 GPIO17(GEN0)
 Wire Wire Line
@@ -577,28 +533,6 @@ F 4 "667-EVP-BFAC1A000" H 9950 1950 50  0001 C CNN "Mouser"
 F 5 "1" H 9950 1950 50  0001 C CNN "Populate"
 F 6 "667-EVP-BFAC1A000" H 9950 1950 50  0001 C CNN "MPN"
 	1    9950 1950
-	1    0    0    -1  
-$EndComp
-$Comp
-L thermostat:Mounting_Hole-Mechanical MH1
-U 1 1 5D6D64DA
-P 5925 6950
-F 0 "MH1" H 6025 6996 50  0000 L CNN
-F 1 "Mounting_Hole-Wall" H 6025 6905 50  0000 L CNN
-F 2 "MountingHole:MountingHole_5mm" H 5925 6950 50  0001 C CNN
-F 3 "" H 5925 6950 50  0001 C CNN
-	1    5925 6950
-	1    0    0    -1  
-$EndComp
-$Comp
-L thermostat:Mounting_Hole-Mechanical MH2
-U 1 1 5D6E2454
-P 5925 7150
-F 0 "MH2" H 6025 7196 50  0000 L CNN
-F 1 "Mounting_Hole-Wall" H 6025 7105 50  0000 L CNN
-F 2 "MountingHole:MountingHole_5mm" H 5925 7150 50  0001 C CNN
-F 3 "" H 5925 7150 50  0001 C CNN
-	1    5925 7150
 	1    0    0    -1  
 $EndComp
 $Comp
