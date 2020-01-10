@@ -476,6 +476,7 @@ F 0 "Gr1" H 6025 7396 50  0000 L CNN
 F 1 "Logo" H 6025 7305 50  0000 L CNN
 F 2 "project_footprints:LlamaHead" H 5925 7350 50  0001 C CNN
 F 3 "" H 5925 7350 50  0001 C CNN
+F 4 "0" H 5925 7350 50  0001 C CNN "Populate"
 	1    5925 7350
 	1    0    0    -1  
 $EndComp
