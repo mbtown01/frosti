@@ -27,8 +27,9 @@ I think I can get back to where I was in the first half of the year when I was
 saving %20!
 
 But it's more than just saving some money.  I'm also interested in understanding
-how my HVAC systems are performing.  
+how my HVAC systems are performing.
+
 * When do they run?
 * How long do they run?
-* If I set the temperature target higher in the summer, how much electricity does that save me?  
-* Is there a more efficient algorithm for keeping a target temperature??
+* If I set the temperature target higher in the summer, how much electricity does that save me?
+* Is there a more efficient algorithm for keeping a target temperature?

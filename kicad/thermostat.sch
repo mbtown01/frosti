@@ -306,13 +306,13 @@ Wire Wire Line
 Wire Wire Line
 	10150 1950 10550 1950
 Text Label 10550 1950 0    50   ~ 0
-PWR_5V
+BTNS_PWR_3V3
 Text Label 10550 1650 0    50   ~ 0
-PWR_5V
+BTNS_PWR_3V3
 Text Label 10550 1350 0    50   ~ 0
-PWR_5V
+BTNS_PWR_3V3
 Text Label 10550 1050 0    50   ~ 0
-PWR_5V
+BTNS_PWR_3V3
 Wire Wire Line
 	9750 1950 8900 1950
 Wire Wire Line
@@ -322,57 +322,27 @@ Wire Wire Line
 Wire Wire Line
 	9750 1050 8900 1050
 Text Label 8900 1950 0    50   ~ 0
-GPIO12(PWM0)
+BTNS_B4
 Text Label 8900 1650 0    50   ~ 0
-GPIO21(SPI1_SCK)
+BTNS_B3
 Text Label 8900 1350 0    50   ~ 0
-GPIO20(SPI1_MOSI)
+BTNS_B2
 Text Label 8900 1050 0    50   ~ 0
-GPIO16
-$Comp
-L Switch:SW_Push SW_GPIO16
-U 1 1 5D59E237
-P 9950 1050
-F 0 "SW_GPIO16" H 9950 1243 50  0000 C CNN
-F 1 "GPIO16" H 9950 1244 50  0001 C CNN
-F 2 "Button_Switch_SMD:SW_SPST_EVPBF" H 9950 1250 50  0001 C CNN
-F 3 "https://www.mouser.com/datasheet/2/315/ATK0000C432-1596775.pdf" H 9950 1250 50  0001 C CNN
-F 4 "667-EVP-BFAC1A000" H 9950 1050 50  0001 C CNN "Mouser"
-F 5 "1" H 9950 1050 50  0001 C CNN "Populate"
-F 6 "667-EVP-BFAC1A000" H 9950 1050 50  0001 C CNN "MPN"
-	1    9950 1050
-	1    0    0    -1  
-$EndComp
-$Comp
-L Connector_Generic:Conn_01x04 J1
-U 1 1 5D66FD1D
-P 7600 1700
-F 0 "J1" H 7680 1692 50  0000 L CNN
-F 1 "Display i2c" H 7680 1601 50  0000 L CNN
-F 2 "Connector_PinSocket_2.54mm:PinSocket_1x04_P2.54mm_Vertical" H 7600 1700 50  0001 C CNN
-F 3 "https://www.mouser.com/datasheet/2/276/0022284044_PCB_HEADERS-228091.pdf" H 7600 1700 50  0001 C CNN
-F 4 "1" H 7600 1700 50  0001 C CNN "Populate"
-F 5 "538-22-28-4044" H 7600 1700 50  0001 C CNN "Mouser"
-F 6 "538-22-28-4044" H 7600 1700 50  0001 C CNN "MPN"
-	1    7600 1700
-	1    0    0    -1  
-$EndComp
-Text Label 7200 1600 2    50   ~ 0
+BTNS_B1
+Text Label 7250 2100 3    50   ~ 0
 GND
-Text Label 7200 1700 2    50   ~ 0
+Text Label 7450 2100 3    50   ~ 0
 PWR_5V
-Text Label 7200 1800 2    50   ~ 0
+Text Label 7550 2100 3    50   ~ 0
 GPIO2(SDA1)
-Text Label 7200 1900 2    50   ~ 0
+Text Label 7650 2100 3    50   ~ 0
 GPIO3(SCL1)
 Wire Wire Line
-	7200 1600 7400 1600
+	7250 2100 7250 1900
 Wire Wire Line
-	7200 1700 7400 1700
+	7450 2100 7450 1900
 Wire Wire Line
-	7400 1800 7200 1800
-Wire Wire Line
-	7200 1900 7400 1900
+	7550 1900 7550 2100
 $Comp
 L thermostat:LM2596S-12-RENUM IC1
 U 1 1 5D6B23A7
@@ -609,30 +579,18 @@ F 6 "1" H 9400 3300 50  0001 C CNN "Populate"
 	1    9400 3300
 	1    0    0    -1  
 $EndComp
-$Comp
-L thermostat:GND #PWR0110
-U 1 1 5E52C53F
-P 9500 3650
-F 0 "#PWR0110" H 9500 3400 50  0001 C CNN
-F 1 "GND" H 9505 3477 50  0000 C CNN
-F 2 "" H 9500 3650 50  0000 C CNN
-F 3 "" H 9500 3650 50  0000 C CNN
-	1    9500 3650
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	9500 3600 9500 3650
 Wire Wire Line
 	9400 3600 9400 3650
 Wire Wire Line
 	9400 3650 9500 3650
-Connection ~ 9500 3650
 Text Label 9500 2600 2    50   ~ 0
-PWR_3.3V
+BTNS_PWR_3V3
 Text Label 8500 3500 3    50   ~ 0
-GPIO2(SDA1)
+BTNS_SDA
 Text Label 8800 3500 3    50   ~ 0
-GPIO3(SCL1)
+BTNS_SCL
 $Comp
 L Device:R_US R21
 U 1 1 5E560971
@@ -645,17 +603,6 @@ F 4 "1" H 8950 3650 50  0001 C CNN "Populate"
 F 5 "667-ERJ-PB6B1002V" H 8950 3650 50  0001 C CNN "MPN"
 F 6 "667-ERJ-PB6B1002V" H 8950 3650 50  0001 C CNN "Mouser"
 	1    8950 3650
-	1    0    0    -1  
-$EndComp
-$Comp
-L thermostat:GND #PWR0111
-U 1 1 5E568D5E
-P 8950 3800
-F 0 "#PWR0111" H 8950 3550 50  0001 C CNN
-F 1 "GND" H 8955 3627 50  0000 C CNN
-F 2 "" H 8950 3800 50  0000 C CNN
-F 3 "" H 8950 3800 50  0000 C CNN
-	1    8950 3800
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
@@ -676,17 +623,6 @@ F 5 "1" H 10100 2950 50  0001 C CNN "Populate"
 	1    0    0    -1  
 $EndComp
 $Comp
-L thermostat:GND #PWR0112
-U 1 1 5E5B713D
-P 10100 3100
-F 0 "#PWR0112" H 10100 2850 50  0001 C CNN
-F 1 "GND" H 10105 2927 50  0000 C CNN
-F 2 "" H 10100 3100 50  0000 C CNN
-F 3 "" H 10100 3100 50  0000 C CNN
-	1    10100 3100
-	1    0    0    -1  
-$EndComp
-$Comp
 L Device:C C22
 U 1 1 5E5BFD1A
 P 10500 2950
@@ -697,17 +633,6 @@ F 3 "https://www.mouser.com/datasheet/2/212/KEM_C1013_X7R_FT-CAP_SMD-1103280.pdf
 F 4 "80-C0805X104K5R3316" H 10500 2950 50  0001 C CNN "Mouser"
 F 5 "1" H 10500 2950 50  0001 C CNN "Populate"
 	1    10500 2950
-	1    0    0    -1  
-$EndComp
-$Comp
-L thermostat:GND #PWR0113
-U 1 1 5E5C9350
-P 10500 3100
-F 0 "#PWR0113" H 10500 2850 50  0001 C CNN
-F 1 "GND" H 10505 2927 50  0000 C CNN
-F 2 "" H 10500 3100 50  0000 C CNN
-F 3 "" H 10500 3100 50  0000 C CNN
-	1    10500 3100
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -799,7 +724,7 @@ Connection ~ 8800 3100
 Wire Wire Line
 	8500 3500 8500 3200
 Connection ~ 8500 3200
-Text Notes 7750 2500 0    50   ~ 0
+Text Notes 8050 2500 0    50   ~ 0
 Based on https://www.electroschematics.com/bmp280-diy-project-primer/
 $Comp
 L thermostat:GND #PWR0114
@@ -1105,7 +1030,7 @@ PWR_CAP_OUT
 Text Label 10450 5300 3    50   ~ 0
 PFO
 Text Notes 4750 6125 0    50   Italic 0
-*1) V(chg) = Voltage divider, sets supercap charge voltage\n      = 0.8 * (1+698k/294k) = 2.7V\n*2) I(chg) = Resistor program, sets supercap charge current\n      = 2000/1k = 1a\n*3) V(in) = Voltage divider, sets input min voltage before power fail\n      = 1.19 * (1 + 113k/38.3k) = 4.7V\n*4) I(syslim) = Resistor program, sets input current limit\n      = 25mV/12m = 2.5a\n*5) V(sys) = Voltage divider, sets boost converter output voltage\n      = 0.8 * (1 + 1050k/200k) = 5V\n      V(sysgd) = Same divider, threshold for SYSGD\n      = 0.74 * (1 + 1050k/200k) = 4.6V\n*6) T(min-backup) = Min backup time\n      = 2.2 * 1(nf) = 2.2ms\n
+*1) V(chg) = Voltage divider, sets supercap charge voltage\n      = 0.8 * (1+698k/294k) = 2.7V\n*2) I(chg) = Resistor program, sets supercap charge current\n      = 2000/1k = 1a\n*3) V(in) = Voltage divider, sets input min voltage before power fail\n      = 1.19 * (1 + 120k/39k) = 4.85V\n*4) I(syslim) = Resistor program, sets input current limit\n      = 25mV/10m = 2.5a\n*5) V(sys) = Voltage divider, sets boost converter output voltage\n      = 0.8 * (1 + 1050k/200k) = 5V\n      V(sysgd) = Same divider, threshold for SYSGD\n      = 0.74 * (1 + 1050k/200k) = 4.6V\n*6) T(min-backup) = Min backup time\n      = 2.2 * 100(nf) = 220ms\n
 NoConn ~ 5400 1300
 NoConn ~ 4900 1300
 NoConn ~ 4900 2000
@@ -1250,13 +1175,9 @@ NoConn ~ 1750 6350
 Text Notes 2975 5975 0    59   Italic 12
 *5
 Wire Wire Line
-	3050 5200 3050 5550
-Connection ~ 3050 5850
+	3000 5200 3000 5550
 Wire Wire Line
-	3050 5200 3500 5200
-Connection ~ 3050 5200
-Wire Wire Line
-	2850 5200 3050 5200
+	2850 5200 3000 5200
 Text Notes 1400 7050 0    59   Italic 12
 *3
 Wire Wire Line
@@ -1297,7 +1218,7 @@ L Transistor_FET:BUK9M9R1-40EX T1
 U 1 1 5E0E0418
 P 2400 5300
 F 0 "T1" V 2742 5300 50  0000 C CNN
-F 1 "SIR424DP" V 2651 5300 50  0000 C CNN
+F 1 "SIR434DN" V 2651 5300 50  0000 C CNN
 F 2 "Package_SO:Vishay_PowerPAK_1212-8_Single" H 2600 5225 50  0001 L CIN
 F 3 "https://www.mouser.com/datasheet/2/427/sis434dn-1324395.pdf" V 2400 5300 50  0001 L CNN
 F 4 "781-SIS434DN-GE3" H 2400 5300 50  0001 C CNN "Mouser"
@@ -1306,7 +1227,7 @@ F 6 "1" H 2400 5300 50  0001 C CNN "Populate"
 	1    2400 5300
 	0    1    -1   0   
 $EndComp
-Text Label 3750 5200 0    50   ~ 0
+Text Label 4000 5200 0    50   ~ 0
 PWR_CAP_OUT
 Wire Wire Line
 	1900 7150 1900 7350
@@ -1323,20 +1244,17 @@ Connection ~ 1900 5200
 Connection ~ 1550 5200
 Wire Wire Line
 	1550 5200 1900 5200
-Connection ~ 3500 5200
-Wire Wire Line
-	3750 5200 3500 5200
 $Comp
 L Device:R_US R10
 U 1 1 5E14D4D6
 P 1400 6900
 F 0 "R10" V 1450 7200 50  0000 L CNN
-F 1 "113k" V 1350 7200 50  0000 L CNN
+F 1 "120k" V 1350 7200 50  0000 L CNN
 F 2 "Resistor_SMD:R_0805_2012Metric" V 1440 6890 50  0001 C CNN
 F 3 "~" H 1400 6900 50  0001 C CNN
 F 4 "1" H 1400 6900 50  0001 C CNN "Populate"
-F 5 "667-ERJ-PB6B1133V" H 1400 6900 50  0001 C CNN "MPN"
-F 6 "667-ERJ-PB6B1133V" H 1400 6900 50  0001 C CNN "Mouser"
+F 5 "667-ERJ-PB6B1203V" H 1400 6900 50  0001 C CNN "MPN"
+F 6 "667-ERJ-PB6B1203V" H 1400 6900 50  0001 C CNN "Mouser"
 	1    1400 6900
 	0    -1   -1   0   
 $EndComp
@@ -1447,7 +1365,7 @@ F 6 "1" H 2900 6250 50  0001 C CNN "Populate"
 	0    1    1    0   
 $EndComp
 Wire Wire Line
-	2900 5850 3050 5850
+	2900 5850 3000 5850
 Connection ~ 2900 5850
 Wire Wire Line
 	2900 5950 2900 5850
@@ -1502,12 +1420,12 @@ $EndComp
 $Comp
 L thermostat:GND #PWR0103
 U 1 1 5E219536
-P 3500 5500
-F 0 "#PWR0103" H 3500 5250 50  0001 C CNN
-F 1 "GND" H 3505 5327 50  0000 C CNN
-F 2 "" H 3500 5500 50  0000 C CNN
-F 3 "" H 3500 5500 50  0000 C CNN
-	1    3500 5500
+P 3900 5500
+F 0 "#PWR0103" H 3900 5250 50  0001 C CNN
+F 1 "GND" H 3905 5327 50  0000 C CNN
+F 2 "" H 3900 5500 50  0000 C CNN
+F 3 "" H 3900 5500 50  0000 C CNN
+	1    3900 5500
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -1537,27 +1455,14 @@ L Device:R_US R18
 U 1 1 5E207CE6
 P 2050 5200
 F 0 "R18" V 2225 5075 50  0000 L CNN
-F 1 "12m" V 2125 5075 50  0000 L CNN
+F 1 "10m" V 2125 5075 50  0000 L CNN
 F 2 "Resistor_SMD:R_0805_2012Metric" V 2090 5190 50  0001 C CNN
 F 3 "~" H 2050 5200 50  0001 C CNN
 F 4 "1" H 2050 5200 50  0001 C CNN "Populate"
-F 5 "667-ERJ-6CWFR012V" H 2050 5200 50  0001 C CNN "MPN"
-F 6 "667-ERJ-6CWFR012V" H 2050 5200 50  0001 C CNN "Mouser"
+F 5 "667-ERJ-6CWDR010V" H 2050 5200 50  0001 C CNN "MPN"
+F 6 "667-ERJ-6CWDR010V" H 2050 5200 50  0001 C CNN "Mouser"
 	1    2050 5200
 	0    1    1    0   
-$EndComp
-$Comp
-L Device:C C13
-U 1 1 5E202618
-P 3500 5350
-F 0 "C13" H 3615 5396 50  0000 L CNN
-F 1 "100uF" H 3615 5305 50  0000 L CNN
-F 2 "Capacitor_SMD:C_0805_2012Metric" H 3538 5200 50  0001 C CNN
-F 3 "https://www.mouser.com/datasheet/2/281/murata_03052018_GRM_Series_1-1310166.pdf" H 3500 5350 50  0001 C CNN
-F 4 "81-GRM21BR60J107ME5L" H 3500 5350 50  0001 C CNN "Mouser"
-F 5 "1" H 3500 5350 50  0001 C CNN "Populate"
-	1    3500 5350
-	1    0    0    -1  
 $EndComp
 $Comp
 L Device:R_US R16
@@ -1576,15 +1481,15 @@ $EndComp
 $Comp
 L Device:R_US R15
 U 1 1 5E1DD608
-P 3050 5700
-F 0 "R15" H 2800 5750 50  0000 L CNN
-F 1 "1050k" H 2750 5650 50  0000 L CNN
-F 2 "Resistor_SMD:R_0805_2012Metric" V 3090 5690 50  0001 C CNN
-F 3 "~" H 3050 5700 50  0001 C CNN
-F 4 "1" H 3050 5700 50  0001 C CNN "Populate"
-F 5 "667-ERJ-6ENF1054V" H 3050 5700 50  0001 C CNN "MPN"
-F 6 "667-ERJ-6ENF1054V" H 3050 5700 50  0001 C CNN "Mouser"
-	1    3050 5700
+P 3000 5700
+F 0 "R15" H 2750 5750 50  0000 L CNN
+F 1 "1050k" H 2700 5650 50  0000 L CNN
+F 2 "Resistor_SMD:R_0805_2012Metric" V 3040 5690 50  0001 C CNN
+F 3 "~" H 3000 5700 50  0001 C CNN
+F 4 "1" H 3000 5700 50  0001 C CNN "Populate"
+F 5 "667-ERJ-6ENF1054V" H 3000 5700 50  0001 C CNN "MPN"
+F 6 "667-ERJ-6ENF1054V" H 3000 5700 50  0001 C CNN "Mouser"
+	1    3000 5700
 	-1   0    0    1   
 $EndComp
 $Comp
@@ -1602,14 +1507,14 @@ F 6 "667-ERJ-PB6B1001V" H 2600 7200 50  0001 C CNN "Mouser"
 	1    0    0    -1  
 $EndComp
 $Comp
-L Device:C C14
+L Device:C C16
 U 1 1 5E1B9F70
 P 2400 7200
-F 0 "C14" H 2150 7200 50  0000 L CNN
-F 1 "1nF" H 2150 7100 50  0000 L CNN
+F 0 "C16" H 2150 7200 50  0000 L CNN
+F 1 "100nF" H 2150 7100 50  0000 L CNN
 F 2 "Capacitor_SMD:C_0805_2012Metric" H 2438 7050 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/212/KEM_C1090_X7R_ESD-1103328.pdf" H 2400 7200 50  0001 C CNN
-F 4 "80-C0805C102KMRECAUT" H 2400 7200 50  0001 C CNN "Mouser"
+F 4 "80-C0805X104K5R3316" H 2400 7200 50  0001 C CNN "Mouser"
 F 5 "1" H 2400 7200 50  0001 C CNN "Populate"
 	1    2400 7200
 	1    0    0    -1  
@@ -1632,12 +1537,12 @@ L Device:R_US R11
 U 1 1 5E151833
 P 1550 7200
 F 0 "R11" H 1300 7200 50  0000 L CNN
-F 1 "38.3k" H 1250 7100 50  0000 L CNN
+F 1 "39k" H 1250 7100 50  0000 L CNN
 F 2 "Resistor_SMD:R_0805_2012Metric" V 1590 7190 50  0001 C CNN
 F 3 "~" H 1550 7200 50  0001 C CNN
 F 4 "1" H 1550 7200 50  0001 C CNN "Populate"
-F 5 "667-ERJ-PB6B3832V" H 1550 7200 50  0001 C CNN "MPN"
-F 6 "667-ERJ-PB6B3832V" H 1550 7200 50  0001 C CNN "Mouser"
+F 5 "667-ERJ-PB6B3902V" H 1550 7200 50  0001 C CNN "MPN"
+F 6 "667-ERJ-PB6B3902V" H 1550 7200 50  0001 C CNN "Mouser"
 	1    1550 7200
 	1    0    0    -1  
 $EndComp
@@ -1679,14 +1584,6 @@ F 6 "1" H 2150 6300 50  0001 C CNN "Populate"
 $EndComp
 Text Notes 2625 7150 0    59   Italic 12
 *2
-Text Notes 1925 5175 0    59   Italic 12
-****
-Text Notes 2125 7425 0    59   Italic 12
-****
-Text Notes 3250 6675 0    59   Italic 12
-****
-Text Notes 3600 5525 0    59   Italic 12
-****
 $Comp
 L thermostat:Mounting_Hole-Mechanical MK8
 U 1 1 5E63DFA6
@@ -1709,4 +1606,200 @@ F 3 "" H 4325 6350 50  0001 C CNN
 	1    4325 6350
 	1    0    0    -1  
 $EndComp
+$Comp
+L thermostat:GND #PWR0120
+U 1 1 5E4D47E2
+P 3650 5500
+F 0 "#PWR0120" H 3650 5250 50  0001 C CNN
+F 1 "GND" H 3655 5327 50  0000 C CNN
+F 2 "" H 3650 5500 50  0000 C CNN
+F 3 "" H 3650 5500 50  0000 C CNN
+	1    3650 5500
+	1    0    0    -1  
+$EndComp
+Connection ~ 3000 5850
+Wire Wire Line
+	3000 5850 3050 5850
+$Comp
+L thermostat:GND #PWR0121
+U 1 1 5E52DCD8
+P 3400 5500
+F 0 "#PWR0121" H 3400 5250 50  0001 C CNN
+F 1 "GND" H 3405 5327 50  0000 C CNN
+F 2 "" H 3400 5500 50  0000 C CNN
+F 3 "" H 3400 5500 50  0000 C CNN
+	1    3400 5500
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4000 5200 3900 5200
+Wire Wire Line
+	3900 5200 3650 5200
+Connection ~ 3900 5200
+Wire Wire Line
+	3650 5200 3400 5200
+Connection ~ 3650 5200
+$Comp
+L Device:C C15
+U 1 1 5E52DCE0
+P 3400 5350
+F 0 "C15" H 3515 5396 50  0000 L CNN
+F 1 "100nF" H 3515 5305 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0805_2012Metric" H 3438 5200 50  0001 C CNN
+F 3 "https://www.mouser.com/datasheet/2/281/murata_03052018_GRM_Series_1-1310166.pdf" H 3400 5350 50  0001 C CNN
+F 4 "80-C0805X104K5R3316" H 3400 5350 50  0001 C CNN "Mouser"
+F 5 "1" H 3400 5350 50  0001 C CNN "Populate"
+	1    3400 5350
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C C14
+U 1 1 5E4D47EA
+P 3650 5350
+F 0 "C14" H 3765 5396 50  0000 L CNN
+F 1 "100uF" H 3765 5305 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0805_2012Metric" H 3688 5200 50  0001 C CNN
+F 3 "https://www.mouser.com/datasheet/2/281/murata_03052018_GRM_Series_1-1310166.pdf" H 3650 5350 50  0001 C CNN
+F 4 "81-GRM21BR60J107ME5L" H 3650 5350 50  0001 C CNN "Mouser"
+F 5 "1" H 3650 5350 50  0001 C CNN "Populate"
+	1    3650 5350
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3400 5200 3000 5200
+Connection ~ 3400 5200
+Connection ~ 3000 5200
+$Comp
+L Device:C C13
+U 1 1 5E202618
+P 3900 5350
+F 0 "C13" H 4015 5396 50  0000 L CNN
+F 1 "100uF" H 4015 5305 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0805_2012Metric" H 3938 5200 50  0001 C CNN
+F 3 "https://www.mouser.com/datasheet/2/281/murata_03052018_GRM_Series_1-1310166.pdf" H 3900 5350 50  0001 C CNN
+F 4 "81-GRM21BR60J107ME5L" H 3900 5350 50  0001 C CNN "Mouser"
+F 5 "1" H 3900 5350 50  0001 C CNN "Populate"
+	1    3900 5350
+	1    0    0    -1  
+$EndComp
+$Comp
+L Transistor_FET:BUK9M9R1-40EX T2
+U 1 1 5E5911D1
+P 7150 2500
+F 0 "T2" V 7500 2250 50  0000 C CNN
+F 1 "SIR434DN" V 7400 2250 50  0000 C CNN
+F 2 "Package_SO:Vishay_PowerPAK_1212-8_Single" H 7350 2425 50  0001 L CIN
+F 3 "https://www.mouser.com/datasheet/2/427/sis434dn-1324395.pdf" V 7150 2500 50  0001 L CNN
+F 4 "781-SIS434DN-GE3" H 7150 2500 50  0001 C CNN "Mouser"
+F 5 "781-SIS434DN-GE3" H 7150 2500 50  0001 C CNN "MPN"
+F 6 "1" H 7150 2500 50  0001 C CNN "Populate"
+	1    7150 2500
+	0    1    -1   0   
+$EndComp
+$Comp
+L Connector_Generic:Conn_01x05 J1
+U 1 1 5E5BDB33
+P 7450 1700
+F 0 "J1" V 7414 1412 50  0000 R CNN
+F 1 "Conn_01x05" V 7323 1412 50  0000 R CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical" H 7450 1700 50  0001 C CNN
+F 3 "~" H 7450 1700 50  0001 C CNN
+	1    7450 1700
+	0    -1   -1   0   
+$EndComp
+Text Label 7150 2700 3    50   ~ 0
+GPIO25(GEN6)
+Text Label 6950 2400 2    50   ~ 0
+PWR_5V
+Wire Wire Line
+	7350 2400 7350 1900
+$Comp
+L Switch:SW_Push SW_GPIO16
+U 1 1 5D59E237
+P 9950 1050
+F 0 "SW_GPIO16" H 9950 1243 50  0000 C CNN
+F 1 "GPIO16" H 9950 1244 50  0001 C CNN
+F 2 "Button_Switch_SMD:SW_SPST_EVPBF" H 9950 1250 50  0001 C CNN
+F 3 "https://www.mouser.com/datasheet/2/315/ATK0000C432-1596775.pdf" H 9950 1250 50  0001 C CNN
+F 4 "667-EVP-BFAC1A000" H 9950 1050 50  0001 C CNN "Mouser"
+F 5 "1" H 9950 1050 50  0001 C CNN "Populate"
+F 6 "667-EVP-BFAC1A000" H 9950 1050 50  0001 C CNN "MPN"
+	1    9950 1050
+	1    0    0    -1  
+$EndComp
+Text Label 10650 3500 0    50   ~ 0
+BTNS_GND
+Wire Wire Line
+	10500 3100 10500 3500
+Wire Wire Line
+	10100 3100 10100 3500
+Wire Wire Line
+	10100 3500 10500 3500
+Wire Wire Line
+	9500 3650 10500 3650
+Wire Wire Line
+	10500 3650 10500 3500
+Connection ~ 9500 3650
+Connection ~ 10500 3500
+Wire Wire Line
+	8950 3800 10500 3800
+Wire Wire Line
+	10500 3800 10500 3650
+Connection ~ 10500 3650
+Wire Wire Line
+	10500 3500 10650 3500
+$Comp
+L Connector_Generic:Conn_02x04_Counter_Clockwise J3
+U 1 1 5E8364E7
+P 6750 4100
+F 0 "J3" H 6800 4417 50  0000 C CNN
+F 1 "Conn_02x04_Counter_Clockwise" H 6800 4326 50  0000 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_2x04_P2.54mm_Vertical" H 6750 4100 50  0001 C CNN
+F 3 "~" H 6750 4100 50  0001 C CNN
+	1    6750 4100
+	1    0    0    -1  
+$EndComp
+Text Label 6550 4000 2    50   ~ 0
+BTNS_B1
+Text Label 6550 4100 2    50   ~ 0
+BTNS_B2
+Text Label 6550 4200 2    50   ~ 0
+BTNS_B3
+Text Label 6550 4300 2    50   ~ 0
+BTNS_B4
+Text Label 7050 4000 0    50   ~ 0
+BTNS_PWR_3V3
+Text Label 7050 4100 0    50   ~ 0
+BTNS_GND
+Text Label 7050 4200 0    50   ~ 0
+BTNS_SDA
+Text Label 7050 4300 0    50   ~ 0
+BTNS_SCL
+$Comp
+L Connector_Generic:Conn_02x04_Counter_Clockwise J4
+U 1 1 5E850ED9
+P 5250 4100
+F 0 "J4" H 5300 4417 50  0000 C CNN
+F 1 "Conn_02x04_Counter_Clockwise" H 5300 4326 50  0000 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_2x04_P2.54mm_Vertical" H 5250 4100 50  0001 C CNN
+F 3 "~" H 5250 4100 50  0001 C CNN
+	1    5250 4100
+	1    0    0    -1  
+$EndComp
+Text Label 5050 4000 2    50   ~ 0
+GPIO16
+Text Label 5050 4100 2    50   ~ 0
+GPIO20(SPI1_MOSI)
+Text Label 5050 4200 2    50   ~ 0
+GPIO21(SPI1_SCK)
+Text Label 5050 4300 2    50   ~ 0
+GPIO22(GEN3)
+Text Label 5550 4000 0    50   ~ 0
+PWR_3.3V
+Text Label 5550 4100 0    50   ~ 0
+GND
+Text Label 5550 4200 0    50   ~ 0
+GPIO2(SDA1)
+Text Label 5550 4300 0    50   ~ 0
+GPIO3(SCL1)
 $EndSCHEMATC

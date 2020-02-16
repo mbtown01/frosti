@@ -12,13 +12,13 @@
 .MODEL  DI_S1A D  ( IS=7.31e-018 RS=42.0m BV=50.0 IBV=5.00u
 + CJO=42.4p  M=0.333 N=0.775 TT=4.32u )
 
-V1      VIN GND AC 12 0 SIN(0V 30V 10)
+V1      VIN GND AC 24 0 SIN(0V 34V 1)
 D1      VIN D1_OUT DI_S1A
-C1      D1_OUT GND 500uF
-R1      D1_OUT GND 1
+R1      D1_OUT R1_OUT 10
+C1      R1_OUT GND 100uF
 
 *** SIMULATION Commands ***
-.tran 1ms 250ms 0 UIC
+.tran 1ms 1s 0 UIC
 .control
 run
 plot v(D1_OUT), v(VIN)
