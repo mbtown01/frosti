@@ -4,6 +4,12 @@ $CMP 1827585-1
 F Compliant
 $ENDCMP
 #
+$CMP ASMT-YTB7-0AA02
+D Triple LED RVB (Avago Technology)
+K LED RGB
+F https://docs.broadcom.com/docs/AV02-3793EN
+$ENDCMP
+#
 $CMP LM2596S-12-RENUM
 D 12V 3A Step-Down Voltage Regulator, TO-263
 K Step-Down Voltage Regulator 12V 3A
@@ -30,6 +36,12 @@ $ENDCMP
 #
 $CMP LTC4041
 F https://www.analog.com/media/en/technical-documentation/eval-board-schematic/710-DC2642A-A_REV04_PCA_SCHEMATIC.pdf
+$ENDCMP
+#
+$CMP LTRB-RASF
+D LED RGB 
+K LED RGB
+F https://dammedia.osram.info/media/resource/hires/osram-dam-3950803/LTRB%20RASF_EN.pdf
 $ENDCMP
 #
 $CMP SIR424DP
