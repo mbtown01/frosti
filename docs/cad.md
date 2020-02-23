@@ -4,3 +4,12 @@ Some references I've found on the web that are helpful when designing the
 case:
 
 * https://ultimaker.com/en/resources/52843-design-guidelines
+
+
+# KiCAD tips/tricks
+
+Export a BOM for Mouser
+
+* Use the bom2grouped_csv plugin
+* cut -d, -f2,6 output | sed "s/\"//g" | grep -v "^[0-9],*$" | grep -v MPN | sed "s/\(.*\),\(.*\)/\2 \1/"
+* Use mouser's BOM import tool, paste in the text generated above
