@@ -3,7 +3,28 @@
 *.log
 .pytest_cache
 .DS_store
+
+
+# Temporary files
+kicad/*.000
+kicad/*.bak
+kicad/*.bck
+kicad/*.kicad_pcb-bak
+kicad/*.sch-bak
+kicad/*~
+kicad/_autosave-*
+kicad/*.tmp
+kicad/*-save.pro
+kicad/*-save.kicad_pcb
 kicad/fp-info-cache
-kicad/thermostat.kicad_pcb-bak
-kicad/thermostat.sch-bak
-kicad/thermostat.bak
+
+# Netlist files (exported from Eeschema)
+kicad/*.net
+
+# Autorouter files (exported from Pcbnew)
+kicad/*.dsn
+kicad/*.ses
+
+# Exported BOM files
+kicad/*.xml
+kicad/*.csv
