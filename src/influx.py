@@ -53,7 +53,7 @@ class InfluxDataExporter(EventBusMember):
                 PowerPriceChangedEvent, self.__powerPriceChanged)
             super()._installEventHandler(
                 SettingsChangedEvent, self.__processSettingsChanged)
-        except:
+        except Exception:
             log.warning('Unable to connect to local influx instance')
 
     def __powerPriceChanged(self, event: PowerPriceChangedEvent):

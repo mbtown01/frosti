@@ -19,7 +19,6 @@ app = Flask(__name__, static_url_path='')
 class ApiDataBroker(EventBusMember):
     """ Thread dedicated to responding to the REST API for the thermostat and
     brokering any necessary data/events """
-    __instance = None
 
     def __init__(self,):
         self.__flaskThread = Thread(

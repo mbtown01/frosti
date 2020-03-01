@@ -1,0 +1,47 @@
+hardware:
+    HD44780Display(GenericLcdDisplay):
+    Bme280EnvironmentSensor(GenericEnvironmentSensor):
+    PanasonicAgqRelay(GenericRelay):
+    HardwareThermostatDriver(GenericThermostatDriver):
+
+terminal:
+	TerminalDisplay(GenericLcdDisplay):
+	TerminalRelay(GenericRelay):
+	TerminalThermostatDriver(GenericThermostatDriver):
+    ThermostatState(Enum):
+
+services:
+    InfluxDataExporter(EventBusMember):
+    GoGriddyPriceChecker(EventBusMember):
+    ApiDataBroker(EventBusMember):
+    ApiMessageHandler:
+	GenericThermostatDriver(EventBusMember):
+
+core:
+	Event:
+	EventBus:
+	EventBusMember(ServiceConsumer):
+	ServiceProvider:
+	ServiceConsumer:
+    TimerBasedHandler:
+
+core.events:
+	ButtonPressedEvent(Event):
+	ThermostatStateChangedEvent(Event):
+	PropertyChangedEvent(Event):
+	SensorDataChangedEvent(Event):
+	PowerPriceChangedEvent(Event):
+	UserThermostatInteractionEvent(Event):
+	SettingsChangedEvent(Event):
+    
+core.generics:
+	GenericLcdDisplay:
+	GenericEnvironmentSensor:
+	GenericRelay:
+
+config:
+	Config:
+	PriceOverride:
+	Program:
+	Schedule:
+	Settings(EventBusMember):

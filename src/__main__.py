@@ -7,7 +7,6 @@ from src.logging import log, setupLogging
 from src.events import EventBus
 from src.api import ApiDataBroker, ApiMessageHandler
 from src.settings import Settings, SettingsChangedEvent
-from src.terminal import TerminalThermostatDriver
 from src.power import GoGriddyPriceChecker
 from src.config import Config
 from src.influx import InfluxDataExporter
@@ -45,6 +44,7 @@ class RootDriver(ServiceProvider):
         if stdscr is not None:
             messageQueue = Queue(128)
             setupLogging(messageQueue)
+            from src.terminal import TerminalThermostatDriver
             hardwareDriver = TerminalThermostatDriver(
                 stdscr, messageQueue)
             hardwareDriver.setServiceProvider(self)
@@ -66,7 +66,7 @@ class RootDriver(ServiceProvider):
         try:
             dataExporter = InfluxDataExporter()
             dataExporter.setServiceProvider(self)
-        except RuntimeError:
+        except Exception:
             log.warning("Influx logger failed to initialize")
 
         log.info('Entering into standard operation')
