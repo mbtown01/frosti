@@ -274,7 +274,7 @@ class UserThermostatInteractionEvent(Event):
         return super().data['interaction']
 
 
-class GenericThermostatDriver(EventBusMember):
+class ThermostatDriver(EventBusMember):
 
     def __init__(self,
                  lcd: GenericLcdDisplay,

@@ -5,7 +5,7 @@ import argparse
 
 from src.logging import log, setupLogging
 from src.events import EventBus
-from src.api import ApiDataBroker, ApiMessageHandler
+from src.api import ApiDataBroker
 from src.settings import Settings, SettingsChangedEvent
 from src.power import GoGriddyPriceChecker
 from src.config import Config
@@ -38,7 +38,6 @@ class RootDriver(ServiceProvider):
         # Put all the event handlers together
         self.__apiDataBroker = ApiDataBroker()
         self.__apiDataBroker.setServiceProvider(self)
-        ApiMessageHandler.setup(self.__apiDataBroker)
 
     def __start(self, stdscr):
         if stdscr is not None:

@@ -7,14 +7,14 @@ from .TerminalDisplay import TerminalDisplay
 from .TerminalRelay import TerminalRelay
 from src.logging import log
 from src.generics import  \
-    GenericThermostatDriver, GenericEnvironmentSensor, \
+    ThermostatDriver, GenericEnvironmentSensor, \
     PowerPriceChangedEvent, ThermostatState, \
     SensorDataChangedEvent
 from src.events import EventBus, Event
 from src.services import ServiceProvider
 
 
-class TerminalThermostatDriver(GenericThermostatDriver):
+class TerminalThermostatDriver(ThermostatDriver):
 
     class KeyPressedEvent(Event):
         def __init__(self, key):

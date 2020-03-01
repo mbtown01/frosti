@@ -6,7 +6,7 @@ from src.services import ServiceProvider
 from src.settings import Settings
 from src.events import EventBus, EventBusMember, TimerBasedHandler
 from src.generics import GenericLcdDisplay, GenericEnvironmentSensor, \
-    GenericThermostatDriver, \
+    ThermostatDriver, \
     GenericRelay, ThermostatState, ThermostatStateChangedEvent, \
     SensorDataChangedEvent
 
@@ -154,7 +154,7 @@ class Test_GenericHardwareDriver(unittest.TestCase):
             GenericRelay(ThermostatState.FAN),
         )
 
-        self.hardwareDriver = GenericThermostatDriver(
+        self.hardwareDriver = ThermostatDriver(
             lcd=self.display,
             sensor=self.environmentSensor,
             relays=self.relayList

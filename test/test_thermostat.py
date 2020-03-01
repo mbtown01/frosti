@@ -6,7 +6,7 @@ from src.config import Config
 from src.services import ServiceProvider
 from src.settings import Settings
 from src.generics import ThermostatStateChangedEvent, ThermostatState, \
-    GenericThermostatDriver, GenericLcdDisplay, GenericEnvironmentSensor, \
+    ThermostatDriver, GenericLcdDisplay, GenericEnvironmentSensor, \
     GenericRelay
 
 
@@ -101,7 +101,7 @@ class Test_Thermostat(unittest.TestCase):
         def _thermostatStateChanged(self, event: ThermostatStateChangedEvent):
             self.__lastState = event.state
 
-    class TestThermostatDriver(GenericThermostatDriver):
+    class TestThermostatDriver(ThermostatDriver):
 
         def __init__(self,
                      sensor: GenericEnvironmentSensor,

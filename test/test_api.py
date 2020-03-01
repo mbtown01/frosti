@@ -4,7 +4,7 @@ import sys
 import json
 from time import sleep, strptime, mktime
 
-from src.api import ApiDataBroker, ApiMessageHandler
+from src.api import ApiDataBroker
 from src.events import Event, EventBus
 from src.services import ServiceProvider
 from src.config import Config
@@ -27,7 +27,6 @@ class Test_ApiDataBroker(unittest.TestCase):
 
         apiDataBroker = ApiDataBroker()
         apiDataBroker.setServiceProvider(self.serviceProvider)
-        ApiMessageHandler.setup(apiDataBroker)
         sleep(0.1)
 
         self.testValueTemperature = 72.5

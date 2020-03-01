@@ -7,7 +7,7 @@ from enum import Enum
 from .HD44780Display import HD44780Display
 from .Bme280EnvironmentSensor import Bme280EnvironmentSensor
 from .PanasonicAgqRelay import PanasonicAgqRelay
-from src.generics import GenericThermostatDriver, GenericEnvironmentSensor, \
+from src.generics import ThermostatDriver, GenericEnvironmentSensor, \
     ThermostatState
 from src.events import Event
 from src.services import ServiceProvider
@@ -29,14 +29,14 @@ class ButtonPressedEvent(Event):
         return super().data['button']
 
 
-class HardwareThermostatDriver(GenericThermostatDriver):
+class HardwareThermostatDriver(ThermostatDriver):
 
     def __init__(self):
         GPIO.setmode(GPIO.BCM)
 
         try:
             sensor = Bme280EnvironmentSensor()
-        except:
+        except(Exception):
             # Debugging w/o the bmp280 on the breadboard
             sensor = GenericEnvironmentSensor()
 
