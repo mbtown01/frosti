@@ -1,20 +1,10 @@
 # pylint: disable=import-error
-import board
 import smbus
-import busio
-import adafruit_bme280
-import RPi.GPIO as GPIO
 # pylint: enable=import-error
 
-from enum import Enum
 from time import sleep
-
 from src.logging import log
-from src.generics import GenericLcdDisplay, \
-    GenericThermostatDriver, GenericEnvironmentSensor, \
-    GenericRelay, ThermostatState
-from src.events import EventBus, Event
-from src.services import ServiceProvider
+from src.generics import GenericLcdDisplay
 
 
 class HD44780Display(GenericLcdDisplay):
@@ -155,121 +145,3 @@ class HD44780Display(GenericLcdDisplay):
         for i in range(len(results)):
             for change in results[i]:
                 self.__write_str(change[0], i, change[1])
-
-
-class Bm280EnvironmentSensor(GenericEnvironmentSensor):
-
-    def __init__(self):
-        self.__i2c = busio.I2C(board.SCL, board.SDA)
-        self.__bme280 = \
-            adafruit_bme280.Adafruit_BME280_I2C(self.__i2c, address=0x76)
-
-    @property
-    def temperature(self):
-        return self.__bme280.temperature*9.0/5.0+32.0
-
-    @property
-    def pressure(self):
-        return self.__bme280.pressure
-
-    @property
-    def humidity(self):
-        return self.__bme280.humidity
-
-
-class PanasonicAgqRelay(GenericRelay):
-
-    def __init__(self, function: ThermostatState, pinIn: int, pinOut: int):
-        super().__init__(function)
-        self.__pinIn = pinIn
-        self.__pinOut = pinOut
-
-        GPIO.setup(self.__pinIn, GPIO.OUT)
-        GPIO.setup(self.__pinOut, GPIO.OUT)
-        self.openRelay()
-
-    def _openRelay(self):
-        # NEGATIVE 3V from IN->OUT opens the relay
-        GPIO.output(self.__pinIn, False)
-        GPIO.output(self.__pinOut, True)
-        sleep(0.1)
-        GPIO.output(self.__pinOut, False)
-
-    def _closeRelay(self):
-        # POSITIVE 3V from IN->OUT opens the relay
-        GPIO.output(self.__pinIn, True)
-        sleep(0.1)
-        GPIO.output(self.__pinIn, False)
-
-
-class Button(Enum):
-    UP = 1
-    DOWN = 2
-    MODE = 3
-    WAKE = 4
-
-
-class ButtonPressedEvent(Event):
-    def __init__(self, button: Button):
-        super().__init__(data={'button': button})
-
-    @property
-    def button(self):
-        return super().data['button']
-
-
-class HardwareThermostatDriver(GenericThermostatDriver):
-
-    def __init__(self):
-        GPIO.setmode(GPIO.BCM)
-
-        try:
-            sensor = Bm280EnvironmentSensor()
-        except:
-            # Debugging w/o the bmp280 on the breadboard
-            sensor = GenericEnvironmentSensor()
-
-        super().__init__(
-            lcd=HD44780Display(0x27, 20, 4),
-            sensor=sensor,
-            relays=(
-                PanasonicAgqRelay(ThermostatState.FAN, 5, 17),
-                PanasonicAgqRelay(ThermostatState.HEATING, 6, 27),
-                PanasonicAgqRelay(ThermostatState.COOLING, 13, 22)
-            )
-        )
-
-    def setServiceProvider(self, provider: ServiceProvider):
-        super().setServiceProvider(provider)
-
-        self._installEventHandler(
-            ButtonPressedEvent, self.__buttonPressedHandler)
-
-        self.__pinToButtonMap = {}
-        self.__subscribeToButton(21, Button.UP)
-        self.__subscribeToButton(20, Button.DOWN)
-        self.__subscribeToButton(16, Button.MODE)
-        self.__subscribeToButton(12, Button.WAKE)
-
-    def __buttonPressedHandler(self, event: ButtonPressedEvent):
-        if event.button == Button.UP:
-            super()._modifyComfortSettings(1)
-        elif event.button == Button.DOWN:
-            super()._modifyComfortSettings(-1)
-        elif event.button == Button.MODE:
-            super()._nextMode()
-
-    def __subscribeToButton(self, pin: int, button: Button):
-        self.__pinToButtonMap[pin] = button
-
-        GPIO.setup(
-            pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-        GPIO.add_event_detect(
-            pin, GPIO.RISING, callback=self.__buttonCallback, bouncetime=200)
-
-    def __buttonCallback(self, channel):
-        """ Callback happens on another thread, so this method is marshaling
-        ButtonPressedEvent instances to the main thread to handle """
-        if not super().relayToggled:
-            button = self.__pinToButtonMap[channel]
-            self._fireEvent(ButtonPressedEvent(button))
