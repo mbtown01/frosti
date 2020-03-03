@@ -10,7 +10,7 @@ from src.generics import  \
     ThermostatDriver, GenericEnvironmentSensor, \
     PowerPriceChangedEvent, ThermostatState, \
     SensorDataChangedEvent
-from src.events import EventBus, Event
+from src.core import EventBus, Event
 from src.core import ServiceProvider
 
 

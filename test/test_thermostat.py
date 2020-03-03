@@ -1,7 +1,7 @@
 import unittest
 from time import mktime, strptime
 
-from src.events import EventBus, EventBusMember
+from src.core import EventBus, EventBusMember
 from src.config import Config
 from src.core import ServiceProvider
 from src.settings import Settings

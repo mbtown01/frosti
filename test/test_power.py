@@ -4,7 +4,7 @@ from time import strptime, mktime
 
 from src.services import GoGriddyPriceCheckService
 from src.generics import PowerPriceChangedEvent
-from src.events import Event, EventBus, EventBusMember
+from src.core import Event, EventBus, EventBusMember
 from src.core import ServiceProvider
 from src.settings import Settings
 

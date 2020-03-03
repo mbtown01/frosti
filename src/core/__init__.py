@@ -9,3 +9,7 @@ somewhere there is a component that provides them (ServiceProvider).
 
 from .ServiceConsumer import ServiceConsumer
 from .ServiceProvider import ServiceProvider
+from .Event import Event
+from .EventBus import EventBus
+from .EventBusMember import EventBusMember
+from .TimerBasedHandler import TimerBasedHandler

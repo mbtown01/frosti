@@ -9,7 +9,7 @@ from .Bme280EnvironmentSensor import Bme280EnvironmentSensor
 from .PanasonicAgqRelay import PanasonicAgqRelay
 from src.generics import ThermostatDriver, GenericEnvironmentSensor, \
     ThermostatState
-from src.events import Event
+from src.core import Event
 from src.core import ServiceProvider
 
 

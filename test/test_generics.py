@@ -4,7 +4,7 @@ from time import strptime, mktime
 from src.config import Config
 from src.core import ServiceProvider
 from src.settings import Settings
-from src.events import EventBus, EventBusMember, TimerBasedHandler
+from src.core import EventBus, EventBusMember, TimerBasedHandler
 from src.generics import GenericLcdDisplay, GenericEnvironmentSensor, \
     ThermostatDriver, \
     GenericRelay, ThermostatState, ThermostatStateChangedEvent, \

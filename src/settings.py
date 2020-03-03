@@ -1,6 +1,6 @@
 from enum import Enum
 
-from src.events import Event, EventBus, EventBusMember
+from src.core import Event, EventBus, EventBusMember
 from src.logging import log
 from src.config import Config
 from src.core import ServiceProvider

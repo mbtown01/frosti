@@ -7,7 +7,7 @@ import json
 from src.logging import log
 from src.settings import Settings
 from src.core import ServiceProvider
-from src.events import Event, EventBus, EventBusMember
+from src.core import Event, EventBus, EventBusMember
 from src.generics import PropertyChangedEvent, \
     ThermostatStateChangedEvent, ThermostatState, \
     SensorDataChangedEvent, UserThermostatInteractionEvent

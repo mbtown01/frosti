@@ -4,7 +4,7 @@ import sys
 from time import time
 from threading import Thread
 
-from src.events import Event, EventBusMember, EventBus
+from src.core import Event, EventBusMember, EventBus
 from src.config import Config
 from src.generics import PowerPriceChangedEvent
 from src.logging import log

@@ -5,7 +5,7 @@ import json
 from time import sleep, strptime, mktime
 
 from src.services import ApiDataBrokerService
-from src.events import Event, EventBus
+from src.core import Event, EventBus
 from src.core import ServiceProvider
 from src.config import Config
 from src.settings import Settings

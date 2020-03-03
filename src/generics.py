@@ -4,7 +4,7 @@ import atexit
 
 from src.logging import log
 from src.settings import Settings, SettingsChangedEvent
-from src.events import EventBus, EventBusMember, Event, TimerBasedHandler
+from src.core import EventBus, EventBusMember, Event, TimerBasedHandler
 from src.config import Config
 from src.core import ServiceProvider
 

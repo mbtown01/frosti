@@ -4,7 +4,7 @@ import logging
 import argparse
 
 from src.logging import log, setupLogging
-from src.events import EventBus
+from src.core import EventBus
 from src.settings import Settings, SettingsChangedEvent
 from src.config import Config
 from src.services import *

@@ -3,7 +3,7 @@ from queue import Queue
 from threading import Timer
 from time import time
 
-from src.events import Event, EventBus, EventBusMember
+from src.core import Event, EventBus, EventBusMember
 from src.generics import SensorDataChangedEvent
 from src.core import ServiceProvider
 
