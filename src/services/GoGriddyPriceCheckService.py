@@ -8,7 +8,7 @@ from src.events import Event, EventBusMember, EventBus
 from src.config import Config
 from src.generics import PowerPriceChangedEvent
 from src.logging import log
-from src.services import ServiceProvider
+from src.core import ServiceProvider
 
 # GoGriddy billing is actually based on 15-minute RTSPP intervals indicated
 # here
@@ -25,7 +25,7 @@ from src.services import ServiceProvider
 # consuming power again
 
 
-class GoGriddyPriceChecker(EventBusMember):
+class GoGriddyPriceCheckService(EventBusMember):
     """ EventBusMember thread that monitors power prices and fires an event
     if there is a change """
 

@@ -6,23 +6,21 @@ import json
 
 from src.logging import log
 from src.settings import Settings
-from src.services import ServiceProvider
+from src.core import ServiceProvider
 from src.events import Event, EventBus, EventBusMember
 from src.generics import PropertyChangedEvent, \
     ThermostatStateChangedEvent, ThermostatState, \
     SensorDataChangedEvent, UserThermostatInteractionEvent
 
 
-app = Flask(__name__, static_url_path='')
-
-
-class ApiDataBroker(EventBusMember):
+class ApiDataBrokerService(EventBusMember):
     """ Dedicated to responding to the REST API for the thermostat and
     brokering any necessary data/events """
 
     def __init__(self,):
+        self.__app = Flask(__name__, static_url_path='')
         self.__flaskThread = Thread(
-            target=app.run,
+            target=self.__app.run,
             name='Flask Driver',
             args=("0.0.0.0", 5000))
         self.__flaskThread.daemon = True
@@ -40,22 +38,22 @@ class ApiDataBroker(EventBusMember):
         super()._installEventHandler(
             ThermostatStateChangedEvent, self.__processThermostatStateChanged)
 
-        app.add_url_rule('/', 'serve_root', self.serve_root)
-        app.add_url_rule('/main.css', 'serve_css', self.serve_css)
-        app.add_url_rule(
+        self.__app.add_url_rule('/', 'serve_root', self.serve_root)
+        self.__app.add_url_rule('/main.css', 'serve_css', self.serve_css)
+        self.__app.add_url_rule(
             '/include/<path:path>', 'serve_static', self.serve_static)
 
-        app.add_url_rule('/api/version', 'api_version', self.api_version)
-        app.add_url_rule('/api/status', 'api_status', self.api_status)
-        app.add_url_rule('/api/settings', 'api_settings', self.api_settings)
+        self.__app.add_url_rule('/api/version', 'api_version', self.api_version)
+        self.__app.add_url_rule('/api/status', 'api_status', self.api_status)
+        self.__app.add_url_rule('/api/settings', 'api_settings', self.api_settings)
 
-        app.add_url_rule(
+        self.__app.add_url_rule(
             '/api/action/nextMode', 'api_action_next_mode',
             self.api_action_next_mode)
-        app.add_url_rule(
+        self.__app.add_url_rule(
             '/api/action/raiseComfort', 'api_action_raise_comfort',
             self.api_action_raise_comfort)
-        app.add_url_rule(
+        self.__app.add_url_rule(
             '/api/action/lowerComfort', 'api_next_lower_comfort',
             self.api_action_lower_comfort)
 
@@ -119,64 +117,3 @@ class ApiDataBroker(EventBusMember):
         self.__lastTemperature = event.temperature
         self.__lastPressure = event.pressure
         self.__lastHumidity = event.humidity
-
-
-# class ApiMessageHandler:
-#     apiDataBroker = None
-
-#     @staticmethod
-#     def setup(eventHandler: ApiDataBroker):
-#         __class__.apiDataBroker = eventHandler
-
-#     # region Static webserice handlers
-#     @staticmethod
-#     @app.route("/")
-#     def serve_root():
-#         return render_template(
-#             'index.html',
-#             temperature=f'{__class__.apiDataBroker.temperature}',
-#             pressure=f'{__class__.apiDataBroker.pressure}',
-#             humidity=f'{__class__.apiDataBroker.humidity}',
-#         )
-
-#     @staticmethod
-#     @app.route("/main.css")
-#     def serve_css():
-#         return render_template('main.css')
-
-#     @staticmethod
-#     @app.route('/include/<path:path>')
-#     def serve_static(path):
-#         return send_from_directory('include', path)
-
-#     @staticmethod
-#     @app.route('/api/version')
-#     def api_version():
-#         return __class__.apiDataBroker.version
-
-#     @staticmethod
-#     @app.route('/api/status')
-#     def api_status():
-#         return __class__.apiDataBroker.getStatusJson()
-
-#     @staticmethod
-#     @app.route('/api/settings')
-#     def api_settings():
-#         return __class__.apiDataBroker.getSettingsJson()
-
-#     @staticmethod
-#     @app.route('/api/action/nextMode', methods=['POST'])
-#     def api_action_next_mode():
-#         return __class__.apiDataBroker.nextMode()
-
-#     @staticmethod
-#     @app.route('/api/action/raiseComfort', methods=['POST'])
-#     def api_action_raise_comfort():
-#         return __class__.apiDataBroker.raiseComfort()
-
-#     @staticmethod
-#     @app.route('/api/action/lowerComfort', methods=['POST'])
-#     def api_action_lower_comfort():
-#         return __class__.apiDataBroker.lowerComfort()
-
-#     # endregion

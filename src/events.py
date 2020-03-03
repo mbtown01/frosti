@@ -4,7 +4,7 @@ from sys import exc_info, maxsize
 from time import time
 
 from src.logging import log
-from src.services import ServiceConsumer, ServiceProvider
+from src.core import ServiceProvider, ServiceConsumer
 
 
 class TimerBasedHandler:

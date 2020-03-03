@@ -11,10 +11,10 @@ from src.generics import  \
     PowerPriceChangedEvent, ThermostatState, \
     SensorDataChangedEvent
 from src.events import EventBus, Event
-from src.services import ServiceProvider
+from src.core import ServiceProvider
 
 
-class TerminalThermostatDriver(ThermostatDriver):
+class TerminalThermostatService(ThermostatDriver):
 
     class KeyPressedEvent(Event):
         def __init__(self, key):
@@ -62,7 +62,7 @@ class TerminalThermostatDriver(ThermostatDriver):
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
         super()._installEventHandler(
-            TerminalThermostatDriver.KeyPressedEvent, self.__keyPressedHandler)
+            TerminalThermostatService.KeyPressedEvent, self.__keyPressedHandler)
         super()._installTimerHandler(
             frequency=5.0, handlers=self.__updateDisplay)
         super()._installTimerHandler(
@@ -131,7 +131,7 @@ class TerminalThermostatDriver(ThermostatDriver):
             char = self.__stdscr.getch()
             if char >= 0:
                 super()._fireEvent(
-                    TerminalThermostatDriver.KeyPressedEvent(char))
+                    TerminalThermostatService.KeyPressedEvent(char))
 
         super()._getService(EventBus).stop()
 

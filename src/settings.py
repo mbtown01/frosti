@@ -3,7 +3,7 @@ from enum import Enum
 from src.events import Event, EventBus, EventBusMember
 from src.logging import log
 from src.config import Config
-from src.services import ServiceProvider
+from src.core import ServiceProvider
 
 
 class SettingsChangedEvent(Event):

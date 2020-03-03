@@ -4,9 +4,9 @@ import sys
 import json
 from time import sleep, strptime, mktime
 
-from src.api import ApiDataBroker
+from src.services import ApiDataBrokerService
 from src.events import Event, EventBus
-from src.services import ServiceProvider
+from src.core import ServiceProvider
 from src.config import Config
 from src.settings import Settings
 from src.generics import SensorDataChangedEvent
@@ -25,7 +25,7 @@ class Test_ApiDataBroker(unittest.TestCase):
         self.settings.setServiceProvider(self.serviceProvider)
         self.serviceProvider.installService(Settings, self.settings)
 
-        apiDataBroker = ApiDataBroker()
+        apiDataBroker = ApiDataBrokerService()
         apiDataBroker.setServiceProvider(self.serviceProvider)
         sleep(0.1)
 

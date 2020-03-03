@@ -3,7 +3,7 @@ from time import mktime, strptime
 
 from src.events import EventBus, EventBusMember
 from src.config import Config
-from src.services import ServiceProvider
+from src.core import ServiceProvider
 from src.settings import Settings
 from src.generics import ThermostatStateChangedEvent, ThermostatState, \
     ThermostatDriver, GenericLcdDisplay, GenericEnvironmentSensor, \

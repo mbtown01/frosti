@@ -5,7 +5,7 @@ from time import time
 
 from src.events import Event, EventBus, EventBusMember
 from src.generics import SensorDataChangedEvent
-from src.services import ServiceProvider
+from src.core import ServiceProvider
 
 
 # class Test_EventBus(unittest.TestCase):

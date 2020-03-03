@@ -7,7 +7,7 @@ from influxdb import InfluxDBClient
 from threading import Thread
 
 from src.config import Config
-from src.services import ServiceProvider
+from src.core import ServiceProvider
 from src.logging import log
 from src.settings import Settings, SettingsChangedEvent
 from src.events import Event, EventBus, EventBusMember
@@ -16,7 +16,7 @@ from src.generics import PropertyChangedEvent, \
     SensorDataChangedEvent, PowerPriceChangedEvent
 
 
-class InfluxDataExporter(EventBusMember):
+class InfluxDataExporterService(EventBusMember):
 
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)

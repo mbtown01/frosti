@@ -4,7 +4,7 @@ from time import mktime, strptime
 
 from src.events import Event, EventBus, EventBusMember
 from src.settings import Settings
-from src.services import ServiceProvider
+from src.core import ServiceProvider
 from src.config import Config
 
 json = {

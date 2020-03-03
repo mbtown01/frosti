@@ -10,7 +10,7 @@ from .PanasonicAgqRelay import PanasonicAgqRelay
 from src.generics import ThermostatDriver, GenericEnvironmentSensor, \
     ThermostatState
 from src.events import Event
-from src.services import ServiceProvider
+from src.core import ServiceProvider
 
 
 class Button(Enum):
@@ -29,7 +29,7 @@ class ButtonPressedEvent(Event):
         return super().data['button']
 
 
-class HardwareThermostatDriver(ThermostatDriver):
+class HardwareThermostatService(ThermostatDriver):
 
     def __init__(self):
         GPIO.setmode(GPIO.BCM)

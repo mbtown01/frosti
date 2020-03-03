@@ -5,12 +5,10 @@ import argparse
 
 from src.logging import log, setupLogging
 from src.events import EventBus
-from src.api import ApiDataBroker
 from src.settings import Settings, SettingsChangedEvent
-from src.power import GoGriddyPriceChecker
 from src.config import Config
-from src.influx import InfluxDataExporter
-from src.services import ServiceProvider
+from src.services import *
+from src.core import ServiceProvider
 
 
 class RootDriver(ServiceProvider):
@@ -36,20 +34,20 @@ class RootDriver(ServiceProvider):
         self.installService(Settings, self.__settings)
 
         # Put all the event handlers together
-        self.__apiDataBroker = ApiDataBroker()
+        self.__apiDataBroker = ApiDataBrokerService()
         self.__apiDataBroker.setServiceProvider(self)
 
     def __start(self, stdscr):
         if stdscr is not None:
             messageQueue = Queue(128)
             setupLogging(messageQueue)
-            from src.terminal import TerminalThermostatDriver
-            hardwareDriver = TerminalThermostatDriver(
+            from src.terminal import TerminalThermostatService
+            hardwareDriver = TerminalThermostatService(
                 stdscr, messageQueue)
             hardwareDriver.setServiceProvider(self)
         else:
-            from src.hardware import HardwareThermostatDriver
-            hardwareDriver = HardwareThermostatDriver()
+            from src.hardware import HardwareThermostatService
+            hardwareDriver = HardwareThermostatService()
             hardwareDriver.setServiceProvider(self)
             setupLogging()
 
@@ -57,13 +55,13 @@ class RootDriver(ServiceProvider):
         # been created so they get the first power events
         if self.__config.value('gogriddy', 'enabled'):
             try:
-                priceChecker = GoGriddyPriceChecker()
+                priceChecker = GoGriddyPriceCheckService()
                 priceChecker.setServiceProvider(self)
             except ConnectionError:
                 log.warning("Unable to reach GoGriddy")
 
         try:
-            dataExporter = InfluxDataExporter()
+            dataExporter = InfluxDataExporterService()
             dataExporter.setServiceProvider(self)
         except Exception:
             log.warning("Influx logger failed to initialize")
