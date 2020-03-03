@@ -4,3 +4,4 @@
 from .InfluxDataExportService import InfluxDataExporterService
 from .ApiDataBrokerService import ApiDataBrokerService
 from .GoGriddyPriceCheckService import GoGriddyPriceCheckService
+from .ThermostatService import ThermostatService

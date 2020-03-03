@@ -4,11 +4,12 @@ from time import strptime, mktime
 from src.config import Config
 from src.core import ServiceProvider
 from src.settings import Settings
-from src.core import EventBus, EventBusMember, TimerBasedHandler
-from src.generics import GenericLcdDisplay, GenericEnvironmentSensor, \
-    ThermostatDriver, \
-    GenericRelay, ThermostatState, ThermostatStateChangedEvent, \
-    SensorDataChangedEvent
+from src.core import EventBus, EventBusMember, TimerBasedHandler, \
+    ThermostatState
+from src.core.generics import GenericLcdDisplay, GenericEnvironmentSensor, \
+    GenericRelay
+from src.core.events import ThermostatStateChangedEvent, SensorDataChangedEvent
+from src.services import ThermostatService
 
 
 class Test_GenericLcdDisplay(unittest.TestCase):
@@ -154,7 +155,7 @@ class Test_GenericHardwareDriver(unittest.TestCase):
             GenericRelay(ThermostatState.FAN),
         )
 
-        self.hardwareDriver = ThermostatDriver(
+        self.hardwareDriver = ThermostatService(
             lcd=self.display,
             sensor=self.environmentSensor,
             relays=self.relayList

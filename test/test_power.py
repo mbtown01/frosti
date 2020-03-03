@@ -3,9 +3,8 @@ import sys
 from time import strptime, mktime
 
 from src.services import GoGriddyPriceCheckService
-from src.generics import PowerPriceChangedEvent
-from src.core import Event, EventBus, EventBusMember
-from src.core import ServiceProvider
+from src.core.events import PowerPriceChangedEvent
+from src.core import Event, EventBus, EventBusMember, ServiceProvider
 from src.settings import Settings
 
 

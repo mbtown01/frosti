@@ -5,11 +5,10 @@ import json
 from time import sleep, strptime, mktime
 
 from src.services import ApiDataBrokerService
-from src.core import Event, EventBus
-from src.core import ServiceProvider
+from src.core import Event, EventBus, ServiceProvider
 from src.config import Config
 from src.settings import Settings
-from src.generics import SensorDataChangedEvent
+from src.core.events import SensorDataChangedEvent
 
 
 class Test_ApiDataBroker(unittest.TestCase):

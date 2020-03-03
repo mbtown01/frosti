@@ -7,10 +7,9 @@ from enum import Enum
 from .HD44780Display import HD44780Display
 from .Bme280EnvironmentSensor import Bme280EnvironmentSensor
 from .PanasonicAgqRelay import PanasonicAgqRelay
-from src.generics import ThermostatDriver, GenericEnvironmentSensor, \
-    ThermostatState
-from src.core import Event
-from src.core import ServiceProvider
+from src.core.generics import GenericEnvironmentSensor
+from src.core import Event, ThermostatState, ServiceProvider
+from src.services import ThermostatService
 
 
 class Button(Enum):
@@ -29,7 +28,7 @@ class ButtonPressedEvent(Event):
         return super().data['button']
 
 
-class HardwareThermostatService(ThermostatDriver):
+class HardwareThermostatService(ThermostatService):
 
     def __init__(self):
         GPIO.setmode(GPIO.BCM)

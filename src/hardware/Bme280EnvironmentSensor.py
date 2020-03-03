@@ -4,7 +4,7 @@ import busio
 import adafruit_bme280
 # pylint: enable=import-error
 
-from src.generics import GenericEnvironmentSensor
+from src.core.generics import GenericEnvironmentSensor
 
 
 class Bme280EnvironmentSensor(GenericEnvironmentSensor):

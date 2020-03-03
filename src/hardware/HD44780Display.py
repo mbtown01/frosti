@@ -4,7 +4,7 @@ import smbus
 
 from time import sleep
 from src.logging import log
-from src.generics import GenericLcdDisplay
+from src.core.generics import GenericLcdDisplay
 
 
 class HD44780Display(GenericLcdDisplay):

@@ -6,15 +6,14 @@ from threading import Thread
 from .TerminalDisplay import TerminalDisplay
 from .TerminalRelay import TerminalRelay
 from src.logging import log
-from src.generics import  \
-    ThermostatDriver, GenericEnvironmentSensor, \
-    PowerPriceChangedEvent, ThermostatState, \
-    SensorDataChangedEvent
-from src.core import EventBus, Event
-from src.core import ServiceProvider
+from src.core.events import  \
+    PowerPriceChangedEvent, SensorDataChangedEvent
+from src.core import EventBus, Event, ThermostatState, ServiceProvider
+from src.services import ThermostatService
+from src.core.generics import GenericEnvironmentSensor
 
 
-class TerminalThermostatService(ThermostatDriver):
+class TerminalThermostatService(ThermostatService):
 
     class KeyPressedEvent(Event):
         def __init__(self, key):

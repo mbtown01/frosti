@@ -1,6 +1,6 @@
 import curses
 
-from src.generics import GenericLcdDisplay
+from src.core.generics import GenericLcdDisplay
 
 
 class TerminalDisplay(GenericLcdDisplay):

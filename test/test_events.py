@@ -3,21 +3,8 @@ from queue import Queue
 from threading import Timer
 from time import time
 
-from src.core import Event, EventBus, EventBusMember
-from src.generics import SensorDataChangedEvent
-from src.core import ServiceProvider
-
-
-# class Test_EventBus(unittest.TestCase):
-
-#     def test_put(self):
-#         eventBus = EventBus()
-#         queue = eventBus.subscribe()
-#         event = SensorDataChangedEvent(0.0, 0.0, 0.0)
-#         eventBus.fireEvent(event)
-
-#         self.assertEqual(1, queue.qsize())
-#         self.assertEqual(type(event), SensorDataChangedEvent)
+from src.core import Event, EventBus, EventBusMember, ServiceProvider
+from src.core.events import SensorDataChangedEvent
 
 
 class Test_EventBus(unittest.TestCase):

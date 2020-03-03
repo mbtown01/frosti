@@ -6,7 +6,7 @@ from threading import Thread
 
 from src.core import Event, EventBusMember, EventBus
 from src.config import Config
-from src.generics import PowerPriceChangedEvent
+from src.core.events import PowerPriceChangedEvent
 from src.logging import log
 from src.core import ServiceProvider
 

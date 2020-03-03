@@ -7,12 +7,12 @@ from influxdb import InfluxDBClient
 from threading import Thread
 
 from src.config import Config
-from src.core import ServiceProvider
 from src.logging import log
 from src.settings import Settings, SettingsChangedEvent
-from src.core import Event, EventBus, EventBusMember
-from src.generics import PropertyChangedEvent, \
-    ThermostatStateChangedEvent, ThermostatState, \
+from src.core import ServiceProvider, Event, EventBus, EventBusMember, \
+    ThermostatState
+from src.core.events import \
+    ThermostatStateChangedEvent, \
     SensorDataChangedEvent, PowerPriceChangedEvent
 
 

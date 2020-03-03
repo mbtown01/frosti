@@ -8,7 +8,8 @@ import RPi.GPIO as GPIO
 
 from time import sleep
 
-from src.generics import GenericRelay, ThermostatState
+from src.core.generics import GenericRelay
+from src.core import ThermostatState
 
 
 class PanasonicAgqRelay(GenericRelay):

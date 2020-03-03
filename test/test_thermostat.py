@@ -1,13 +1,13 @@
 import unittest
 from time import mktime, strptime
 
-from src.core import EventBus, EventBusMember
+from src.core import EventBus, EventBusMember, ServiceProvider, ThermostatState
 from src.config import Config
-from src.core import ServiceProvider
 from src.settings import Settings
-from src.generics import ThermostatStateChangedEvent, ThermostatState, \
-    ThermostatDriver, GenericLcdDisplay, GenericEnvironmentSensor, \
+from src.core.events import ThermostatStateChangedEvent
+from src.core.generics import GenericLcdDisplay, GenericEnvironmentSensor, \
     GenericRelay
+from src.services import ThermostatService
 
 
 json = {
@@ -101,7 +101,7 @@ class Test_Thermostat(unittest.TestCase):
         def _thermostatStateChanged(self, event: ThermostatStateChangedEvent):
             self.__lastState = event.state
 
-    class TestThermostatDriver(ThermostatDriver):
+    class TestThermostatDriver(ThermostatService):
 
         def __init__(self,
                      sensor: GenericEnvironmentSensor,

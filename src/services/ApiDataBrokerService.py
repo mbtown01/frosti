@@ -6,10 +6,10 @@ import json
 
 from src.logging import log
 from src.settings import Settings
-from src.core import ServiceProvider
-from src.core import Event, EventBus, EventBusMember
-from src.generics import PropertyChangedEvent, \
-    ThermostatStateChangedEvent, ThermostatState, \
+from src.core import ServiceProvider, Event, EventBus, EventBusMember, \
+    ThermostatState
+from src.core.events import \
+    ThermostatStateChangedEvent, \
     SensorDataChangedEvent, UserThermostatInteractionEvent
 
 

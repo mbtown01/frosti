@@ -1,6 +1,7 @@
 import curses
 
-from src.generics import GenericRelay, ThermostatState
+from src.core import ThermostatState
+from src.core.generics import GenericRelay
 
 
 class TerminalRelay(GenericRelay):
