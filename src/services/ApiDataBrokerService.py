@@ -35,13 +35,13 @@ class ApiDataBrokerService(EventBusMember):
 
         self.__app.add_url_rule(
             '/api/action/nextMode', 'api_action_next_mode',
-            self.api_action_next_mode)
+            self.api_action_next_mode, methods=['POST'])
         self.__app.add_url_rule(
             '/api/action/raiseComfort', 'api_action_raise_comfort',
-            self.api_action_raise_comfort)
+            self.api_action_raise_comfort, methods=['POST'])
         self.__app.add_url_rule(
             '/api/action/lowerComfort', 'api_next_lower_comfort',
-            self.api_action_lower_comfort)
+            self.api_action_lower_comfort, methods=['POST'])
 
         self.__flaskThread = Thread(
             target=self.__app.run,
@@ -105,6 +105,7 @@ class ApiDataBrokerService(EventBusMember):
     def api_action_next_mode(self):
         self._fireEvent(UserThermostatInteractionEvent(
             UserThermostatInteractionEvent.MODE_NEXT))
+        return 0
 
     def api_action_raise_comfort(self):
         self._fireEvent(UserThermostatInteractionEvent(
