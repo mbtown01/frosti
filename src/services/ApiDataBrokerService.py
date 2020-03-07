@@ -18,7 +18,8 @@ class ApiDataBrokerService(EventBusMember):
     brokering any necessary data/events """
 
     def __init__(self,):
-        self.__app = Flask(__name__, static_url_path='', template_folder='../templates')
+        self.__app = Flask(
+            __name__, static_url_path='', template_folder='../templates')
         self.__app.add_url_rule(
             '/', 'serve_root', self.serve_root)
         self.__app.add_url_rule(
