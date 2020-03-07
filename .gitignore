@@ -1,8 +1,9 @@
 *.pyc
 .coverage
 *.log
-.pytest_cache
+.pytest_cache/*
 .DS_store
+
 
 
 # Temporary files
