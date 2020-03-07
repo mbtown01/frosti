@@ -5,7 +5,7 @@ from time import strptime, mktime
 from src.services import GoGriddyPriceCheckService
 from src.core.events import PowerPriceChangedEvent
 from src.core import Event, EventBus, EventBusMember, ServiceProvider
-from src.settings import Settings
+from src.services import SettingsService
 
 
 class Test_GoGriddyInterface(unittest.TestCase):
@@ -28,9 +28,9 @@ class Test_GoGriddyInterface(unittest.TestCase):
         testTime = strptime('01/01/19 08:01:00', '%m/%d/%y %H:%M:%S')
         self.eventBus = EventBus(now=mktime(testTime))
         self.serviceProvider.installService(EventBus, self.eventBus)
-        self.settings = Settings()
+        self.settings = SettingsService()
         self.settings.setServiceProvider(self.serviceProvider)
-        self.serviceProvider.installService(Settings, self.settings)
+        self.serviceProvider.installService(SettingsService, self.settings)
 
         self.dummyEventBusMember = \
             Test_GoGriddyInterface.DummyEventBusMember()

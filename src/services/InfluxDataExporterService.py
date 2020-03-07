@@ -6,14 +6,12 @@ import sys
 from influxdb import InfluxDBClient
 from threading import Thread
 
-from src.config import Config
 from src.logging import log
-from src.settings import Settings, SettingsChangedEvent
 from src.core import ServiceProvider, Event, EventBus, EventBusMember, \
     ThermostatState
-from src.core.events import \
-    ThermostatStateChangedEvent, \
+from src.core.events import ThermostatStateChangedEvent, \
     SensorDataChangedEvent, PowerPriceChangedEvent
+from src.services import ConfigService, SettingsChangedEvent, SettingsService
 
 
 class InfluxDataExporterService(EventBusMember):
@@ -21,7 +19,7 @@ class InfluxDataExporterService(EventBusMember):
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
 
-        config = self._getService(Config)
+        config = self._getService(ConfigService)
         if not config.resolve("influxdb", "enabled", False):
             raise RuntimeError('InfluxDB is not configured')
 
@@ -60,7 +58,7 @@ class InfluxDataExporterService(EventBusMember):
         self.__updateInflux(f'price={event.price}')
 
     def __processSettingsChanged(self, event: SettingsChangedEvent):
-        settings = self._getService(Settings)
+        settings = self._getService(SettingsService)
         self.__updateInflux(
             f'comfortMin={settings.comfortMin},'
             f'comfortMax={settings.comfortMax}'

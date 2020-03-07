@@ -6,8 +6,8 @@ from time import sleep, strptime, mktime
 
 from src.services import ApiDataBrokerService
 from src.core import Event, EventBus, ServiceProvider
-from src.config import Config
-from src.settings import Settings
+from src.services import ConfigService
+from src.services import SettingsService
 from src.core.events import SensorDataChangedEvent
 
 
@@ -18,11 +18,11 @@ class Test_ApiDataBroker(unittest.TestCase):
         testTime = strptime('01/01/19 08:01:00', '%m/%d/%y %H:%M:%S')
         self.eventBus = EventBus(now=mktime(testTime))
         self.serviceProvider.installService(EventBus, self.eventBus)
-        self.config = Config()
-        self.serviceProvider.installService(Config, self.config)
-        self.settings = Settings()
+        self.config = ConfigService()
+        self.serviceProvider.installService(ConfigService, self.config)
+        self.settings = SettingsService()
         self.settings.setServiceProvider(self.serviceProvider)
-        self.serviceProvider.installService(Settings, self.settings)
+        self.serviceProvider.installService(SettingsService, self.settings)
 
         apiDataBroker = ApiDataBrokerService()
         apiDataBroker.setServiceProvider(self.serviceProvider)

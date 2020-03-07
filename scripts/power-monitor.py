@@ -10,7 +10,7 @@ from influxdb import InfluxDBClient
 import serial
 from os.path import dirname
 sys.path.append(dirname(__file__)+'/../')
-from src.config import Config
+from src.services import ConfigService
 # pylint: enable=import-error
 
 # https://rainforestautomation.com/wp-content/uploads/2014/02/raven_xml_api_r127.pdf
@@ -32,7 +32,7 @@ class RavenXmlSerialInterface:
 
     def __init__(self, tty: str):
         # Connect and reuse the serial interface until complete
-        self.__config = Config()
+        self.__config = ConfigService()
         self.__serial = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
 
     def __parseBlock(self, lines, elementName, attrName):

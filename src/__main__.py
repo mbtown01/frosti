@@ -5,9 +5,9 @@ import argparse
 
 from src.logging import log, setupLogging
 from src.core import EventBus
-from src.settings import Settings, SettingsChangedEvent
-from src.config import Config
-from src.services import *
+from src.services import ConfigService, SettingsService, \
+    SettingsChangedEvent, ApiDataBrokerService, GoGriddyPriceCheckService, \
+    InfluxDataExporterService
 from src.core import ServiceProvider
 
 
@@ -26,12 +26,12 @@ class RootDriver(ServiceProvider):
         self.__eventBus = EventBus()
         self.installService(EventBus, self.__eventBus)
 
-        self.__config = Config()
-        self.installService(Config, self.__config)
+        self.__config = ConfigService()
+        self.installService(ConfigService, self.__config)
 
-        self.__settings = Settings()
+        self.__settings = SettingsService()
         self.__settings.setServiceProvider(self)
-        self.installService(Settings, self.__settings)
+        self.installService(SettingsService, self.__settings)
 
         # Put all the event handlers together
         self.__apiDataBroker = ApiDataBrokerService()

@@ -17,7 +17,7 @@
     "editor.rulers": [80],
     // For the MacBook, this is /usr/local/bin/python3
     // For the Linux, this is /usr/bin/python3
-    "python.pythonPath": "/usr/bin/python3",
+    "python.pythonPath": "/usr/local/bin/python3",
     "python.linting.pylintEnabled": true,
     "python.linting.enabled": true,
     "python.linting.pycodestyleEnabled": true,
@@ -26,9 +26,9 @@
     ],
     "python.testing.pytestArgs": [
         "test",
-        "--cov=src",
+        //"--cov=src",
         // Uncomment the line below if you need to debug
-        "--no-cov",
+        //"--no-cov",
     ],
     "python.testing.unittestArgs": [
         "-v",
@@ -39,7 +39,7 @@
     ],
     "python.testing.pytestEnabled": true,
     "python.testing.nosetestsEnabled": false,
-    "python.testing.unittestEnabled": false,
+    "python.testing.unittestEnabled": true,
     "python.testing.autoTestDiscoverOnSaveEnabled": false,
     
     // https://marketplace.visualstudio.com/items?itemName=rduldulao.py-coverage-view

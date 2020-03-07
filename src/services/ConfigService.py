@@ -3,7 +3,7 @@ import json
 import configparser
 
 
-class Config:
+class ConfigService:
 
     def __init__(self, name: str = None, json: dict = {}):
         if name is None:
@@ -18,7 +18,7 @@ class Config:
             os.path.expanduser('~/.thermostat.json'),
             '/etc/thermostat.json',
             os.path.abspath(
-                os.path.dirname(localPath) + '/../etc/thermostat.json')
+                os.path.dirname(localPath) + '/../../etc/thermostat.json')
         )
 
         self.__json = None
@@ -58,5 +58,5 @@ class Config:
 
         rtn = self.__json[section]
         if type(rtn) is dict:
-            return Config(name=f"{self.__name}::{section}", json=rtn)
+            return ConfigService(name=f"{self.__name}::{section}", json=rtn)
         return rtn

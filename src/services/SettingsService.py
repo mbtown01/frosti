@@ -2,11 +2,12 @@ from enum import Enum
 
 from src.core import Event, EventBus, EventBusMember
 from src.logging import log
-from src.config import Config
+from src.services import *
 from src.core import ServiceProvider
 
 
 class SettingsChangedEvent(Event):
+    """ Fired when any property of SettingsService changes """
     def __init__(self):
         super().__init__('SettingsChangedEvent')
 
@@ -108,8 +109,8 @@ class Schedule:
         return self.__times[0].program
 
 
-class Settings(EventBusMember):
-    """ Captures the settings for the thermostat.  Settings are changed
+class SettingsService(EventBusMember):
+    """ Captures the settings for the thermostat.  SettingsService are changed
     by the user during normal thermostat operation, and an event is
     fired when they are changed.
     """
@@ -126,7 +127,7 @@ class Settings(EventBusMember):
 
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
-        config = self._getService(Config)
+        config = self._getService(ConfigService)
         json = self.__data or config.getJson()
 
         if 'thermostat' not in json:
@@ -138,7 +139,7 @@ class Settings(EventBusMember):
             raise RuntimeError(f"No default program configured")
 
         self.__delta = config.resolve('thermostat', 'delta', 1.0)
-        self.__mode = Settings.Mode.AUTO
+        self.__mode = SettingsService.Mode.AUTO
         self.__lastOverridePrice = None
         self.__programs = {}
         for name in programs:

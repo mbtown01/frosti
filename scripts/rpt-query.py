@@ -11,10 +11,10 @@ from influxdb import InfluxDBClient
 import serial
 from os.path import dirname
 sys.path.append(dirname(__file__)+'/../')
-from src.config import Config
+from src.services import ConfigService
 # pylint: enable=import-error
 
-config = Config()
+config = ConfigService()
 if not config.resolve("influxdb", "enabled", False):
     raise RuntimeError('InfluxDB is not configured')
 

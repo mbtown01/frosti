@@ -5,7 +5,7 @@ import logging
 import json
 
 from src.logging import log
-from src.settings import Settings
+from src.services import SettingsService
 from src.core import ServiceProvider, Event, EventBus, EventBusMember, \
     ThermostatState
 from src.core.events import \
@@ -18,7 +18,31 @@ class ApiDataBrokerService(EventBusMember):
     brokering any necessary data/events """
 
     def __init__(self,):
-        self.__app = Flask(__name__, static_url_path='')
+        self.__app = Flask(__name__, static_url_path='', template_folder='../templates')
+        self.__app.add_url_rule(
+            '/', 'serve_root', self.serve_root)
+        self.__app.add_url_rule(
+            '/main.css', 'serve_css', self.serve_css)
+        self.__app.add_url_rule(
+            '/include/<path:path>', 'serve_static', self.serve_static)
+
+        self.__app.add_url_rule(
+            '/api/version', 'api_version', self.api_version)
+        self.__app.add_url_rule(
+            '/api/status', 'api_status', self.api_status)
+        self.__app.add_url_rule(
+            '/api/settings', 'api_settings', self.api_settings)
+
+        self.__app.add_url_rule(
+            '/api/action/nextMode', 'api_action_next_mode',
+            self.api_action_next_mode)
+        self.__app.add_url_rule(
+            '/api/action/raiseComfort', 'api_action_raise_comfort',
+            self.api_action_raise_comfort)
+        self.__app.add_url_rule(
+            '/api/action/lowerComfort', 'api_next_lower_comfort',
+            self.api_action_lower_comfort)
+
         self.__flaskThread = Thread(
             target=self.__app.run,
             name='Flask Driver',
@@ -38,25 +62,6 @@ class ApiDataBrokerService(EventBusMember):
         super()._installEventHandler(
             ThermostatStateChangedEvent, self.__processThermostatStateChanged)
 
-        self.__app.add_url_rule('/', 'serve_root', self.serve_root)
-        self.__app.add_url_rule('/main.css', 'serve_css', self.serve_css)
-        self.__app.add_url_rule(
-            '/include/<path:path>', 'serve_static', self.serve_static)
-
-        self.__app.add_url_rule('/api/version', 'api_version', self.api_version)
-        self.__app.add_url_rule('/api/status', 'api_status', self.api_status)
-        self.__app.add_url_rule('/api/settings', 'api_settings', self.api_settings)
-
-        self.__app.add_url_rule(
-            '/api/action/nextMode', 'api_action_next_mode',
-            self.api_action_next_mode)
-        self.__app.add_url_rule(
-            '/api/action/raiseComfort', 'api_action_raise_comfort',
-            self.api_action_raise_comfort)
-        self.__app.add_url_rule(
-            '/api/action/lowerComfort', 'api_next_lower_comfort',
-            self.api_action_lower_comfort)
-
     def serve_root(self):
         return render_template(
             'index.html',
@@ -69,7 +74,7 @@ class ApiDataBrokerService(EventBusMember):
         return render_template('main.css')
 
     def serve_static(self, path: str):
-        return send_from_directory('include', path)
+        return send_from_directory('../include', path)
 
     def api_version(self):
         return 'rpt-0.1'
@@ -87,7 +92,7 @@ class ApiDataBrokerService(EventBusMember):
         return json.dumps(response, indent=4)
 
     def api_settings(self):
-        settings = self._getService(Settings)
+        settings = self._getService(SettingsService)
 
         response = {
             'version': self.api_version(),

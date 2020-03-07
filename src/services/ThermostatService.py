@@ -3,10 +3,10 @@ from time import time, localtime
 import atexit
 
 from src.logging import log
-from src.settings import Settings, SettingsChangedEvent
+from src.services import SettingsService, SettingsChangedEvent
 from src.core import EventBus, EventBusMember, Event, TimerBasedHandler, \
     ServiceProvider, ThermostatState
-from src.config import Config
+from src.services import ConfigService
 from src.core.events import ThermostatStateChangedEvent, \
     SensorDataChangedEvent, PowerPriceChangedEvent, \
     UserThermostatInteractionEvent
@@ -39,7 +39,7 @@ class ThermostatService(EventBusMember):
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
 
-        config = self._getService(Config)
+        config = self._getService(ConfigService)
         self.__delta = \
             config.value('thermostat').value('delta', 1.0)
         self.__fanRunoutDuration = \
@@ -98,7 +98,7 @@ class ThermostatService(EventBusMember):
         return self.__relayToggled
 
     def __checkSchedule(self):
-        settings = self._getService(Settings)
+        settings = self._getService(SettingsService)
         eventBus = self._getService(EventBus)
 
         if eventBus.now is None:
@@ -110,7 +110,7 @@ class ThermostatService(EventBusMember):
 
     def __sampleSensors(self):
         temperature = self.__sensor.temperature
-        settings = self._getService(Settings)
+        settings = self._getService(SettingsService)
         super()._fireEvent(SensorDataChangedEvent(
             temperature=temperature,
             pressure=self.__sensor.pressure,
@@ -126,11 +126,11 @@ class ThermostatService(EventBusMember):
         h2 = settings.comfortMin+self.__delta
         h1 = settings.comfortMin-self.__delta
 
-        modeOff = Settings.Mode.OFF == settings.mode
-        modeFan = Settings.Mode.FAN == settings.mode
-        modeHeat = Settings.Mode.HEAT == settings.mode
-        modeCool = Settings.Mode.COOL == settings.mode
-        modeAuto = Settings.Mode.AUTO == settings.mode
+        modeOff = SettingsService.Mode.OFF == settings.mode
+        modeFan = SettingsService.Mode.FAN == settings.mode
+        modeHeat = SettingsService.Mode.HEAT == settings.mode
+        modeCool = SettingsService.Mode.COOL == settings.mode
+        modeAuto = SettingsService.Mode.AUTO == settings.mode
         couldHeat = modeAuto or modeHeat
         couldCool = modeAuto or modeCool
 
@@ -139,7 +139,7 @@ class ThermostatService(EventBusMember):
                 self.__changeState(ThermostatState.HEATING)
             elif couldCool and temperature > c1:
                 self.__changeState(ThermostatState.COOLING)
-            elif Settings.Mode.FAN == settings.mode:
+            elif SettingsService.Mode.FAN == settings.mode:
                 self.__changeState(ThermostatState.FAN)
         elif ThermostatState.HEATING == self.__state:
             if modeAuto and temperature > c1:
@@ -189,21 +189,21 @@ class ThermostatService(EventBusMember):
             self._modifyComfortSettings(1)
 
     def _modifyComfortSettings(self, increment: int):
-        settings = self._getService(Settings)
+        settings = self._getService(SettingsService)
 
         self.__backlightReset()
-        if Settings.Mode.HEAT == settings.mode:
+        if SettingsService.Mode.HEAT == settings.mode:
             settings.comfortMin = settings.comfortMin + increment
-        if Settings.Mode.COOL == settings.mode:
+        if SettingsService.Mode.COOL == settings.mode:
             settings.comfortMax = settings.comfortMax + increment
         self.__sampleSensorsInvoker.reset()
 
     def _nextMode(self):
-        settings = self._getService(Settings)
+        settings = self._getService(SettingsService)
 
         self.__backlightReset()
-        settings.mode = Settings.Mode(
-            (int(settings.mode.value)+1) % len(Settings.Mode))
+        settings.mode = SettingsService.Mode(
+            (int(settings.mode.value)+1) % len(SettingsService.Mode))
         self.__sampleSensorsInvoker.reset()
 
     def __changeState(self, newState: ThermostatState):
@@ -226,10 +226,10 @@ class ThermostatService(EventBusMember):
         log.debug("Driver COMPLETED relay toggle timeout")
 
     def __fanRunout(self):
-        settings = self._getService(Settings)
+        settings = self._getService(SettingsService)
 
         if self.__state == ThermostatState.FAN and \
-                settings.mode != Settings.Mode.FAN:
+                settings.mode != SettingsService.Mode.FAN:
             self.__changeState(ThermostatState.OFF)
 
     def __backlightReset(self):
@@ -246,7 +246,7 @@ class ThermostatService(EventBusMember):
             relay.openRelay()
 
     def _powerPriceChanged(self, event: PowerPriceChangedEvent):
-        settings = self._getService(Settings)
+        settings = self._getService(SettingsService)
 
         settings.priceChanged(event.price)
         self.__lastPrice = event.price
@@ -254,7 +254,7 @@ class ThermostatService(EventBusMember):
         self.__drawRowTwoInvoker.invokeCurrent()
 
     def __processSettingsChanged(self, event: SettingsChangedEvent):
-        settings = self._getService(Settings)
+        settings = self._getService(SettingsService)
         log.debug(f"New settings: {settings}")
         self.__drawLcdDisplay()
         self.__drawRowTwoInvoker.reset(0)
@@ -271,7 +271,7 @@ class ThermostatService(EventBusMember):
         self.__drawLcdDisplay()
 
     def __drawRowTwoTarget(self):
-        settings = self._getService(Settings)
+        settings = self._getService(SettingsService)
 
         heat = settings.comfortMin
         cool = settings.comfortMax
@@ -289,13 +289,13 @@ class ThermostatService(EventBusMember):
         self.__lcd.commit()
 
     def __drawRowTwoProgram(self):
-        settings = self._getService(Settings)
+        settings = self._getService(SettingsService)
         name = settings.currentProgram.name
         self.__lcd.update(1, 0, f'Program: {name:>11s}')
         self.__lcd.commit()
 
     def __drawLcdDisplay(self):
-        settings = self._getService(Settings)
+        settings = self._getService(SettingsService)
 
         now = self.__lastTemperature
         mode = str(settings.mode).replace('Mode.', '')

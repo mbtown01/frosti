@@ -5,7 +5,7 @@ from time import time
 from threading import Thread
 
 from src.core import Event, EventBusMember, EventBus
-from src.config import Config
+from src.services import ConfigService
 from src.core.events import PowerPriceChangedEvent
 from src.logging import log
 from src.core import ServiceProvider
@@ -32,7 +32,7 @@ class GoGriddyPriceCheckService(EventBusMember):
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
 
-        config = self._getService(Config)
+        config = self._getService(ConfigService)
         self.__apiUrl = config.resolve('gogriddy', 'apiUrl')
         self.__apiPostData = {
             'meterID': config.resolve('gogriddy', 'meterId'),
