@@ -2,10 +2,10 @@ version: "3.7"
 services:
 
   influxdb:
-    image: influxdb/latest
-    # image: arm32v5/influxdb:latest
     container_name: rpt-influxdb
     build:
+      args:
+        HOSTTYPE_IMAGE_INFLUX: ${HOSTTYPE_IMAGE_INFLUX}
       context: ../
       dockerfile: ./docker/influxdb/Dockerfile
     ports:
@@ -22,9 +22,8 @@ services:
         target: /var/lib/influxdb
 
   grafana:
-    image: grafana/grafana:latest
-    # image: unibaktr/grafana:latest
     container_name: rpt-grafana
+    image: ${HOSTTYPE_IMAGE_GRAFANA}
     ports:
       - "3000:3000"
     user: "0"
@@ -34,8 +33,9 @@ services:
       - ./grafana:/var/lib/grafana:delegated
 
   rpt:
-    image: rpt/develop:latest
     build:
+      args:
+        HOSTTYPE_IMAGE_RPT: ${HOSTTYPE_IMAGE_RPT}
       context: ../
       dockerfile: ./docker/rpt/Dockerfile
     container_name: rpt
