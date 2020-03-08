@@ -5,7 +5,7 @@ services:
     container_name: rpt-influxdb
     build:
       args:
-        HOSTTYPE_IMAGE_INFLUX: ${HOSTTYPE_IMAGE_INFLUX}
+        HOSTTYPE_IMAGE: ${HOSTTYPE_IMAGE_INFLUX}
       context: ../
       dockerfile: ./docker/influxdb/Dockerfile
     ports:
@@ -35,7 +35,8 @@ services:
   rpt:
     build:
       args:
-        HOSTTYPE_IMAGE_RPT: ${HOSTTYPE_IMAGE_RPT}
+        HOSTTYPE: ${HOSTTYPE}
+        HOSTTYPE_IMAGE: ${HOSTTYPE_IMAGE_RPT}
       context: ../
       dockerfile: ./docker/rpt/Dockerfile
     container_name: rpt
