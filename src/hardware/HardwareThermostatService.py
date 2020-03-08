@@ -34,12 +34,10 @@ class HardwareThermostatService(ThermostatService):
     def __init__(self):
         GPIO.setmode(GPIO.BCM)
 
-        sensor = GenericEnvironmentSensor()
         try:
-            sensor = Bme280EnvironmentSensor()
             sensor = Bmp280EnvironmentSensor()
         except(Exception):
-            pass
+            sensor = GenericEnvironmentSensor()
 
         super().__init__(
             lcd=HD44780Display(0x27, 20, 4),

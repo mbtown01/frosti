@@ -9,7 +9,15 @@ RPT_HOME="$(realpath $(dirname $0)/../)"
 # Run the containers
 # Debug the containers
 
-sub start() {
+build() {
+    cd ${RPT_HOME}
+    docker-compose \
+        --file docker/docker-compose.yaml \
+        --env-file docker/docker-hosttype-${HOSTTYPE}.env \
+        build rpt
+}
+
+start() {
     cd ${RPT_HOME}
     docker-compose \
         --file docker/docker-compose.yaml \
@@ -17,12 +25,22 @@ sub start() {
         run rpt
 }
 
-sub develop() {
+develop() {
     cd ${RPT_HOME}
     docker-compose \
         --file docker/docker-compose.yaml \
+	    --file .devcontainer/docker-compose-extend.yaml \
         --env-file docker/docker-hosttype-${HOSTTYPE}.env \
         run rpt
 }
 
-develop
+develop-console() {
+    cd ${RPT_HOME}
+    docker-compose \
+        --file docker/docker-compose.yaml \
+	    --file .devcontainer/docker-compose-extend.yaml \
+        --env-file docker/docker-hosttype-${HOSTTYPE}.env \
+        run --entrypoint /bin/bash rpt
+}
+
+develop-console

@@ -152,9 +152,12 @@ class ThermostatService(EventBusMember):
             elif (couldHeat and temperature > h2):
                 self.__changeState(ThermostatState.FAN)
                 self.__fanRunoutInvoker.reset()
-            elif (modeCool and temperature < c2):
-                self.__changeState(ThermostatState.FAN)
-                self.__fanRunoutInvoker.reset()
+            elif modeCool:
+                if temperature > c1:
+                    self.__changeState(ThermostatState.COOLING)
+                else:
+                    self.__changeState(ThermostatState.FAN)
+                    self.__fanRunoutInvoker.reset()
         elif ThermostatState.COOLING == self.__state:
             if modeAuto and temperature < h1:
                 self.__changeState(ThermostatState.HEATING)
@@ -166,9 +169,12 @@ class ThermostatService(EventBusMember):
             elif (couldCool and temperature < c2):
                 self.__changeState(ThermostatState.FAN)
                 self.__fanRunoutInvoker.reset()
-            elif (modeHeat and temperature > h2):
-                self.__changeState(ThermostatState.FAN)
-                self.__fanRunoutInvoker.reset()
+            elif modeHeat:
+                if temperature < h1:
+                    self.__changeState(ThermostatState.HEATING)
+                else:
+                    self.__changeState(ThermostatState.FAN)
+                    self.__fanRunoutInvoker.reset()
         elif ThermostatState.FAN == self.__state:
             if couldHeat and temperature < h1:
                 self.__changeState(ThermostatState.HEATING)

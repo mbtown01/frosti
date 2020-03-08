@@ -247,6 +247,17 @@ class Test_Thermostat(unittest.TestCase):
         self.assertNextTemperature(60.0, 10, ThermostatState.FAN)
         self.assertNextTemperature(60.0, 100, ThermostatState.OFF)
 
+    def test_stateChangedHeatToCoolPlusNewTargets(self):
+        self.settings.mode = SettingsService.Mode.HEAT
+        self.assertNextTemperature(60.0, 15, ThermostatState.HEATING)
+
+        self.settings.mode = SettingsService.Mode.COOL
+        self.settings.comfortMin = 50.0
+        self.settings.comfortMax = 45.0
+        self.assertNextTemperature(60.0, 30, ThermostatState.COOLING)
+        self.assertNextTemperature(40.0, 30, ThermostatState.FAN)
+        self.assertNextTemperature(40.0, 100, ThermostatState.OFF)
+
     def test_stateChangedCoolToHeat(self):
         self.settings.mode = SettingsService.Mode.COOL
         self.assertNextTemperature(80.0, 15, ThermostatState.COOLING)
@@ -255,6 +266,17 @@ class Test_Thermostat(unittest.TestCase):
         self.assertNextTemperature(80.0, 10, ThermostatState.FAN)
         self.assertNextTemperature(80.0, 10, ThermostatState.FAN)
         self.assertNextTemperature(80.0, 100, ThermostatState.OFF)
+
+    def test_stateChangedCoolToHeatPlusNewTargets(self):
+        self.settings.mode = SettingsService.Mode.COOL
+        self.assertNextTemperature(80.0, 15, ThermostatState.COOLING)
+
+        self.settings.mode = SettingsService.Mode.HEAT
+        self.settings.comfortMin = 85.0
+        self.settings.comfortMax = 90.0
+        self.assertNextTemperature(80.0, 30, ThermostatState.HEATING)
+        self.assertNextTemperature(95.0, 30, ThermostatState.FAN)
+        self.assertNextTemperature(95.0, 100, ThermostatState.OFF)
 
     def test_simpleCool(self):
         self.settings.mode = SettingsService.Mode.COOL
