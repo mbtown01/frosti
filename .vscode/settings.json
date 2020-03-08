@@ -22,7 +22,7 @@
     "python.linting.enabled": true,
     "python.linting.pycodestyleEnabled": true,
     "python.linting.pycodestyleArgs": [
-        "--ignore=E402,E226"
+        "--ignore=E402,E226,E252"
     ],
     "python.testing.pytestArgs": [
         "test",

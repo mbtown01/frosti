@@ -6,6 +6,7 @@ from enum import Enum
 
 from .HD44780Display import HD44780Display
 from .Bme280EnvironmentSensor import Bme280EnvironmentSensor
+from .Bmp280EnvironmentSensor import Bmp280EnvironmentSensor
 from .PanasonicAgqRelay import PanasonicAgqRelay
 from src.core.generics import GenericEnvironmentSensor
 from src.core import Event, ThermostatState, ServiceProvider
@@ -33,11 +34,12 @@ class HardwareThermostatService(ThermostatService):
     def __init__(self):
         GPIO.setmode(GPIO.BCM)
 
+        sensor = GenericEnvironmentSensor()
         try:
             sensor = Bme280EnvironmentSensor()
+            sensor = Bmp280EnvironmentSensor()
         except(Exception):
-            # Debugging w/o the bmp280 on the breadboard
-            sensor = GenericEnvironmentSensor()
+            pass
 
         super().__init__(
             lcd=HD44780Display(0x27, 20, 4),
