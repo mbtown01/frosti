@@ -1,6 +1,5 @@
-from enum import Enum
-
 from src.core import Event
+
 
 class UserThermostatInteractionEvent(Event):
     MODE_NEXT = 1

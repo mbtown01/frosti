@@ -2,7 +2,7 @@ from enum import Enum
 
 from src.core import Event, EventBus, EventBusMember
 from src.logging import log
-from src.services import *
+from src.services import ConfigService
 from src.core import ServiceProvider
 
 
@@ -196,8 +196,8 @@ class SettingsService(EventBusMember):
         self._fireEvent(SettingsChangedEvent())
 
     def timeChanged(self, day: int, hour: int, minute: int):
-        """ Called when a relevent amount of time has passed so any new settings
-        can potentially be applied."""
+        """ Called when a relevent amount of time has passed so any new
+        settings can potentially be applied."""
         for name in self.__schedules:
             schedule = self.__schedules[name]
             if day in schedule.days:

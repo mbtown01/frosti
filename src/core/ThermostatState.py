@@ -17,4 +17,3 @@ class ThermostatState(Enum):
         """ Returns true if this state implies the use of the fan """
         return self == ThermostatState.HEATING or \
             self == ThermostatState.COOLING
-

@@ -97,4 +97,3 @@ class GenericLcdDisplay:
             results.append(row.commit())
 
         return results
-

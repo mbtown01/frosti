@@ -10,3 +10,4 @@ somewhere there is a component that provides them (ServiceProvider).
 from .GenericEnvironmentsensor import GenericEnvironmentSensor
 from .GenericLcdDisplay import GenericLcdDisplay
 from .GenericRelay import GenericRelay
+from .GenericRgbLed import GenericRgbLed

@@ -42,7 +42,7 @@ class TerminalThermostatService(ThermostatService):
         curses.curs_set(0)
 
         lines, cols = self.__stdscr.getmaxyx()
-        self.__displayWin = curses.newwin(4, cols, 0, 0)
+        self.__displayWin = curses.newwin(4, cols, 0, 5)
         self.__logWin = curses.newwin(lines-5, cols, 5, 0)
         self.__logWin.scrollok(True)
         self.__relayList = (
@@ -61,7 +61,8 @@ class TerminalThermostatService(ThermostatService):
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
         super()._installEventHandler(
-            TerminalThermostatService.KeyPressedEvent, self.__keyPressedHandler)
+            TerminalThermostatService.KeyPressedEvent,
+            self.__keyPressedHandler)
         super()._installTimerHandler(
             frequency=5.0, handlers=self.__updateDisplay)
         super()._installTimerHandler(

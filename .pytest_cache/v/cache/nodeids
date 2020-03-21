@@ -43,9 +43,11 @@
   "test/test_thermostat.py::Test_Thermostat::test_stateChangedAutoCoolToOff",
   "test/test_thermostat.py::Test_Thermostat::test_stateChangedAutoHeatToOff",
   "test/test_thermostat.py::Test_Thermostat::test_stateChangedCoolToHeat",
+  "test/test_thermostat.py::Test_Thermostat::test_stateChangedCoolToHeatPlusNewTargets",
   "test/test_thermostat.py::Test_Thermostat::test_stateChangedCoolToOff",
   "test/test_thermostat.py::Test_Thermostat::test_stateChangedCooling",
   "test/test_thermostat.py::Test_Thermostat::test_stateChangedHeatToCool",
+  "test/test_thermostat.py::Test_Thermostat::test_stateChangedHeatToCoolPlusNewTargets",
   "test/test_thermostat.py::Test_Thermostat::test_stateChangedHeatToOff",
   "test/test_thermostat.py::Test_Thermostat::test_stateChangedHeating"
 ]
