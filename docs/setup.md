@@ -1,31 +1,57 @@
 # Developer Setup
 
-RPT is based on python3.   I personally use pip3 for bringing in packages.
-Depending on your development platform, you may have several ways of installing
-both python and your own packages.
+Let's start with the code first...
 
-## Containerization Strategy
-
-We're using containers to encapsulate the entire runtime into a docker-compose
-configuration so all run-time dependencies are clear.  It also makes it much
-easier to do development off the RaspberryPi -- the local environment is
-almost a perfect match
-
-For influx, need to create and permission the database.  This may include
-changing/setting admin userid/password.  Need to be careful so we don't stomp
-already existing data should it exist.
-
-So that we don't have to fork and create a custom container for influxdb, could
-create a setup/initialize script in rpt that tests if the db is there and if not
-creates it on first touch.  Think that's already in the RPT code.
-
-At development time, modifications to the grafana configuration should be
-captured in source control somehow.  That is a different way of running the
-container than a production version.  At dev time, a local directory needs
-inserted.  At production time, a clean volume needs to be populated with the
-context from git.  MAY be able to do this with one configuration.
+```bash
+git clone https://github.com/mbtown01/rpt.git
+```
 
 ## Docker
+
+We're using docker-compose to encapsulate the entire set of runtime
+dependencies.  This includes not only python and the modules, but also any
+libraries that need to be installed in support of python-land *plus* all
+the services like influx and grafana that run in support of the thermostat.
+
+Before we go further here, it's important to note that for Linux-based dev
+setups, your distribution's version of docker may not be the latest.  If the
+commands below don't work, be sure docker's version is >= 1.26.  For Ubuntu,
+the following [guide](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-18-04) helped me.
+
+You will also need docker-compose, which oddly enough doesn't come with the
+Linux distribution (though it does seem to come w/ the Windows one?)  I would
+checkout this [guide](https://docs.docker.com/compose/install/) on how to do
+that.
+
+Once you have the source pulled down and the latest version of docker, let's
+make the first container orchestration to host the dev environment
+
+```bash
+docker-compose \
+    --file docker/docker-compose.yaml \
+    --env-file docker/docker-hosttype-${HOSTTYPE}.env \
+    build rpt
+```
+
+The process above is essentially building out your development environment
+with a base Ubuntu 18 image, python, and all the modules you'll need to
+develop and run.  It will take some time to execute, especially if you're
+running on a Raspberry Pi.
+
+Once completed, we can test if it worked by running the thermostat simulator:
+
+```bash
+docker-compose \
+    --file docker/docker-compose.yaml \
+    --env-file docker/docker-hosttype-${HOSTTYPE}.env \
+    run rpt
+```
+
+If the above worked, congrats -- you now have a local copy of the source code
+and a container setup to run it in.  You can tweak the code and re-run the
+command above to test your changes.
+
+# Extra stuff
 
 To get the documentation locally
 
@@ -36,10 +62,6 @@ docker run -ti -p 4000:4000 docs/docker.github.io:latest
 For development, here are some useful docker commands
 
 ```bash
-# Build and run the services
-docker-compose --file docker/docker-compose.yaml build rpt
-docker-compose --file docker/docker-compose.yaml run rpt
-
 # After a build, debug the rpt server
 docker-compose --file docker/docker-compose.yaml run \
     -p 3001:3001 -p 5000:5000 \
