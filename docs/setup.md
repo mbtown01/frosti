@@ -13,14 +13,19 @@ dependencies.  This includes not only python and the modules, but also any
 libraries that need to be installed in support of python-land *plus* all
 the services like influx and grafana that run in support of the thermostat.
 
-Before we go further here, it's important to note that for Linux-based dev
+Containers are ephemeral, and once spun down any content generated in the
+container is destroyed.  This docker-compose setup injects the rpt source tree
+into the container so that the container always has the latest copy and any
+changes made via editing/debugging in the container are retained.
+
+> Before we go further here, it's important to note that for Linux-based dev
 setups, your distribution's version of docker may not be the latest.  If the
 commands below don't work, be sure docker's version is >= 1.26.  For Ubuntu,
-the following [guide](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-18-04) helped me.
-
-You will also need docker-compose, which oddly enough doesn't come with the
+the following [guide](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-18-04) helped me. 
+>
+>You will also need docker-compose, which oddly enough doesn't come with the
 Linux distribution (though it does seem to come w/ the Windows one?)  I would
-checkout this [guide](https://docs.docker.com/compose/install/) on how to do
+checkout this [guide](https://docs.docker.com/compose/install/) on how to do 
 that.
 
 Once you have the source pulled down and the latest version of docker, let's
@@ -47,33 +52,81 @@ docker-compose \
     run rpt
 ```
 
-If the above worked, congrats -- you now have a local copy of the source code
+If the above worked, **congrats** -- you now have a local copy of the source code
 and a container setup to run it in.  You can tweak the code and re-run the
 command above to test your changes.
 
-# Extra stuff
+# Microsoft VSCode
 
-To get the documentation locally
+Once you have VSCode installed and before you load the project for
+the first time, install the following extensions:
+
+* Python (Microsoft)
+* Remote - Containers (Microsift)
+
+Next, start a development container on the local machine
+
+```bash
+docker-compose \
+    --file docker/docker-compose.yaml \
+    --file .devcontainer/docker-compose-extend.yaml \
+    --env-file docker/docker-hosttype-${HOSTTYPE}.env \
+    run rpt
+```
+
+Now, instead of opening the project directly from your local cloned workspace,
+click the bottom-left-hand corner in the IDE and chose "Remote-Containers: 
+Attach to Running Container".  From there, choose the option that has 'rpt'
+in it.  This should start a new copy of VSCode that is now "inside" your
+running development container.  
+
+Once in the container, it will take a minute or to do to its initial setup.
+You'll then want to open the folder '/usr/local/rpt' which is where the source
+code is.  You will likley need to install/enable the Python module again in 
+this copy of VSCode (beacuse it's in the container).  I also recommend saying
+'yes' to all the prompts you'll get for installing a linter, the testing
+libraries, etc.  
+
+From here, you **should** be able to debug using the 'Local fake hardware'.
+Most of the above I figured out from the following [documentation]
+(https://code.visualstudio.com/docs/remote/containers)
+
+# Extra Commands
+
+## Download the docker documentation
+
+In case you're on a plane and are too cheap for WiFi...
 
 ```bash
 docker run -ti -p 4000:4000 docs/docker.github.io:latest
 ```
+## Debug/attach 
 
-For development, here are some useful docker commands
+If you are no fun and don't like the VSCode + Remote-Containers setup, you can
+run VSCode locally and attach to your container.  You can get the container 
+started and ready with the following:
 
 ```bash
-# After a build, debug the rpt server
-docker-compose --file docker/docker-compose.yaml run \
-    -p 3001:3001 -p 5000:5000 \
-    --entrypoint '/bin/bash -c "cd /usr/local/rpt && python3 -m ptvsd --host 0.0.0.0 --port 3001 --wait -m src"' rpt
-
+docker-compose \
+    --file docker/docker-compose.yaml \
+    --env-file docker/docker-hosttype-${HOSTTYPE}.env \
+    run  -p 3001:3001 -p 5000:5000 \
+        --entrypoint '/bin/bash -c "cd /usr/local/rpt && python3 -m ptvsd --host 0.0.0.0 --port 3001 --wait -m src"' rpt
 ```
+Once the avove is complete, you should be able to 'attach' to the container.
+
+## Random terminal 
 
 To get a terminal in one of your composed containers (e.g. rpt)
 
 ```bash
-docker-compose --file docker/docker-compose.yaml run --entrypoint sh rpt
+docker-compose \
+    --file docker/docker-compose.yaml \
+    --env-file docker/docker-hosttype-${HOSTTYPE}.env \
+    run --entrypoint sh rpt
 ```
+
+## Docker and MacOS
 
 On MacOS, docker runs in its own VM.  Using docker volumes creates space in
 the VM and not on the local machine.  To inspect the volume contents, you
@@ -94,56 +147,3 @@ To remove the local volumes and start over
 ```bash
 docker-compose --file docker/docker-compose.yaml down --volumes
 ```
-
-## On the RaspberryPi
-
-This was what I had to do the first time I got the Raspberry Pi docker
-environment setup.  It's unclear whether it's at ALL necessary and that you
-can't simply just apt-get install docker and docker-compose and be done with it.
-Need to test again...
-
-```bash
-curl -sSL https://get.docker.com | sh
-sudo usermod -aG docker pi
-sudo apt-get install libffi-dev libssl-dev
-sudo apt-get install -y python python-pip
-sudo pip install docker-compose
-```
-
-The first time I tried this, the docker installation process had issues with
-conflicting versions of python v2.7.  I had to do the following two commands
-in addition to the ones above to make things work:
-
-```bash
-sudo cp -r /usr/local/lib/python2.7/dist-packages/backports/ssl_match_hostname /usr/lib/python2.7/dist-packages/backports/
-sudo cp -r /usr/local/lib/python2.7/dist-packages/backports/shutil_get_terminal_size /usr/lib/python2.7/dist-packages/backports/
-
-```
-
-```bash
-sudo apt install python3 wiringpi python3-pip i2c-tools python3-smbus
-```
-
-## Required modules
-
-```bash
-pip3 install --user adafruit-circuitpython-bme280
-pip3 install --user adafruit-blinka adafruit-circuitpython-charlcd
-pip3 install --user flask influxdb requests pytest pytest-cov
-pip3 install --user --upgrade ptvsd
-```
-
-## Setup a development environment
-
-## Creating a new RaspberryPi image
-
-## Debugging
-
-Though it's not impossible, it's far better to have a dedicated development
-machine and not work directly on the RaspberryPi.  It's a great little computer,
-but just doesn't have much horsepower to really host an IDE.
-
-At start-up, RPT checks to see if `uname -a` contains the 'armv' architecture.
-If detected, RPT starts in hardware mode and assumes it's attached to an RPT
-board.  Otherwise, it assumes it's in simulation mode and uses the terminal as a
-fake LCD, using keys 1-4 as proxies for the 4 buttons.
