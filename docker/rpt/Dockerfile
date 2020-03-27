@@ -8,10 +8,8 @@ ARG HOSTTYPE
 
 RUN apt-get update && \
     apt-get install -y python3-pip && \
-    apt-get install -y python3.7 python3.7-dev \
-        python3-smbus i2c-tools git \
-        language-pack-en-base locales && \
-    dpkg-reconfigure --frontend noninteractive locales 
+    apt-get install -y python3.7 python3.7-dev python3-smbus && \
+    apt-get install -y vim i2c-tools git
 RUN if [ ${HOSTTYPE:-none} = 'arm' ]; then \
         apt-get install -y python-rpi.gpio; \
     fi
@@ -29,4 +27,4 @@ RUN echo FRD ${HOSTTYPE} BAR; if [ ${HOSTTYPE:-none} = 'arm' ]; then \
         pip3 install RPi.GPIO; \
     fi
 
-ENTRYPOINT cd /usr/local/rpt && python3 -m src --sim
+ENTRYPOINT cd /usr/local/rpt && python3.7 -m src --sim

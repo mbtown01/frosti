@@ -4,20 +4,6 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
-        {
-            "name": "Python: Remote Attach",
-            "type": "python",
-            "request": "attach",
-            "port": 3000,
-            "host": "raspberrypi",
-            "pathMappings": [
-                {
-                    "localRoot": "${workspaceFolder}",
-                    "remoteRoot": "/home/pi/rpt"
-                }
-            ],
-        },
         {
             "name": "Python: Local Fake Hardware",
             "type": "python",
@@ -37,6 +23,18 @@
             "console": "integratedTerminal",
             "stopOnEntry": false,
         },
-     
+        {
+            "name": "Python: Remote Attach",
+            "type": "python",
+            "request": "attach",
+            "port": 3000,
+            "host": "raspberrypi",
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}",
+                    "remoteRoot": "/home/pi/rpt"
+                }
+            ],
+        },
     ]
 }
