@@ -19,8 +19,8 @@ class RootDriver(ServiceProvider):
         parser = argparse.ArgumentParser(
             description='RPT main process')
         parser.add_argument(
-            '--sim', dest='sim', action='store_true',
-            help='Run the thermostat in simulation mode')
+            '--hardware', choices=['term', 'v1', 'v2'], default='term',
+            help='Pick the underlying hardware supporting operations')
         self.__args = parser.parse_args()
 
         self.__eventBus = EventBus()
@@ -45,11 +45,21 @@ class RootDriver(ServiceProvider):
             hardwareDriver = TerminalThermostatService(
                 stdscr, messageQueue)
             hardwareDriver.setServiceProvider(self)
-        else:
-            from src.hardware import HardwareThermostatService
-            hardwareDriver = HardwareThermostatService()
+        elif self.__args.hardware == 'v1':
+            from src.hardware.HardwareThermostatService_v1 \
+                import HardwareThermostatService_v1
+            hardwareDriver = HardwareThermostatService_v1()
             hardwareDriver.setServiceProvider(self)
             setupLogging()
+        elif self.__args.hardware == 'v2':
+            from src.hardware.HardwareThermostatService_v2 \
+                import HardwareThermostatService_v2
+            hardwareDriver = HardwareThermostatService_v2()
+            hardwareDriver.setServiceProvider(self)
+            setupLogging()
+        else:
+            raise RuntimeError(
+                f'Hardware oprtion {self.__args.hardware} not supported')
 
         # Setup the power price handler after the other event handlers have
         # been created so they get the first power events
@@ -71,7 +81,7 @@ class RootDriver(ServiceProvider):
         self.__eventBus.exec()
 
     def start(self):
-        if self.__args.sim:
+        if self.__args.hardware == 'term':
             wrapper(self.__start)
         else:
             self.__start(None)
