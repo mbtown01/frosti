@@ -30,3 +30,4 @@ kicad/*.ses
 # Exported BOM files
 kicad/*.xml
 kicad/*.csv
+.history.swp
