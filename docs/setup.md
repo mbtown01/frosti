@@ -49,7 +49,7 @@ Once completed, we can test if it worked by running the thermostat simulator:
 docker-compose \
     --file docker/docker-compose.yaml \
     --env-file docker/docker-hosttype-${HOSTTYPE}.env \
-    run rpt
+    run rpt python3.7 -m src --hardware term
 ```
 
 If the above worked, **congrats** -- you now have a local copy of the source
@@ -75,9 +75,8 @@ Next, start a development container on the local machine
 ```bash
 docker-compose \
     --file docker/docker-compose.yaml \
-    --file .devcontainer/docker-compose-extend.yaml \
     --env-file docker/docker-hosttype-${HOSTTYPE}.env \
-    run rpt
+    run rpt bash -c "while sleep 600; do /bin/false; done"
 ```
 
 Now, instead of opening the project directly from your local cloned workspace,
@@ -98,6 +97,33 @@ Most of the above I figured out from the following [documentation](
 https://code.visualstudio.com/docs/remote/containers)
 
 > I've had some issues recently where VSCode is trying to interpret the locale and gets it wrong.  The sympton is when you start a debug session but you get a bunch of errors about locale settings. [This bug report](https://github.com/microsoft/vscode-remote-release/issues/2169) explains the fix (spoiler alert: Turn off 'Detect Locale' in the integrated terminal in VSCode settings)
+
+### Debug/attach on RaspberryPi
+
+The configuration above works well for a x64 workstation doing terminal-based
+work.  However, when developing on the RaspberryPi, you're going to want to
+still run the IDE on a big machine and then use the 'Remote-SSH' plugin to 
+get to the Pi.  Once installed, click the lower-left-hand corner quick menu
+and select 'Remote-SSH: Connect to Host...' and choose the pi you're working
+on.  
+
+Once there, you can clone the github repo, build (or pull) the  arm-based
+rpi container, and you're off!  If want to debug your code interactively with
+VSCode, first open a local terminal and start python under the debugger
+
+```bash
+docker-compose \
+    --file docker/docker-compose.yaml \
+    --env-file docker/docker-hosttype-${HOSTTYPE}.env \
+    run -p 3001:3001 -p 5000:5000 \
+    rpt python3.7 -m ptvsd --host 0.0.0.0 --port 3001 --wait \
+        -m src --hardware v2
+```
+
+Once the avove is complete, you should be able to choose the 
+'Python: Local Attach' debug profile and start debugging.  'Local Attach' is
+configured in .vscode/launch.json to run on the local host and has the source
+directory mappings configured so the debugger can step line-by-line.  
 
 ## QEMU / Build Raspberry Pi Images on x64
 
@@ -123,22 +149,6 @@ In case you're on a plane and are too cheap for WiFi...
 ```bash
 docker run -ti -p 4000:4000 docs/docker.github.io:latest
 ```
-
-### Debug/attach
-
-If you are no fun and don't like the VSCode + Remote-Containers setup, you can
-run VSCode locally and attach to your container.  You can get the container
-started and ready with the following:
-
-```bash
-docker-compose \
-    --file docker/docker-compose.yaml \
-    --env-file docker/docker-hosttype-${HOSTTYPE}.env \
-    run  -p 3001:3001 -p 5000:5000 \
-        --entrypoint '/bin/bash -c "cd /usr/local/rpt && python3 -m ptvsd --host 0.0.0.0 --port 3001 --wait -m src"' rpt
-```
-
-Once the avove is complete, you should be able to 'attach' to the container.
 
 ### Random terminal
 

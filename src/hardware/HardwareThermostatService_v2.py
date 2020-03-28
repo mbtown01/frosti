@@ -1,8 +1,13 @@
 # pylint: disable=import-error
 import RPi.GPIO as GPIO
+import board
+import busio
+from digitalio import Direction, Pull
+from adafruit_mcp230xx.mcp23017 import MCP23017
 # pylint: enable=import-error
 
 from enum import Enum
+from time import sleep
 
 from .HD44780Display import HD44780Display
 from .Bme280EnvironmentSensor import Bme280EnvironmentSensor
@@ -10,6 +15,7 @@ from .PanasonicAgqRelay import PanasonicAgqRelay
 from src.core.generics import GenericEnvironmentSensor
 from src.core import Event, ThermostatState, ServiceProvider
 from src.services import ThermostatService
+from src.logging import log
 
 
 class Button(Enum):
@@ -30,8 +36,42 @@ class ButtonPressedEvent(Event):
 
 class HardwareThermostatService_v2(ThermostatService):
 
+    def __foo(self, port):
+        log.debug(f'Some kind of interrupt happened on port {port}')
+        for p in range(0,16):
+            v = self.__pins[p].value
+            log.debug(f"   pin[{p}] = {v}")
+
     def __init__(self):
         GPIO.setmode(GPIO.BCM)
+
+        i2c = busio.I2C(board.SCL, board.SDA)
+        mcp = MCP23017(i2c)
+
+        self.__pins = []
+        for p in range(0, 16):
+            pin = mcp.get_pin(p)
+            pin.direction = Direction.INPUT
+            pin.pull = Pull.UP
+            self.__pins.append(pin)
+
+        # Only docs for this I could find are at
+        # https://github.com/adafruit/Adafruit_CircuitPython_MCP230xx/blob/master/examples/mcp230xx_event_detect_interrupt.py
+
+        # GPINTEN controls interrupt-on-change feature per pin
+        mcp.interrupt_enable = 0xFFFF  # Enable Interrupts in all pins
+        # INTCON Interrupt control register
+        mcp.interrupt_configuration = 0x0000
+        # DEFVAL controls default comparison value
+        mcp.default_value = 0xFFFF
+        # Interrupt as open drain and mirrored
+        mcp.io_control = 0x44
+
+        mcp.clear_ints()  # Interrupts need to be cleared initially
+
+        GPIO.setup(17, GPIO.IN, GPIO.PUD_UP)
+        GPIO.add_event_detect(
+            17, GPIO.FALLING, callback=self.__foo, bouncetime=10)
 
         sensor = Bme280EnvironmentSensor()
 
@@ -52,10 +92,10 @@ class HardwareThermostatService_v2(ThermostatService):
             ButtonPressedEvent, self.__buttonPressedHandler)
 
         self.__pinToButtonMap = {}
-        self.__subscribeToButton(17, Button.UP)
-        self.__subscribeToButton(18, Button.DOWN)
-        self.__subscribeToButton(22, Button.MODE)
-        self.__subscribeToButton(27, Button.WAKE)
+        # self.__subscribeToButton(17, Button.UP)
+        # self.__subscribeToButton(18, Button.DOWN)
+        # self.__subscribeToButton(22, Button.MODE)
+        # self.__subscribeToButton(27, Button.WAKE)
 
     def __buttonPressedHandler(self, event: ButtonPressedEvent):
         if event.button == Button.UP:

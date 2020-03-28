@@ -5,34 +5,35 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Local Fake Hardware",
+            "name": "Python: Local Terminal",
             "type": "python",
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "module": "src",
             "console": "integratedTerminal",
             "stopOnEntry": false,
-            "args": ["--sim"],
+            "args": ["--hardware", "term"],
         },
         {
-            "name": "Python: Local Real Hardware",
+            "name": "Python: Local Hardware v2",
             "type": "python",
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "module": "src",
             "console": "integratedTerminal",
             "stopOnEntry": false,
+            "args": ["--hardware", "v2"],
         },
         {
-            "name": "Python: Remote Attach",
+            "name": "Python: Local Attach",
             "type": "python",
             "request": "attach",
-            "port": 3000,
-            "host": "raspberrypi",
+            "port": 3001,
+            "host": "localhost",
             "pathMappings": [
                 {
                     "localRoot": "${workspaceFolder}",
-                    "remoteRoot": "/home/pi/rpt"
+                    "remoteRoot": "/usr/local/rpt"
                 }
             ],
         },

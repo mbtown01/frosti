@@ -21,10 +21,11 @@ RUN python3.7 -m pip install pip && \
         adafruit-circuitpython-bmp280 \
         adafruit-circuitpython-bme280 \
         adafruit-circuitpython-charlcd \
+        adafruit-circuitpython-mcp230xx \
         flask influxdb requests \
         ptvsd
-RUN echo FRD ${HOSTTYPE} BAR; if [ ${HOSTTYPE:-none} = 'arm' ]; then \
-        pip3 install RPi.GPIO; \
+RUN if [ ${HOSTTYPE:-none} = 'arm' ]; then \
+        python3.7 -m pip install RPi.GPIO; \
     fi
 
 WORKDIR /usr/local/rpt
