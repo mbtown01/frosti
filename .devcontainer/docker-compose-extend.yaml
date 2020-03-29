@@ -1,5 +1,0 @@
-version: "3.7"
-services:
-
-  rpt:
-    entrypoint: /bin/sh -c "echo Infinite loop to host VSCode; while sleep 600; do /bin/false; done"

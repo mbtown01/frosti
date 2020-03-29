@@ -1,8 +1,8 @@
-#FROM arm32v5/debian:latest
-#FROM ubuntu:18.04
 ARG HOSTTYPE_IMAGE
 FROM ${HOSTTYPE_IMAGE}
 LABEL maintainer="Mike Townsley mike@madllama.net"
+
+COPY docker/qemu-arm-static /usr/bin/qemu-arm-static
 
 ARG HOSTTYPE
 
@@ -21,10 +21,11 @@ RUN python3.7 -m pip install pip && \
         adafruit-circuitpython-bmp280 \
         adafruit-circuitpython-bme280 \
         adafruit-circuitpython-charlcd \
+        adafruit-circuitpython-mcp230xx \
         flask influxdb requests \
         ptvsd
-RUN echo FRD ${HOSTTYPE} BAR; if [ ${HOSTTYPE:-none} = 'arm' ]; then \
-        pip3 install RPi.GPIO; \
+RUN if [ ${HOSTTYPE:-none} = 'arm' ]; then \
+        python3.7 -m pip install RPi.GPIO; \
     fi
 
-ENTRYPOINT cd /usr/local/rpt && python3.7 -m src --sim
+WORKDIR /usr/local/rpt
