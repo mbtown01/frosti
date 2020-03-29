@@ -1,7 +1,8 @@
 # pylint: disable=import-error
 import RPi.GPIO as GPIO
 import board
-import busio
+
+from busio import I2C
 from digitalio import Direction, Pull
 from adafruit_mcp230xx.mcp23017 import MCP23017
 # pylint: enable=import-error
@@ -36,42 +37,16 @@ class ButtonPressedEvent(Event):
 
 class HardwareThermostatService_v2(ThermostatService):
 
-    def __foo(self, port):
-        log.debug(f'Some kind of interrupt happened on port {port}')
-        for p in range(0,16):
-            v = self.__pins[p].value
-            log.debug(f"   pin[{p}] = {v}")
-
     def __init__(self):
         GPIO.setmode(GPIO.BCM)
 
-        i2c = busio.I2C(board.SCL, board.SDA)
-        mcp = MCP23017(i2c)
-
-        self.__pins = []
-        for p in range(0, 16):
-            pin = mcp.get_pin(p)
-            pin.direction = Direction.INPUT
-            pin.pull = Pull.UP
-            self.__pins.append(pin)
-
-        # Only docs for this I could find are at
-        # https://github.com/adafruit/Adafruit_CircuitPython_MCP230xx/blob/master/examples/mcp230xx_event_detect_interrupt.py
-
-        # GPINTEN controls interrupt-on-change feature per pin
-        mcp.interrupt_enable = 0xFFFF  # Enable Interrupts in all pins
-        # INTCON Interrupt control register
-        mcp.interrupt_configuration = 0x0000
-        # DEFVAL controls default comparison value
-        mcp.default_value = 0xFFFF
-        # Interrupt as open drain and mirrored
-        mcp.io_control = 0x44
-
-        mcp.clear_ints()  # Interrupts need to be cleared initially
-
-        GPIO.setup(17, GPIO.IN, GPIO.PUD_UP)
-        GPIO.add_event_detect(
-            17, GPIO.FALLING, callback=self.__foo, bouncetime=10)
+        # Link a GPIO pin from the 23017 to a button action
+        self.__buttonMap = {
+            8: Button.UP,
+            9: Button.DOWN,
+            10: Button.MODE,
+            11: Button.WAKE
+        }
 
         sensor = Bme280EnvironmentSensor()
 
@@ -79,11 +54,25 @@ class HardwareThermostatService_v2(ThermostatService):
             lcd=HD44780Display(0x27, 20, 4),
             sensor=sensor,
             relays=(
-                PanasonicAgqRelay(ThermostatState.FAN, 12, 6),  # 12 grounds
+                PanasonicAgqRelay(ThermostatState.FAN, 12, 6),
                 PanasonicAgqRelay(ThermostatState.HEATING, 21, 20),
                 PanasonicAgqRelay(ThermostatState.COOLING, 16, 19)
             )
         )
+
+    def __mcp23017_callback(self, port):
+        int_flag = self.__mcp.int_flag
+        self.__mcp.clear_ints()
+
+        log.debug(f"INTERRUPT on 17, {int_flag}")
+
+        for p in int_flag:
+            button = self.__buttonMap.get(p)
+            if button is not None:
+                pin = self.__mcp.get_pin(p)
+                if not pin.value:
+                    log.debug(f"   {button}, {p}")
+                    self._fireEvent(ButtonPressedEvent(button))
 
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
@@ -91,11 +80,37 @@ class HardwareThermostatService_v2(ThermostatService):
         self._installEventHandler(
             ButtonPressedEvent, self.__buttonPressedHandler)
 
-        self.__pinToButtonMap = {}
-        # self.__subscribeToButton(17, Button.UP)
-        # self.__subscribeToButton(18, Button.DOWN)
-        # self.__subscribeToButton(22, Button.MODE)
-        # self.__subscribeToButton(27, Button.WAKE)
+        # Try a resistor from INTA/INTB
+        # This guy says you should watch for RISING edges not falling edges
+        # https://bitbucket.org/dewoodruff/mcp23017-python-3-library-with-interrupts/src/master/examples/interrupttest.py
+
+        GPIO.setup(17, GPIO.IN, GPIO.PUD_UP)
+        GPIO.add_event_detect(
+            17, GPIO.FALLING, callback=self.__mcp23017_callback)
+
+        self.__i2c = I2C(board.SCL, board.SDA)
+        self.__mcp = MCP23017(self.__i2c)
+
+        pinsEnabled = 0
+        for p in self.__buttonMap.keys():
+            pin = self.__mcp.get_pin(p)
+            pin.direction = Direction.INPUT
+            pin.pull = Pull.UP
+            pinsEnabled = pinsEnabled | 1 << p
+
+        # Only docs for this I could find are at
+        # https://github.com/adafruit/Adafruit_CircuitPython_MCP230xx/blob/master/examples/mcp230xx_event_detect_interrupt.py
+
+        # GPINTEN controls interrupt-on-change feature per pin
+        self.__mcp.interrupt_enable = pinsEnabled
+        # INTCON Interrupt control register
+        self.__mcp.interrupt_configuration = 0x0000
+        # DEFVAL controls default comparison value
+        self.__mcp.default_value = 0xFFFF
+        # Interrupt as open drain and mirrored
+        self.__mcp.io_control = 0x44
+
+        self.__mcp.clear_ints()  # Interrupts need to be cleared initially
 
     def __buttonPressedHandler(self, event: ButtonPressedEvent):
         if event.button == Button.UP:
@@ -104,18 +119,3 @@ class HardwareThermostatService_v2(ThermostatService):
             super()._modifyComfortSettings(-1)
         elif event.button == Button.MODE:
             super()._nextMode()
-
-    def __subscribeToButton(self, pin: int, button: Button):
-        self.__pinToButtonMap[pin] = button
-
-        GPIO.setup(
-            pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-        GPIO.add_event_detect(
-            pin, GPIO.RISING, callback=self.__buttonCallback, bouncetime=200)
-
-    def __buttonCallback(self, channel):
-        """ Callback happens on another thread, so this method is marshaling
-        ButtonPressedEvent instances to the main thread to handle """
-        if not super().relayToggled:
-            button = self.__pinToButtonMap[channel]
-            self._fireEvent(ButtonPressedEvent(button))

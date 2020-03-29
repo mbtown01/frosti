@@ -113,6 +113,9 @@ class EventBus:
                 if iterationCount < iterations:
                     self.__threadingEvent.wait(timeout)
                     self.__threadingEvent.clear()
+            except KeyboardInterrupt:
+                log.info("Keyboard interrupt received, shutting down")
+                break
             except:
-                log.warning(
-                    "Invoker caught exception: " + exc_info())
+                info = exc_info()
+                log.warning(f"Invoker caught exception: {info}")
