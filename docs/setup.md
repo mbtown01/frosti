@@ -68,7 +68,7 @@ Once you have VSCode installed and before you load the project for
 the first time, install the following extensions:
 
 * Python (Microsoft)
-* Remote - Containers (Microsift)
+* Remote - Containers (Microsoft)
 
 Next, start a development container on the local machine
 
