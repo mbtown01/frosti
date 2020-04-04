@@ -39,13 +39,19 @@ F https://www.analog.com/media/en/technical-documentation/eval-board-schematic/7
 $ENDCMP
 #
 $CMP LTRB-RASF
-D LED RGB 
+D LED RGB
 K LED RGB
 F https://dammedia.osram.info/media/resource/hires/osram-dam-3950803/LTRB%20RASF_EN.pdf
 $ENDCMP
 #
 $CMP SIR424DP
 F https://www.mouser.com/datasheet/2/427/sir424dp-244427.pdf
+$ENDCMP
+#
+$CMP SN74LV1T34
+D 1-Bit Unidirectional Voltage-Level Translator
+K Noninverting
+F http://www.ti.com/lit/ds/symlink/sn74lv1t34.pdf?HQS=TI-null-null-mousermode-df-pf-null-wwe&DCM=yes&ref_url=https%3A%2F%2Fwww.mouser.com%2F&distId=26
 $ENDCMP
 #
 #End Doc Library
