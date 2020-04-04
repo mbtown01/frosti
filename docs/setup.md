@@ -26,7 +26,7 @@ the following [guide](https://www.digitalocean.com/community/tutorials/how-to-in
 >You will also need docker-compose, which oddly enough doesn't come with the
 Linux distribution (though it does seem to come w/ the Windows one?)  I would
 checkout this [guide](https://docs.docker.com/compose/install/) on how to do
-that.
+that.  On the raspberry pi you may also need to check out [another guide](https://dev.to/rohansawant/installing-docker-and-docker-compose-on-the-raspberry-pi-in-5-simple-steps-3mgl)
 
 Once you have the source pulled down and the latest version of docker, let's
 make the first container orchestration to host the dev environment

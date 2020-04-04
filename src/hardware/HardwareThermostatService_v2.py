@@ -80,10 +80,6 @@ class HardwareThermostatService_v2(ThermostatService):
         self._installEventHandler(
             ButtonPressedEvent, self.__buttonPressedHandler)
 
-        # Try a resistor from INTA/INTB
-        # This guy says you should watch for RISING edges not falling edges
-        # https://bitbucket.org/dewoodruff/mcp23017-python-3-library-with-interrupts/src/master/examples/interrupttest.py
-
         GPIO.setup(17, GPIO.IN, GPIO.PUD_UP)
         GPIO.add_event_detect(
             17, GPIO.FALLING, callback=self.__mcp23017_callback)
@@ -97,6 +93,11 @@ class HardwareThermostatService_v2(ThermostatService):
             pin.direction = Direction.INPUT
             pin.pull = Pull.UP
             pinsEnabled = pinsEnabled | 1 << p
+
+        for p in [5, 6, 7]:
+            pin = self.__mcp.get_pin(p)
+            pin.direction = Direction.OUTPUT
+            pin.value = 1
 
         # Only docs for this I could find are at
         # https://github.com/adafruit/Adafruit_CircuitPython_MCP230xx/blob/master/examples/mcp230xx_event_detect_interrupt.py

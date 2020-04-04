@@ -27,3 +27,4 @@ def setupLogging(queue: Queue=None):
 
     logging.getLogger('chardet.charsetprober').setLevel(logging.INFO)
     logging.getLogger('requests').setLevel(logging.WARNING)
+    logging.getLogger('urllib3').setLevel(logging.WARNING)

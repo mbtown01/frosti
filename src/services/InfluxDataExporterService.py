@@ -24,7 +24,8 @@ class InfluxDataExporterService(EventBusMember):
             raise RuntimeError('InfluxDB is not configured')
 
         self.__unitName = config.resolve('thermostat', 'unitname')
-        self.__influxHeader = f'rpt_status,unit={self.__unitName}'
+        self.__statusMeasurement = 'rpt_status'
+        self.__eventMeasurement = 'rpt_event'
         self.__lastSensorChangedEvent = None
         self.__protocol = config.resolve("influxdb", "protocol")
 
@@ -43,6 +44,8 @@ class InfluxDataExporterService(EventBusMember):
                 self.__client.create_database(dbName)
             self.__client.switch_database(dbName)
 
+            self.__updateInflux(self.__eventMeasurement, "event=100")
+
             super()._installEventHandler(
                 SensorDataChangedEvent, self.__sensorDataChanged)
             super()._installEventHandler(
@@ -55,11 +58,12 @@ class InfluxDataExporterService(EventBusMember):
             log.warning('Unable to connect to local influx instance')
 
     def __powerPriceChanged(self, event: PowerPriceChangedEvent):
-        self.__updateInflux(f'price={event.price}')
+        self.__updateInflux(self.__statusMeasurement, f'price={event.price}')
 
     def __processSettingsChanged(self, event: SettingsChangedEvent):
         settings = self._getService(SettingsService)
         self.__updateInflux(
+            self.__statusMeasurement,
             f'comfortMin={settings.comfortMin},'
             f'comfortMax={settings.comfortMax}'
         )
@@ -68,20 +72,21 @@ class InfluxDataExporterService(EventBusMember):
         cool = 1 if ThermostatState.COOLING == event.state else 0
         heat = 1 if ThermostatState.HEATING == event.state else 0
         fan = 1 if ThermostatState.FAN == event.state else 0
-        self.__updateInflux(f'cool={cool},heat={heat},fan={fan}')
+        self.__updateInflux(
+            self.__statusMeasurement,
+            f'cool={cool},heat={heat},fan={fan}')
 
     def __sensorDataChanged(self, event: SensorDataChangedEvent):
         self.__updateInflux(
+            self.__statusMeasurement,
             f'temperature={event.temperature},'
             f'pressure={event.pressure},'
             f'humidity={event.humidity}'
         )
 
-    def __updateInflux(self, data: str):
-        entry = f'{self.__influxHeader} {data}'
+    def __updateInflux(self, measurement: str, data: str):
+        entry = f'{measurement},unit={self.__unitName} {data}'
         try:
             self.__client.write_points(entry, protocol=self.__protocol)
-            log.debug(entry)
         except Exception as e:
-            log.warning("Failed connecting to influx")
-            log.warning(str(e))
+            log.warning(f"Failed connecting to influx: {str(e)}")
