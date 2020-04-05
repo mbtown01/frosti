@@ -10,7 +10,7 @@ ARG HOSTTYPE
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y python3-pip && \
     apt-get install -y python3.7 python3.7-dev python3-smbus && \
-    apt-get install -y vim i2c-tools git postgresql-client
+    apt-get install -y vim i2c-tools git postgresql-client libpq-dev
 
 # install all the requied modules
 RUN python3.7 -m pip install pip && \
