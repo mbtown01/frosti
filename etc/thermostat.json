@@ -3,13 +3,6 @@
         "delta": 1.0,
         "fanRunout": 30,
         "backlightTimeout": 10,
-        "sensors": {
-            "offsets": {
-                "temperature": -3.0,
-                "pressure": 0.0,
-                "humidity": 0.0
-            }
-        },
         "programs": {
             "_default": {
                 "comfortMin": 68,
@@ -102,13 +95,5 @@
         "memberID": 32795,
         "settlementPoint": "LZ_HOUSTON",
         "apiUrl": "https://app.gogriddy.com/api/v1/insights/getnow"
-    },
-
-    "influxdb": {
-        "enabled": true,
-        "protocol": "line",
-        "host": "influxdb",
-        "port": 8086,
-        "dbName": "rpt"
     }
 }

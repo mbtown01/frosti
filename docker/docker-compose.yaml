@@ -1,25 +1,16 @@
 version: "3.7"
 services:
 
-  influxdb:
-    container_name: rpt-influxdb
-    build:
-      args:
-        HOSTTYPE_IMAGE: ${HOSTTYPE_IMAGE_INFLUX}
-      context: ../
-      dockerfile: ./docker/influxdb/Dockerfile
-    ports:
-      - "8083:8083"
-      - "8086:8086"
-      - "8090:8090"
+  postgres:
+    container_name: rpt-postgres
+    image: "postgres:12.2"
     environment:
-      INFLUXDB_ADMIN_USER: "rpt"
-      INFLUXDB_ADMIN_PASSWORD: "rpt"
-      INFLUXDB_HTTP_AUTH_ENABLED: "true"
+      POSTGRES_PASSWORD: "rpt"
+      POSTGRES_DB: "rpt"
     volumes:
       - type: volume
-        source: influxdb
-        target: /var/lib/influxdb
+        source: postgres
+        target: /var/lib/postgresql
 
   grafana:
     container_name: rpt-grafana
@@ -28,7 +19,7 @@ services:
       - "3000:3000"
     user: "0"
     depends_on:
-      - influxdb
+      - postgres
     volumes:
       - ./grafana:/var/lib/grafana:delegated
 
@@ -44,10 +35,10 @@ services:
     ports:
       - "5000:5000"
     depends_on:
-      - influxdb
+      - postgres
       - grafana
     volumes:
       - ../:/usr/local/rpt
 
 volumes:
-  influxdb:
+  postgres:

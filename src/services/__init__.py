@@ -3,7 +3,7 @@
 
 from .ConfigService import ConfigService
 from .SettingsService import SettingsChangedEvent, SettingsService
-from .InfluxDataExporterService import InfluxDataExporterService
+from .PostgresAdapterService import PostgresAdapterService
 from .ApiDataBrokerService import ApiDataBrokerService
 from .GoGriddyPriceCheckService import GoGriddyPriceCheckService
 from .ThermostatService import ThermostatService

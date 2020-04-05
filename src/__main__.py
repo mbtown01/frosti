@@ -1,5 +1,6 @@
 from queue import Queue
 from curses import wrapper
+from sys import exc_info
 import logging
 import argparse
 
@@ -7,7 +8,7 @@ from src.logging import log, setupLogging
 from src.core import EventBus
 from src.services import ConfigService, SettingsService, \
     SettingsChangedEvent, ApiDataBrokerService, GoGriddyPriceCheckService, \
-    InfluxDataExporterService
+    PostgresAdapterService
 from src.core import ServiceProvider
 
 
@@ -71,10 +72,11 @@ class RootDriver(ServiceProvider):
                 log.warning("Unable to reach GoGriddy")
 
         try:
-            dataExporter = InfluxDataExporterService()
+            dataExporter = PostgresAdapterService()
             dataExporter.setServiceProvider(self)
-        except Exception:
-            log.warning("Influx logger failed to initialize")
+        except:
+            info = exc_info()
+            log.warning(f"Postgres startup encountered exception: {info}")
 
         log.info('Entering into standard operation')
         self.__eventBus.fireEvent(SettingsChangedEvent())

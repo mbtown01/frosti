@@ -11,7 +11,7 @@ git clone https://github.com/mbtown01/rpt.git
 We're using docker-compose to encapsulate the entire set of runtime
 dependencies.  This includes not only python and the modules, but also any
 libraries that need to be installed in support of python-land *plus* all
-the services like influx and grafana that run in support of the thermostat.
+the services like postgres and grafana that run in support of the thermostat.
 
 Containers are ephemeral, and once spun down any content generated in the
 container is destroyed.  This docker-compose setup injects the rpt source tree
@@ -171,10 +171,10 @@ can get console on the VM with the following command:
 screen ~/Library/Containers/com.docker.docker/Data/vms/0/tty
 ```
 
-RPT uses a docker volume for storing the influx database
+RPT uses a docker volume for storing the postgres database
 
 ```bash
-docker volume inspect docker_influxdb
+docker volume inspect docker_postgres
 ```
 
 To remove the local volumes and start over
