@@ -28,6 +28,7 @@ services:
       args:
         HOSTTYPE: ${HOSTTYPE}
         HOSTTYPE_IMAGE: ${HOSTTYPE_IMAGE_RPT}
+        NODEJS_VERSION: ${NODEJS_VERSION}
       context: ../
       dockerfile: ./docker/rpt/Dockerfile
     container_name: rpt
