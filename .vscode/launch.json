@@ -25,6 +25,16 @@
             "args": ["--hardware", "v2"],
         },
         {
+            "name": "Python: Local RPT Launcher",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "stopOnEntry": false,
+            "args": ["--debug", "--run", "--hardware", "term"],
+        },
+        {
             "name": "Python: Local Attach",
             "type": "python",
             "request": "attach",
