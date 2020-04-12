@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 import os
 import sys
@@ -28,6 +28,9 @@ class RptLauncher:
             '--run', nargs=argparse.REMAINDER,
             help='Run the rpt orchestration')
         parser.add_argument(
+            '--dev', action='store_true', default=False,
+            help='Start a development container to be attached to')
+        parser.add_argument(
             '--dryrun', action='store_true', default=False,
             help='Only print commands, do not execute')
         parser.add_argument(
@@ -51,15 +54,16 @@ class RptLauncher:
         if hosttype is None:
             raise Exception(f"Host with uname {uname} is not supported")
 
-        print(self.args.run)
-        print(self.args.build)
-
         baseComposeArgs = [
             'docker-compose',
             '--file', 'docker/docker-compose.yaml',
             '--env-file', f"docker/docker-hosttype-{hosttype}.env"
         ]
         rptStartArgs = ['python3', '-m', 'src']
+
+        timezone = check_output(
+            ['readlink', '/etc/localtime']).decode('UTF-8').rstrip()
+        timezone = timezone[(timezone.find("/zoneinfo/")+10):]
 
         if self.args.run is not None:
             rptStartArgs = rptStartArgs + self.args.run
@@ -69,7 +73,18 @@ class RptLauncher:
         if self.args.build is not None:
             rptStartArgs = rptStartArgs + self.args.build
             return self.shell(
-                arglist=baseComposeArgs + ['build', 'rpt'] + rptStartArgs)
+                arglist=baseComposeArgs + ['build', 'rpt'])
+
+        if self.args.dev:
+            # run rpt bash -c "while sleep 600; do /bin/false; done"
+            rptStartArgs = \
+                ['bash', '-c', 'while sleep 600; do /bin/false; done']
+            return self.shell(
+                arglist=baseComposeArgs + [
+                    'run',
+                    '--name', 'rpt-dev',
+                    '-e', f'TZ={timezone}',
+                    'rpt'] + rptStartArgs)
 
 
 if __name__ == "__main__":

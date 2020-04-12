@@ -12,7 +12,7 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y python3-pip && \
     apt-get install -y python3 python3-dev python3-smbus && \
-    apt-get install -y vim i2c-tools git postgresql-client libpq-dev curl
+    apt-get install -y vim i2c-tools git postgresql-client libpq-dev curl tzdata
 
 # install all the requied modules
 RUN python3 -m pip install pip && \

@@ -2,6 +2,7 @@ import json
 import requests
 import json
 import sys
+import datetime
 
 from sqlalchemy import create_engine, Column, Float, DateTime, Integer, String
 from sqlalchemy.orm import sessionmaker
@@ -37,13 +38,18 @@ class SensorReading(Base):
     __tablename__ = 'sensor_reading'
 
     ''' Time of the reading '''
-    time = Column(DateTime, primary_key=True)
+    time = Column(DateTime, primary_key=True, default=datetime.datetime.now)
     ''' Temperature in degF '''
     temperature = Column(Float)
     ''' Pressure in hPa (100 Pascals) '''
     pressure = Column(Float)
     ''' Humidity in relative percentage 0-99 '''
     humidity = Column(Float)
+
+    def __init__(self, temperature: float, pressure: float, humidity: float):
+        self.temperature = temperature
+        self.pressure = pressure
+        self.humidity = humidity
 
 
 class GriddyConfig(Base):
@@ -85,28 +91,15 @@ class PostgresAdapterService(EventBusMember):
         if not database_exists(self.__postgresUrl):
             create_database(self.__postgresUrl)
 
-        self.__engine = create_engine(self.__postgresUrl, echo=True)
+        self.__engine = create_engine(
+            self.__postgresUrl, echo=False)
         Session = sessionmaker(bind=self.__engine)
         self.__session = Session()
 
         connection = self.__engine.connect()
         Base.metadata.create_all(self.__engine)
 
-        # self.__client = InfluxDBClient(
-        #     host=config.resolve("influxdb", "host"),
-        #     port=config.resolve("influxdb", "port"),
-        #     username='rpt',
-        #     password='rpt'
-        # )
-
         try:
-            # dbName = config.resolve("influxdb", "dbName")
-            # hashList = self.__client.get_list_database()
-            # nameList = list(map(lambda x: x['name'], hashList))
-            # if dbName not in nameList:
-            #     self.__client.create_database(dbName)
-            # self.__client.switch_database(dbName)
-
             self.__updateDb(self.__eventMeasurement, {'event': 100})
 
             super()._installEventHandler(
@@ -144,13 +137,13 @@ class PostgresAdapterService(EventBusMember):
         )
 
     def __sensorDataChanged(self, event: SensorDataChangedEvent):
-        self.__updateDb(
-            self.__statusMeasurement, {
-                'temperature': event.temperature,
-                'pressure': event.pressure,
-                'humidity': event.humidity
-            }
+        reading = SensorReading(
+            temperature=event.temperature,
+            pressure=event.pressure,
+            humidity=event.humidity
         )
+        self.__session.add(reading)
+        self.__session.commit()
 
     def __updateDb(self, table: str, data: dict):
         pass

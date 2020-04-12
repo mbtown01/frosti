@@ -13,6 +13,15 @@ logging.basicConfig(
 # create logger
 log = logging.getLogger('rpt')
 
+logging.getLogger('chardet.charsetprober').setLevel(logging.INFO)
+logging.getLogger('requests').setLevel(logging.WARNING)
+logging.getLogger('urllib3').setLevel(logging.WARNING)
+logging.getLogger('sqlalchemy.engine').setLevel(logging.WARNING)
+logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.WARNING)
+logging.getLogger('sqlalchemy.pool').setLevel(logging.WARNING)
+logging.getLogger('sqlalchemy.dialects').setLevel(logging.WARNING)
+logging.getLogger('sqlalchemy.orm').setLevel(logging.WARNING)
+
 
 def setupLogging(queue: Queue=None):
     if queue is None:
@@ -24,7 +33,3 @@ def setupLogging(queue: Queue=None):
     handler.setFormatter(logging.Formatter(
         '[%(asctime)s] %(module)s %(levelname)s - %(message)s'))
     logging.getLogger('').addHandler(handler)
-
-    logging.getLogger('chardet.charsetprober').setLevel(logging.INFO)
-    logging.getLogger('requests').setLevel(logging.WARNING)
-    logging.getLogger('urllib3').setLevel(logging.WARNING)
