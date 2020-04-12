@@ -66,14 +66,14 @@ class RptLauncher:
         timezone = timezone[(timezone.find("/zoneinfo/")+10):]
 
         if self.args.run is not None:
-            rptStartArgs = rptStartArgs + self.args.run
-            return self.shell(
-                arglist=baseComposeArgs + ['run', 'rpt'] + rptStartArgs)
+            arglist = baseComposeArgs +
+                ['run', 'rpt'] + rptStartArgs + self.args.run)
+            return self.shell(arglist=arglist)
 
         if self.args.build is not None:
-            rptStartArgs = rptStartArgs + self.args.build
-            return self.shell(
-                arglist=baseComposeArgs + ['build', 'rpt'])
+            arglist = baseComposeArgs +
+                ['build'] + self.args.build + ['rpt']
+            return self.shell(arglist=arglist)
 
         if self.args.dev:
             # run rpt bash -c "while sleep 600; do /bin/false; done"
