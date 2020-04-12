@@ -20,7 +20,7 @@ from src.services import ConfigService, SettingsChangedEvent, SettingsService
 Base = declarative_base()
 
 
-class Configuration(Base):
+class OrmConfiguration(Base):
     ''' Basic configuration for the entire system, designed as a single row '''
     __tablename__ = 'configuration'
 
@@ -33,26 +33,7 @@ class Configuration(Base):
     backlight_timeout = Column(Integer)
 
 
-class SensorReading(Base):
-    ''' All sensor readings at a specific date/time '''
-    __tablename__ = 'sensor_reading'
-
-    ''' Time of the reading '''
-    time = Column(DateTime, primary_key=True, default=datetime.datetime.now)
-    ''' Temperature in degF '''
-    temperature = Column(Float)
-    ''' Pressure in hPa (100 Pascals) '''
-    pressure = Column(Float)
-    ''' Humidity in relative percentage 0-99 '''
-    humidity = Column(Float)
-
-    def __init__(self, temperature: float, pressure: float, humidity: float):
-        self.temperature = temperature
-        self.pressure = pressure
-        self.humidity = humidity
-
-
-class GriddyConfig(Base):
+class OrmGriddyConfig(Base):
     ''' Configuration for GoGriddy integration '''
     __tablename__ = 'griddy_config'
 
@@ -66,7 +47,7 @@ class GriddyConfig(Base):
     api_url = Column(String)
 
 
-class Program(Base):
+class OrmProgram(Base):
     ''' A user-named program defining thermostat behavior '''
     __tablename__ = 'program'
 
@@ -75,24 +56,57 @@ class Program(Base):
     comfort_max = Column(Float)
 
 
+class OrmSensorReading(Base):
+    ''' All sensor readings at a specific date/time '''
+    __tablename__ = 'sensor_reading'
+
+    ''' Time of the reading '''
+    time = Column(DateTime, primary_key=True, default=datetime.datetime.now)
+    ''' Temperature in degF '''
+    temperature = Column(Float)
+    ''' Pressure in hPa (100 Pascals) '''
+    pressure = Column(Float)
+    ''' Humidity in relative percentage 0-99 '''
+    humidity = Column(Float)
+
+
+class OrmThermostatState(Base):
+    __tablename__ = 'thermostat_state'
+
+    ''' Time of the event '''
+    time = Column(DateTime, primary_key=True, default=datetime.datetime.now)
+    fan = Column(Integer)
+    cooling = Column(Integer)
+    heating = Column(Integer)
+
+class OrmThermostatTargets(Base):
+    __tablename__ = 'thermostat_targets'
+
+    ''' Time of the event '''
+    time = Column(DateTime, primary_key=True, default=datetime.datetime.now)
+    mode = Column(String)
+    comfort_min = Column(Float)
+    comfort_max = Column(Float)
+
+
+class OrmGriddyUpdate(Base):
+    __tablename__ = 'griddy_update'
+
+    ''' Time of the event '''
+    time = Column(DateTime, primary_key=True, default=datetime.datetime.now)
+    ''' Current price '''
+    price = Column(Float)
+
+
 class PostgresAdapterService(EventBusMember):
 
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
 
-        config = self._getService(ConfigService)
-
-        self.__unitName = config.resolve('thermostat', 'unitname')
-        self.__statusMeasurement = 'rpt_status'
-        self.__eventMeasurement = 'rpt_event'
-        self.__lastSensorChangedEvent = None
         self.__postgresUrl = 'postgresql://postgres:rpt@postgres/rpt'
-
         if not database_exists(self.__postgresUrl):
             create_database(self.__postgresUrl)
-
-        self.__engine = create_engine(
-            self.__postgresUrl, echo=False)
+        self.__engine = create_engine(self.__postgresUrl, echo=False)
         Session = sessionmaker(bind=self.__engine)
         self.__session = Session()
 
@@ -100,8 +114,6 @@ class PostgresAdapterService(EventBusMember):
         Base.metadata.create_all(self.__engine)
 
         try:
-            self.__updateDb(self.__eventMeasurement, {'event': 100})
-
             super()._installEventHandler(
                 SensorDataChangedEvent, self.__sensorDataChanged)
             super()._installEventHandler(
@@ -114,41 +126,37 @@ class PostgresAdapterService(EventBusMember):
             log.warning('Unable to connect to local influx instance')
 
     def __powerPriceChanged(self, event: PowerPriceChangedEvent):
-        self.__updateDb(self.__statusMeasurement, {
-            'price': event.price
-        })
+        entity = OrmGriddyUpdate()
+        entity.price = event.price
+
+        self.__session.add(entity)
+        self.__session.commit()
 
     def __processSettingsChanged(self, event: SettingsChangedEvent):
         settings = self._getService(SettingsService)
-        self.__updateDb(
-            self.__statusMeasurement, {
-                'comfortMin': settings.comfortMin,
-                'comfortMax': settings.comfortMax
-            }
-        )
 
-    def __thermostatStateChanged(self, event: ThermostatStateChangedEvent):
-        self.__updateDb(
-            self.__statusMeasurement, {
-                'cool': 1 if ThermostatState.COOLING == event.state else 0,
-                'heat': 1 if ThermostatState.HEATING == event.state else 0,
-                'fan': 1 if ThermostatState.FAN == event.state else 0
-            }
-        )
+        entity = OrmThermostatTargets()
+        entity.mode = settings.mode.__repr__()
+        entity.comfort_max = settings.comfortMax
+        entity.comfort_min = settings.comfortMin
 
-    def __sensorDataChanged(self, event: SensorDataChangedEvent):
-        reading = SensorReading(
-            temperature=event.temperature,
-            pressure=event.pressure,
-            humidity=event.humidity
-        )
-        self.__session.add(reading)
+        self.__session.add(entity)
         self.__session.commit()
 
-    def __updateDb(self, table: str, data: dict):
-        pass
-        # entry = f'{measurement},unit={self.__unitName} {data}'
-        # try:
-        #     self.__client.write_points(entry, protocol=self.__protocol)
-        # except Exception as e:
-        #     log.warning(f"Failed connecting to influx: {str(e)}")
+    def __thermostatStateChanged(self, event: ThermostatStateChangedEvent):
+        entity = OrmThermostatState()
+        entity.cooling = 1 if ThermostatState.COOLING == event.state else 0
+        entity.heating = 1 if ThermostatState.HEATING == event.state else 0
+        entity.fan = 1 if ThermostatState.FAN == event.state else 0
+
+        self.__session.add(entity)
+        self.__session.commit()
+
+    def __sensorDataChanged(self, event: SensorDataChangedEvent):
+        entity = OrmSensorReading()
+        entity.temperature=event.temperature
+        entity.pressure=event.pressure
+        entity.humidity=event.humidity
+
+        self.__session.add(entity)
+        self.__session.commit()

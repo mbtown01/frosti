@@ -32,7 +32,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "stopOnEntry": false,
-            "args": ["--debug", "--run", "--hardware", "term"],
+            "args": ["--dryrun", "--build"],
         },
         {
             "name": "Python: Local Attach",

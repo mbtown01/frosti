@@ -49,7 +49,8 @@ Once completed, we can test if it worked by running the thermostat simulator:
 docker-compose \
     --file docker/docker-compose.yaml \
     --env-file docker/docker-hosttype-${HOSTTYPE}.env \
-    run rpt python3.7 -m src --hardware term
+    run --name rpt-dev -e TZ=America/Chicago \
+        rpt python3.7 -m src --hardware term
 ```
 
 If the above worked, **congrats** -- you now have a local copy of the source
@@ -60,7 +61,7 @@ command above to test your changes.
 
 How do I push an image to dockerhub?
 
-https://ropenscilabs.github.io/r-docker-tutorial/04-Dockerhub.html
+[https://ropenscilabs.github.io/r-docker-tutorial/04-Dockerhub.html](https://ropenscilabs.github.io/r-docker-tutorial/04-Dockerhub.html)
 
 ## Microsoft VSCode
 
@@ -76,7 +77,9 @@ Next, start a development container on the local machine
 docker-compose \
     --file docker/docker-compose.yaml \
     --env-file docker/docker-hosttype-${HOSTTYPE}.env \
-    run rpt bash -c "while sleep 600; do /bin/false; done"
+    run --name rpt-dev --restart yes \
+        -e TZ=America/Chicago \  # Use your own timezone here
+        rpt bash -c "while sleep 600; do /bin/false; done"
 ```
 
 Now, instead of opening the project directly from your local cloned workspace,
@@ -96,20 +99,25 @@ From here, you **should** be able to debug using the 'Local fake hardware'.
 Most of the above I figured out from the following [documentation](
 https://code.visualstudio.com/docs/remote/containers)
 
-> I've had some issues recently where VSCode is trying to interpret the locale and gets it wrong.  The sympton is when you start a debug session but you get a bunch of errors about locale settings. [This bug report](https://github.com/microsoft/vscode-remote-release/issues/2169) explains the fix (spoiler alert: Turn off 'Detect Locale' in the integrated terminal in VSCode settings)
+> I've had some issues recently where VSCode is trying to interpret the
+locale and gets it wrong.  The sympton is when you start a debug session but
+you get a bunch of errors about locale settings. [This bug
+report](https://github.com/microsoft/vscode-remote-release/issues/2169)
+explains the fix (spoiler alert: Turn off 'Detect Locale' in the integrated
+terminal in VSCode settings)
 
 ### Debug/attach on RaspberryPi
 
-The configuration above works well for a x64 workstation doing terminal-based
-work.  However, when developing on the RaspberryPi, you're going to want to
-still run the IDE on a big machine and then use the 'Remote-SSH' plugin to 
-get to the Pi.  Once installed, click the lower-left-hand corner quick menu
-and select 'Remote-SSH: Connect to Host...' and choose the pi you're working
-on.  
+The configuration above works well for a x64 workstation doing
+terminal-based work.  However, when developing on the RaspberryPi, you're
+going to want to still run the IDE on a big machine and then use the
+'Remote-SSH' plugin to get to the Pi.  Once installed, click the
+lower-left-hand corner quick menu and select 'Remote-SSH: Connect to
+Host...' and choose the pi you're working on.  
 
 Once there, you can clone the github repo, build (or pull) the  arm-based
-rpi container, and you're off!  If want to debug your code interactively with
-VSCode, first open a local terminal and start python under the debugger
+rpi container, and you're off!  If want to debug your code interactively
+with VSCode, first open a local terminal and start python under the debugger
 
 ```bash
 docker-compose \
@@ -120,25 +128,31 @@ docker-compose \
         -m src --hardware v2
 ```
 
-Once the avove is complete, you should be able to choose the 
-'Python: Local Attach' debug profile and start debugging.  'Local Attach' is
-configured in .vscode/launch.json to run on the local host and has the source
-directory mappings configured so the debugger can step line-by-line.  
+Once the avove is complete, you should be able to choose the 'Python: Local
+Attach' debug profile and start debugging.  'Local Attach' is configured in
+.vscode/launch.json to run on the local host and has the source directory
+mappings configured so the debugger can step line-by-line.  
 
 ## QEMU / Build Raspberry Pi Images on x64
 
-I followed [these instructions](https://matchboxdorry.gitbooks.io/matchboxblog/content/blogs/build_and_run_arm_images.html) and magically built the rpt container for arm on my local x64 linux box.  Good in a pinch, but I think an RPi v4 is probably faster...
+I followed [these
+instructions](https://matchboxdorry.gitbooks.io/matchboxblog/content/blogs/build_and_run_arm_images.html)
+and magically built the rpt container for arm on my local x64 linux box.
+Good in a pinch, but I think an RPi v4 is probably faster...
 
-In summary, when the base image coming from an arm-based container, docker seems to realize this and know that it needs emulation should you be building on an non-arm platform.  It then looks for /usr/bin/qemu-arm-static (which we inject in to the container).
+In summary, when the base image coming from an arm-based container, docker
+seems to realize this and know that it needs emulation should you be
+building on an non-arm platform.  It then looks for /usr/bin/qemu-arm-static
+(which we inject in to the container).
 
 ## Setup watchdog timer
 
 This one seems the best and easiest to implement looks like the following:
 
-https://www.raspberrypi.org/forums/viewtopic.php?t=258042
+[https://www.raspberrypi.org/forums/viewtopic.php?t=258042](https://www.raspberrypi.org/forums/viewtopic.php?t=258042)
 
 This one has more info, but relies on the 'watchdog' service.  The link above relies on Systemd
-https://www.raspberrypi.org/forums/viewtopic.php?t=210974
+[https://www.raspberrypi.org/forums/viewtopic.php?t=210974](https://www.raspberrypi.org/forums/viewtopic.php?t=210974)
 
 ## Extra Commands
 

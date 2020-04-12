@@ -40,7 +40,7 @@ class RptLauncher:
         self.args = parser.parse_args()
 
     def shell(self, arglist):
-        if self.args.debug:
+        if self.args.debug or self.args.dryrun:
             print(f"SHELL: {arglist}")
 
         if not self.args.dryrun:
@@ -59,32 +59,32 @@ class RptLauncher:
             '--file', 'docker/docker-compose.yaml',
             '--env-file', f"docker/docker-hosttype-{hosttype}.env"
         ]
-        rptStartArgs = ['python3', '-m', 'src']
 
         timezone = check_output(
             ['readlink', '/etc/localtime']).decode('UTF-8').rstrip()
         timezone = timezone[(timezone.find("/zoneinfo/")+10):]
 
+        baseRunArgs = \
+            ['run', '--name', 'rpt-dev', '-e', f'TZ={timezone}', 'rpt']
+
         if self.args.run is not None:
-            arglist = baseComposeArgs +
-                ['run', 'rpt'] + rptStartArgs + self.args.run)
+            arglist = baseComposeArgs + baseRunArgs + \
+                ['python3', '-m', 'src'] + self.args.run
             return self.shell(arglist=arglist)
 
         if self.args.build is not None:
-            arglist = baseComposeArgs +
+            arglist = baseComposeArgs + \
                 ['build'] + self.args.build + ['rpt']
             return self.shell(arglist=arglist)
 
         if self.args.dev:
-            # run rpt bash -c "while sleep 600; do /bin/false; done"
-            rptStartArgs = \
+            arglist = baseComposeArgs + baseRunArgs + \
                 ['bash', '-c', 'while sleep 600; do /bin/false; done']
-            return self.shell(
-                arglist=baseComposeArgs + [
-                    'run',
-                    '--name', 'rpt-dev',
-                    '-e', f'TZ={timezone}',
-                    'rpt'] + rptStartArgs)
+            rtn = self.shell(arglist=arglist)
+            if 1 == rtn:
+                print("WARNING: rpt-dev may exist, attempting restasrt")
+                arglist = ['docker', 'restart', 'rpt-dev']
+                return self.shell(arglist=arglist)
 
 
 if __name__ == "__main__":
