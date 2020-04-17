@@ -28,6 +28,9 @@ class RptLauncher:
             '--run', nargs=argparse.REMAINDER,
             help='Run the rpt orchestration')
         parser.add_argument(
+            '--test', nargs=argparse.REMAINDER,
+            help='Run a test command inside the container')
+        parser.add_argument(
             '--dev', action='store_true', default=False,
             help='Start a development container to be attached to')
         parser.add_argument(
@@ -66,6 +69,10 @@ class RptLauncher:
 
         baseRunArgs = \
             ['run', '--name', 'rpt-dev', '-e', f'TZ={timezone}', 'rpt']
+
+        if self.args.test is not None:
+            arglist = baseComposeArgs + baseRunArgs + self.args.test
+            return self.shell(arglist=arglist)
 
         if self.args.run is not None:
             arglist = baseComposeArgs + baseRunArgs + \

@@ -42,10 +42,10 @@ class HardwareThermostatService_v2(ThermostatService):
 
         # Link a GPIO pin from the 23017 to a button action
         self.__buttonMap = {
-            8: Button.UP,
-            9: Button.DOWN,
-            10: Button.MODE,
-            11: Button.WAKE
+            6: Button.WAKE,
+            5: Button.MODE,
+            10: Button.UP,
+            11: Button.DOWN,
         }
 
         sensor = Bme280EnvironmentSensor()
@@ -94,7 +94,7 @@ class HardwareThermostatService_v2(ThermostatService):
             pin.pull = Pull.UP
             pinsEnabled = pinsEnabled | 1 << p
 
-        for p in [5, 6, 7]:
+        for p in [2, 3, 4, 12, 13, 14]:
             pin = self.__mcp.get_pin(p)
             pin.direction = Direction.OUTPUT
             pin.value = 1
