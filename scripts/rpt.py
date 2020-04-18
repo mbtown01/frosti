@@ -42,6 +42,17 @@ class RptLauncher:
 
         self.args = parser.parse_args()
 
+        uname = check_output(['uname', '-m']).decode('UTF-8').rstrip()
+        hosttype = self.ALL_HOSTTYPES.get(uname)
+        if hosttype is None:
+            raise Exception(f"Host with uname {uname} is not supported")
+
+        self.baseComposeArgs = [
+            'docker-compose',
+            '--file', 'docker/docker-compose.yaml',
+            '--env-file', f"docker/docker-hosttype-{hosttype}.env"
+        ]
+
     def shell(self, arglist):
         if self.args.debug or self.args.dryrun:
             print(f"SHELL: {arglist}")
@@ -51,48 +62,53 @@ class RptLauncher:
 
         return 0
 
-    def execute(self):
-        uname = check_output(['uname', '-m']).decode('UTF-8').rstrip()
-        hosttype = self.ALL_HOSTTYPES.get(uname)
-        if hosttype is None:
-            raise Exception(f"Host with uname {uname} is not supported")
+    def run(self, name: str, arglist: list=[]):
+        containerIsRunning = not self.shell(
+            ['bash', '-c', f'docker ps | grep {name}; exit $?'])
+        if containerIsRunning:
+            return 0
 
-        baseComposeArgs = [
-            'docker-compose',
-            '--file', 'docker/docker-compose.yaml',
-            '--env-file', f"docker/docker-hosttype-{hosttype}.env"
-        ]
+        containerExists = not self.shell(
+            ['bash', '-c', f'docker ps --all | grep {name}; exit $?'])
+        if containerExists:
+            return self.shell(arglist=['docker', 'restart', name])
 
         timezone = check_output(
             ['readlink', '/etc/localtime']).decode('UTF-8').rstrip()
         timezone = timezone[(timezone.find("/zoneinfo/")+10):]
 
-        baseRunArgs = \
-            ['run', '--name', 'rpt-dev', '-e', f'TZ={timezone}', 'rpt']
+        arglist = self.baseComposeArgs + [
+            'run', '--name', name, '-e', f'TZ={timezone}', 'rpt'
+        ] + arglist
 
+        return self.shell(arglist=arglist)
+
+    def execute(self):
         if self.args.test is not None:
-            arglist = baseComposeArgs + baseRunArgs + self.args.test
-            return self.shell(arglist=arglist)
-
-        if self.args.run is not None:
-            arglist = baseComposeArgs + baseRunArgs + \
-                ['python3', '-m', 'src'] + self.args.run
-            return self.shell(arglist=arglist)
+            return self.run(name="rpt-test", arglist=self.args.test)
 
         if self.args.build is not None:
-            arglist = baseComposeArgs + \
+            arglist = self.baseComposeArgs + \
                 ['build'] + self.args.build + ['rpt']
             return self.shell(arglist=arglist)
 
-        if self.args.dev:
-            arglist = baseComposeArgs + baseRunArgs + \
-                ['bash', '-c', 'while sleep 600; do /bin/false; done']
-            rtn = self.shell(arglist=arglist)
-            if 1 == rtn:
-                print("WARNING: rpt-dev may exist, attempting restasrt")
-                arglist = ['docker', 'restart', 'rpt-dev']
-                return self.shell(arglist=arglist)
+        if self.args.run is not None:
+            arglist = ['python3', '-m', 'src'] + self.args.run
+            return self.run(name="rpt-run", arglist=arglist)
+
+        if self.args.dev is not None:
+            arglist = ['bash', '-c', 'while sleep 60; do /bin/false; done']
+            return self.run(name="rpt-dev", arglist=arglist)
+
+        # if self.args.dev:
+        #     arglist = baseComposeArgs + baseRunArgs + \
+        #         ['bash', '-c', 'while sleep 600; do /bin/false; done']
+        #     rtn = self.shell(arglist=arglist)
+        #     if 1 == rtn:
+        #         print("WARNING: rpt-dev may exist, attempting restasrt")
+        #         arglist = ['docker', 'restart', 'rpt-dev']
+        #         return self.shell(arglist=arglist)
 
 
 if __name__ == "__main__":
-    sys.exit(RptLauncher().execute())
+    RptLauncher().execute()
