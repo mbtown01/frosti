@@ -47,6 +47,10 @@ class RptLauncher:
         if hosttype is None:
             raise Exception(f"Host with uname {uname} is not supported")
 
+        timezone = check_output(
+            ['readlink', '/etc/localtime']).decode('UTF-8').rstrip()
+        self.timezone = timezone[(timezone.find("/zoneinfo/")+10):]
+
         self.baseComposeArgs = [
             'docker-compose',
             '--file', 'docker/docker-compose.yaml',
@@ -62,7 +66,7 @@ class RptLauncher:
 
         return 0
 
-    def run(self, name: str, arglist: list=[]):
+    def run(self, name: str, runArgList: list=[], arglist: list=[]):
         containerIsRunning = not self.shell(
             ['bash', '-c', f'docker ps | grep {name}; exit $?'])
         if containerIsRunning:
@@ -73,15 +77,13 @@ class RptLauncher:
         if containerExists:
             return self.shell(arglist=['docker', 'restart', name])
 
-        timezone = check_output(
-            ['readlink', '/etc/localtime']).decode('UTF-8').rstrip()
-        timezone = timezone[(timezone.find("/zoneinfo/")+10):]
+        args = self.baseComposeArgs + \
+            ['run', '--name', name, '-e', f'TZ={self.timezone}']
+        if len(runArgList):
+            args = args + runArgList
+        args = args + ['rpt'] + arglist
 
-        arglist = self.baseComposeArgs + [
-            'run', '--name', name, '-e', f'TZ={timezone}', 'rpt'
-        ] + arglist
-
-        return self.shell(arglist=arglist)
+        return self.shell(arglist=args)
 
     def execute(self):
         if self.args.test is not None:
@@ -98,7 +100,8 @@ class RptLauncher:
 
         if self.args.dev is not None:
             arglist = ['bash', '-c', 'while sleep 60; do /bin/false; done']
-            return self.run(name="rpt-dev", arglist=arglist)
+            return self.run(
+                name="rpt-dev", runArgList=['-p', '8022:22'], arglist=arglist)
 
         # if self.args.dev:
         #     arglist = baseComposeArgs + baseRunArgs + \
