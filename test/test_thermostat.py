@@ -10,7 +10,7 @@ from src.core.generics import GenericLcdDisplay, GenericEnvironmentSensor, \
 from src.services import ThermostatService
 
 
-json = {
+data = {
     "thermostat": {
         "delta": 1.0,
         "fanRunout": 30,
@@ -120,9 +120,9 @@ class Test_Thermostat(unittest.TestCase):
         testTime = strptime('01/01/19 08:01:00', '%m/%d/%y %H:%M:%S')
         self.eventBus = EventBus(now=mktime(testTime))
         self.serviceProvider.installService(EventBus, self.eventBus)
-        self.config = ConfigService()
+        self.config = ConfigService(data=data)
         self.serviceProvider.installService(ConfigService, self.config)
-        self.settings = SettingsService(json)
+        self.settings = SettingsService()
         self.settings.setServiceProvider(self.serviceProvider)
         self.serviceProvider.installService(SettingsService, self.settings)
         self.settings.mode = SettingsService.Mode.COOL

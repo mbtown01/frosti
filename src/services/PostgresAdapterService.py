@@ -1,6 +1,4 @@
-import json
 import requests
-import json
 import sys
 import datetime
 
@@ -14,7 +12,7 @@ from src.core import ServiceProvider, Event, EventBus, EventBusMember, \
     ThermostatState
 from src.core.events import ThermostatStateChangedEvent, \
     SensorDataChangedEvent, PowerPriceChangedEvent
-from src.services import ConfigService, SettingsChangedEvent, SettingsService
+from src.services import SettingsChangedEvent, SettingsService
 
 
 Base = declarative_base()
@@ -79,6 +77,7 @@ class OrmThermostatState(Base):
     cooling = Column(Integer)
     heating = Column(Integer)
 
+
 class OrmThermostatTargets(Base):
     __tablename__ = 'thermostat_targets'
 
@@ -109,8 +108,8 @@ class PostgresAdapterService(EventBusMember):
         self.__engine = create_engine(self.__postgresUrl, echo=False)
         Session = sessionmaker(bind=self.__engine)
         self.__session = Session()
+        self.__connection = self.__engine.connect()
 
-        connection = self.__engine.connect()
         Base.metadata.create_all(self.__engine)
 
         try:
@@ -154,9 +153,9 @@ class PostgresAdapterService(EventBusMember):
 
     def __sensorDataChanged(self, event: SensorDataChangedEvent):
         entity = OrmSensorReading()
-        entity.temperature=event.temperature
-        entity.pressure=event.pressure
-        entity.humidity=event.humidity
+        entity.temperature = event.temperature
+        entity.pressure = event.pressure
+        entity.humidity = event.humidity
 
         self.__session.add(entity)
         self.__session.commit()

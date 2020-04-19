@@ -122,19 +122,19 @@ class SettingsService(EventBusMember):
         HEAT = 3
         FAN = 4
 
-    def __init__(self, json: dict=None):
-        self.__data = json
+    def __init__(self, data: dict=None):
+        self.__data = data
 
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
         config = self._getService(ConfigService)
-        json = self.__data or config.getJson()
+        data = self.__data or config.getData()
 
-        if 'thermostat' not in json:
+        if 'thermostat' not in data:
             raise RuntimeError("No thermostat configuration found")
-        if 'programs' not in json['thermostat']:
+        if 'programs' not in data['thermostat']:
             raise RuntimeError("No program configuration found in thermostat")
-        programs = json['thermostat']['programs']
+        programs = data['thermostat']['programs']
         if '_default' not in programs:
             raise RuntimeError(f"No default program configured")
 
@@ -147,8 +147,8 @@ class SettingsService(EventBusMember):
         self.__currentProgram = self.__programs['_default']
 
         self.__schedules = {}
-        if 'schedule' in json['thermostat']:
-            schedule = json['thermostat']['schedule']
+        if 'schedule' in data['thermostat']:
+            schedule = data['thermostat']['schedule']
             for name in schedule:
                 self.__schedules[name] = Schedule(name, schedule[name])
                 for t in self.__schedules[name].scheduleTimes:

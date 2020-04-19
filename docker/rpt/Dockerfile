@@ -23,7 +23,7 @@ RUN python3 -m pip install pip && \
         adafruit-circuitpython-charlcd \
         adafruit-circuitpython-mcp230xx \
         flask requests ptvsd psycopg2-binary \
-        sqlalchemy sqlalchemy-utils smbus
+        sqlalchemy sqlalchemy-utils smbus PyYAML
 
 # run anything pi-specific
 RUN if [ ${HOSTTYPE:-none} = 'arm' ]; then \

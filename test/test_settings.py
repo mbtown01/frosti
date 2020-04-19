@@ -7,7 +7,7 @@ from src.services import SettingsService
 from src.core import ServiceProvider
 from src.services import ConfigService
 
-json = {
+data = {
     "thermostat": {
         "delta": 1.0,
         "programs": {
@@ -106,9 +106,9 @@ class Test_Settings(unittest.TestCase):
         testTime = strptime('01/01/19 08:01:00', '%m/%d/%y %H:%M:%S')
         self.eventBus = EventBus(now=mktime(testTime))
         self.serviceProvider.installService(EventBus, self.eventBus)
-        self.config = ConfigService()
+        self.config = ConfigService(data=data)
         self.serviceProvider.installService(ConfigService, self.config)
-        self.settings = SettingsService(json=json)
+        self.settings = SettingsService()
         self.settings.setServiceProvider(self.serviceProvider)
         self.serviceProvider.installService(SettingsService, self.settings)
 
@@ -167,7 +167,7 @@ class Test_Settings(unittest.TestCase):
         self.assertEqual(self.settings.comfortMax, 75.0)
 
     def test_bad1(self):
-        json = {
+        data = {
             "thermostat": {
                 "delta": 1.0,
                 "programs": {
@@ -200,6 +200,6 @@ class Test_Settings(unittest.TestCase):
             }
         }
 
-        self.settings.__init__(json)
+        self.settings.__init__(data)
         with self.assertRaises(RuntimeError):
             self.settings.setServiceProvider(self.serviceProvider)
