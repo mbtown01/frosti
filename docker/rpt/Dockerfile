@@ -8,11 +8,11 @@ ARG HOSTTYPE
 ARG NODEJS_VERSION
 
 # upgrade base packages
-RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+# RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 RUN apt-get update && apt-get upgrade -y
-RUN apt-get install -y python3-pip && \
-    apt-get install -y python3 python3-dev python3-smbus && \
-    apt-get install -y vim i2c-tools git postgresql-client libpq-dev curl tzdata
+RUN apt-get install -y \
+    python3 python3-pip python3-dev python3-smbus \
+    vim i2c-tools git postgresql-client libpq-dev curl tzdata
 
 # install all the requied modules
 RUN python3 -m pip install pip && \
@@ -23,7 +23,7 @@ RUN python3 -m pip install pip && \
         adafruit-circuitpython-charlcd \
         adafruit-circuitpython-mcp230xx \
         flask requests ptvsd psycopg2-binary \
-        sqlalchemy sqlalchemy-utils
+        sqlalchemy sqlalchemy-utils smbus
 
 # run anything pi-specific
 RUN if [ ${HOSTTYPE:-none} = 'arm' ]; then \
@@ -31,13 +31,13 @@ RUN if [ ${HOSTTYPE:-none} = 'arm' ]; then \
         python3 -m pip install RPi.GPIO; \
     fi
 
-# https://github.com/nodejs/help/wiki/Installation
-RUN set -x && cd /tmp && curl --output distro.tar.gz \
-        https://nodejs.org/download/release/latest-v11.x/${NODEJS_VERSION}.tar.gz && \
-    mkdir /usr/local/lib/nodejs && \
-    tar xfvz distro.tar.gz -C /usr/local/lib/nodejs && \
-    echo "export PATH=/usr/local/lib/nodejs/${NODEJS_VERSION}/bin:$PATH" > /etc/profile.d/nodejs.sh
+# # https://github.com/nodejs/help/wiki/Installation
+# RUN set -x && cd /tmp && curl --output distro.tar.gz \
+#         https://nodejs.org/download/release/latest-v11.x/${NODEJS_VERSION}.tar.gz && \
+#     mkdir /usr/local/lib/nodejs && \
+#     tar xfvz distro.tar.gz -C /usr/local/lib/nodejs && \
+#     echo "export PATH=/usr/local/lib/nodejs/${NODEJS_VERSION}/bin:$PATH" > /etc/profile.d/nodejs.sh
 
-RUN . /etc/profile && npm install -g @angular/cli
+# RUN . /etc/profile && npm install -g @angular/cli
 
 WORKDIR /usr/local/rpt

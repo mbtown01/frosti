@@ -4,6 +4,9 @@ import configparser
 
 
 class ConfigService:
+    """ Represents the configuration for the system.  Configuration includes
+    the constant parameters used for operation plus default thermostat
+    settings that get fed tothe SettingsService """
 
     def __init__(self, name: str = None, json: dict = {}):
         if name is None:

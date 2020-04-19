@@ -26,19 +26,16 @@ class RptLauncher:
             help='Build the rpt containers locally')
         parser.add_argument(
             '--run', nargs=argparse.REMAINDER,
-            help='Run the rpt orchestration')
+            help='Run entire rpt orchestration')
+        parser.add_argument(
+            '--debug', nargs=argparse.REMAINDER,
+            help='Run rpt in debug mode')
         parser.add_argument(
             '--test', nargs=argparse.REMAINDER,
             help='Run a test command inside the container')
         parser.add_argument(
             '--dev', action='store_true', default=False,
             help='Start a development container to be attached to')
-        parser.add_argument(
-            '--dryrun', action='store_true', default=False,
-            help='Only print commands, do not execute')
-        parser.add_argument(
-            '--debug', action='store_true', default=False,
-            help='Add debugging output')
 
         self.args = parser.parse_args()
 
@@ -58,13 +55,8 @@ class RptLauncher:
         ]
 
     def shell(self, arglist):
-        if self.args.debug or self.args.dryrun:
-            print(f"SHELL: {arglist}")
-
-        if not self.args.dryrun:
-            return call(arglist)
-
-        return 0
+        print(f"SHELL: {arglist}")
+        return call(arglist)
 
     def run(self, name: str, runArgList: list=[], arglist: list=[]):
         containerIsRunning = not self.shell(
@@ -94,14 +86,27 @@ class RptLauncher:
                 ['build'] + self.args.build + ['rpt']
             return self.shell(arglist=arglist)
 
+        if self.args.debug is not None:
+            # run -p 3001:3001 -p 5000:5000 \
+            # rpt python3.7 -m ptvsd --host 0.0.0.0 --port 3001 --wait \
+            #     -m src --hardware v2
+
+            runArgList = ['-p', '3001:3001', '-p', '5000:5000']
+            arglist = [
+                'python3', '-m', 'ptvsd',
+                '--host', '0.0.0.0', '--port', '3001', '--wait',
+                '-m', 'src'
+            ] + self.args.debug
+            return self.run(
+                name="rpt-debug", runArgList=runArgList, arglist=arglist)
+
         if self.args.run is not None:
             arglist = ['python3', '-m', 'src'] + self.args.run
             return self.run(name="rpt-run", arglist=arglist)
 
         if self.args.dev is not None:
             arglist = ['bash', '-c', 'while sleep 60; do /bin/false; done']
-            return self.run(
-                name="rpt-dev", runArgList=['-p', '8022:22'], arglist=arglist)
+            return self.run(name="rpt-dev", arglist=arglist)
 
         # if self.args.dev:
         #     arglist = baseComposeArgs + baseRunArgs + \
