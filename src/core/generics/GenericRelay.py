@@ -27,15 +27,15 @@ class GenericRelay:
         """ Open the relay, break circuit, disabling the function """
         for callback in self.__callbackList:
             callback(self)
-        self._openRelay()
         self.__isOpen = True
+        self._openRelay()
 
     def closeRelay(self):
         """ Close the relay, connect circuit, enabling the function """
         for callback in self.__callbackList:
             callback(self)
-        self._closeRelay()
         self.__isOpen = False
+        self._closeRelay()
 
     def _openRelay(self):
         pass

@@ -26,8 +26,8 @@ class TerminalThermostatService(ThermostatService):
     def __init__(self, stdscr, messageQueue: Queue):
         self.__stdscr = stdscr
         self.__messageQueue = messageQueue
+        self.__logWinMessages = []
         self.__environmentSensor = GenericEnvironmentSensor()
-        # self.__stdscr.nodelay(True)
         self.__stdscr.clear()
         self.__lastPrice = 0.0
 
@@ -41,8 +41,12 @@ class TerminalThermostatService(ThermostatService):
         curses.init_pair(4, curses.COLOR_WHITE, curses.COLOR_BLACK)
         curses.curs_set(0)
 
+        self.__displayWin = curses.newwin(4, 21, 0, 5)
+        self.__ledLeft = curses.newwin(2, 2, 1, 1)
+        self.__ledRight = curses.newwin(2, 2, 1, 2+20)
+        self.__instructionsWin = curses.newwin(4, 30, 0, 50)
+
         lines, cols = self.__stdscr.getmaxyx()
-        self.__displayWin = curses.newwin(4, cols, 0, 5)
         self.__logWin = curses.newwin(lines-5, cols, 5, 0)
         self.__logWin.scrollok(True)
         self.__relayList = (
@@ -63,8 +67,8 @@ class TerminalThermostatService(ThermostatService):
         super()._installEventHandler(
             TerminalThermostatService.KeyPressedEvent,
             self.__keyPressedHandler)
-        super()._installTimerHandler(
-            frequency=5.0, handlers=self.__updateDisplay)
+        # super()._installTimerHandler(
+        #     frequency=5.0, handlers=self.__updateDisplay)
         super()._installTimerHandler(
             frequency=1.0, handlers=self.__processMessageQueue)
 
@@ -74,6 +78,8 @@ class TerminalThermostatService(ThermostatService):
             daemon=True)
         self.__keyPressThread.start()
 
+        self.__updateDisplay()
+
     def _powerPriceChanged(self, event: PowerPriceChangedEvent):
         super()._powerPriceChanged(event)
         self.__lastPrice = event.price
@@ -82,8 +88,36 @@ class TerminalThermostatService(ThermostatService):
         # Redraw the relay status
         for relay in self.__relayList:
             relay.redraw()
-        self.__logWin.refresh()
         self.__lcd.refresh()
+        # self.__ledLeft.refresh()
+        # self.__ledRight.refresh()
+        self.__updateInstructions()
+        self.__updateLogWin()
+
+    def __updateInstructions(self):
+        self.__instructionsWin.clear()
+        self.__instructionsWin.addstr(
+            0, 0, '1-4: Buttons on thermostat  ',
+            curses.A_REVERSE | curses.color_pair(4))
+        self.__instructionsWin.addstr(
+            1, 0, '9,0: Simulate price movement',
+            curses.A_REVERSE | curses.color_pair(4))
+        self.__instructionsWin.addstr(
+            2, 0, 'Up/Dwn arrows: Change temp  ',
+            curses.A_REVERSE | curses.color_pair(4))
+        self.__instructionsWin.addstr(
+            3, 0, 'q: quit, l: redraw screen   ',
+            curses.A_REVERSE | curses.color_pair(4))
+        self.__instructionsWin.refresh()
+
+    def __updateLogWin(self):
+        self.__logWin.clear()
+        for message in self.__logWinMessages:
+            y, x = self.__logWin.getmaxyx()
+            self.__logWin.scroll()
+            self.__logWin.move(y-1, 0)
+            self.__logWin.insnstr(message, x)
+            self.__logWin.refresh()
 
     def __keyPressedHandler(self, event: KeyPressedEvent):
         # Handle any key presses
@@ -136,13 +170,10 @@ class TerminalThermostatService(ThermostatService):
         super()._getService(EventBus).stop()
 
     def __processMessageQueue(self):
-        # Update any pending log messages to the log window
-        if self.__messageQueue.qsize():
-            self.__updateDisplay()
+        needsUpdate = self.__messageQueue.qsize()
         while self.__messageQueue.qsize():
             message = self.__messageQueue.get()
-            y, x = self.__logWin.getmaxyx()
-            self.__logWin.scroll()
-            self.__logWin.move(y-1, 0)
-            self.__logWin.insnstr(message.getMessage(), x)
-            self.__logWin.refresh()
+            self.__logWinMessages.append(message.getMessage())
+
+        if needsUpdate:
+            self.__updateLogWin()

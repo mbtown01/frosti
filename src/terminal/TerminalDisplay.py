@@ -17,6 +17,9 @@ class TerminalDisplay(GenericLcdDisplay):
         self.commit()
 
     def refresh(self):
+        self.__window.clear()
+        for row in range(super().height):
+            self.__window.addstr(row, 0, super().rowText(row))
         self.__window.refresh()
 
     def commit(self):
