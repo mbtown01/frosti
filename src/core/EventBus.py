@@ -86,7 +86,10 @@ class EventBus:
         for handler in self.__timerHandlers:
             nextInvoke = handler.getNextInvoke(self.__now)
             if nextInvoke < (self.__now + 0.2):
-                handler.invoke(self.__now)
+                try:
+                    handler.invoke(self.__now)
+                except:
+                    log.error(f"Handler encountered exception: {exec_info()}")
             else:
                 timeout = min(timeout, nextInvoke-self.__now)
 
@@ -95,7 +98,11 @@ class EventBus:
             event = self.__eventQueue.get()
             if type(event) in self.__eventHandlers:
                 for handler in self.__eventHandlers[type(event)]:
-                    handler(event)
+                    try:
+                        handler(event)
+                    except:
+                        log.error(
+                            f"Handler encountered exception: {exec_info()}")
 
         return timeout
 

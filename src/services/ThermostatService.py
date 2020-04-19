@@ -95,6 +95,7 @@ class ThermostatService(EventBusMember):
 
     @property
     def relayToggled(self):
+        """ If true, signifies that a relay has recently changed state """
         return self.__relayToggled
 
     def __checkSchedule(self):
@@ -225,11 +226,9 @@ class ThermostatService(EventBusMember):
     def __relayCallback(self, relay: GenericRelay):
         self.__relayToggled = True
         self.__relayToggledTimeoutInvoker.reset()
-        log.debug("Driver ENTERING relay toggle timeout")
 
     def __relayToggledTimeout(self):
         self.__relayToggled = False
-        log.debug("Driver COMPLETED relay toggle timeout")
 
     def __fanRunout(self):
         settings = self._getService(SettingsService)

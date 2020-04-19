@@ -8,6 +8,7 @@ from sqlalchemy import create_engine, Column, Float, DateTime, Integer, String
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy_utils import database_exists, create_database
+from sqlalchemy.sql import func
 
 from src.logging import log
 from src.core import ServiceProvider, Event, EventBus, EventBusMember, \
@@ -52,7 +53,9 @@ class OrmProgram(Base):
     __tablename__ = 'program'
 
     name = Column(String, primary_key=True)
+    ''' Minimum temperature before heat is engaged '''
     comfort_min = Column(Float)
+    ''' Maximum temperature before air conditioning is engaged '''
     comfort_max = Column(Float)
 
 
@@ -61,7 +64,8 @@ class OrmSensorReading(Base):
     __tablename__ = 'sensor_reading'
 
     ''' Time of the reading '''
-    time = Column(DateTime, primary_key=True, default=datetime.datetime.now)
+    time = Column(
+        DateTime(timezone=True), primary_key=True, default=func.now())
     ''' Temperature in degF '''
     temperature = Column(Float)
     ''' Pressure in hPa (100 Pascals) '''
@@ -74,18 +78,23 @@ class OrmThermostatState(Base):
     __tablename__ = 'thermostat_state'
 
     ''' Time of the event '''
-    time = Column(DateTime, primary_key=True, default=datetime.datetime.now)
+    time = Column(
+        DateTime(timezone=True), primary_key=True, default=func.now())
     fan = Column(Integer)
     cooling = Column(Integer)
     heating = Column(Integer)
+
 
 class OrmThermostatTargets(Base):
     __tablename__ = 'thermostat_targets'
 
     ''' Time of the event '''
-    time = Column(DateTime, primary_key=True, default=datetime.datetime.now)
-    mode = Column(String)
+    time = Column(
+        DateTime(timezone=True), primary_key=True, default=func.now())
+    mode = Column(Integer)
+    ''' Minimum temperature before heat is engaged '''
     comfort_min = Column(Float)
+    ''' Maximum temperature before air conditioning is engaged '''
     comfort_max = Column(Float)
 
 
@@ -93,12 +102,20 @@ class OrmGriddyUpdate(Base):
     __tablename__ = 'griddy_update'
 
     ''' Time of the event '''
-    time = Column(DateTime, primary_key=True, default=datetime.datetime.now)
+    time = Column(
+        DateTime(timezone=True), primary_key=True, default=func.now())
     ''' Current price '''
     price = Column(Float)
 
 
 class PostgresAdapterService(EventBusMember):
+    MODE_CODES = {
+        SettingsService.Mode.OFF: 0x00,
+        SettingsService.Mode.FAN: 0x01,
+        SettingsService.Mode.HEAT: 0x03,
+        SettingsService.Mode.COOL: 0x05,
+        SettingsService.Mode.AUTO: 0x07
+    }
 
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
@@ -136,7 +153,7 @@ class PostgresAdapterService(EventBusMember):
         settings = self._getService(SettingsService)
 
         entity = OrmThermostatTargets()
-        entity.mode = settings.mode.__repr__()
+        entity.mode = self.MODE_CODES[settings.mode]
         entity.comfort_max = settings.comfortMax
         entity.comfort_min = settings.comfortMin
 
@@ -154,9 +171,9 @@ class PostgresAdapterService(EventBusMember):
 
     def __sensorDataChanged(self, event: SensorDataChangedEvent):
         entity = OrmSensorReading()
-        entity.temperature=event.temperature
-        entity.pressure=event.pressure
-        entity.humidity=event.humidity
+        entity.temperature = event.temperature
+        entity.pressure = event.pressure
+        entity.humidity = event.humidity
 
         self.__session.add(entity)
         self.__session.commit()
