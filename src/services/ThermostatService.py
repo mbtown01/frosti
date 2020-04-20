@@ -11,7 +11,7 @@ from src.core.events import ThermostatStateChangedEvent, \
     SensorDataChangedEvent, PowerPriceChangedEvent, \
     UserThermostatInteractionEvent
 from src.core.generics import GenericEnvironmentSensor, GenericLcdDisplay, \
-    GenericRelay
+    GenericRelay, GenericRgbLed
 
 
 class ThermostatService(EventBusMember):
@@ -19,9 +19,11 @@ class ThermostatService(EventBusMember):
     def __init__(self,
                  lcd: GenericLcdDisplay,
                  sensor: GenericEnvironmentSensor,
-                 relays: list):
+                 relays: list,
+                 rgbLeds: list=[]):
         self.__lcd = lcd
         self.__sensor = sensor
+        self.__rgbLeds = rgbLeds
         self.__relayToggled = False
         self.__relayMap = {r.function: r for r in relays}
         for relay in relays:
@@ -48,18 +50,14 @@ class ThermostatService(EventBusMember):
             config.value('thermostat').value('backlightTimeout', 10)
 
         self.__sampleSensorsInvoker = self._installTimerHandler(
-            frequency=5.0,
-            handlers=self.__sampleSensors)
+            frequency=5.0, handlers=self.__sampleSensors)
         self.__checkScheduleInvoker = self._installTimerHandler(
-            frequency=60.0,
-            handlers=self.__checkSchedule)
+            frequency=60.0, handlers=self.__checkSchedule)
         self.__backlightTimeoutInvoker = self._installTimerHandler(
             frequency=self.__backlightTimeoutDuration,
-            handlers=self.__backlightTimeout,
-            oneShot=True)
+            handlers=self.__backlightTimeout, oneShot=True)
         self.__relayToggledTimeoutInvoker = self._installTimerHandler(
-            frequency=3.0, handlers=self.__relayToggledTimeout,
-            oneShot=True)
+            frequency=3.0, handlers=self.__relayToggledTimeout, oneShot=True)
         self.__drawRowTwoInvoker = self._installTimerHandler(
             frequency=3.0,
             handlers=[
@@ -68,9 +66,20 @@ class ThermostatService(EventBusMember):
                 self.__drawRowTwoPrice,
                 self.__drawRowTwoProgram])
         self.__fanRunoutInvoker = self._installTimerHandler(
-            frequency=self.__fanRunoutDuration,
-            handlers=self.__fanRunout,
+            frequency=self.__fanRunoutDuration, handlers=self.__fanRunout,
             oneShot=True)
+        self.__priceOverrideColorList = [
+            GenericRgbLed.Color.BLUE,
+            GenericRgbLed.Color.CYAN,
+            GenericRgbLed.Color.GREEN,
+            GenericRgbLed.Color.RED,
+            GenericRgbLed.Color.YELLOW,
+            GenericRgbLed.Color.MAGENTA,
+            GenericRgbLed.Color.WHITE
+        ]
+        self.__priceOverrideColorIndex = 0
+        self.__priceOverrideAnimateInvoker = self._installTimerHandler(
+            frequency=0.5, handlers=self.__priceOverrideAnimate)
         self.__fanRunoutInvoker.disable()
 
         self._installEventHandler(
@@ -87,6 +96,15 @@ class ThermostatService(EventBusMember):
         self.__lcd.setBacklight(True)
         self.__openAllRelays()
         self.__checkSchedule()
+
+    def __priceOverrideAnimate(self):
+        # log.debug(f"priceOverrideAnimate {self.__priceOverrideColorIndex}")
+        index0 = self.__priceOverrideColorIndex
+        index1 = (self.__priceOverrideColorIndex+1) % \
+            len(self.__priceOverrideColorList)
+        self.__priceOverrideColorIndex = index1
+        self.__rgbLeds[0].setColor(self.__priceOverrideColorList[index0])
+        self.__rgbLeds[1].setColor(self.__priceOverrideColorList[index1])
 
     @property
     def state(self):

@@ -82,13 +82,13 @@ class EventBus:
                 f"EventBus.processEvents:  now must be >0, got {self.__now}")
 
         # Check if any timers need handling
-        timeout = 60
+        timeout = 60.0
         for handler in self.__timerHandlers:
-            nextInvoke = handler.getNextInvoke(self.__now)
-            if nextInvoke < (self.__now + 0.2):
+            nextInvoke = handler.getNextInvoke(self.__now) - self.__now
+            if nextInvoke < 0.2:
                 handler.invoke(self.__now)
-            else:
-                timeout = min(timeout, nextInvoke-self.__now)
+                nextInvoke = handler.getNextInvoke(self.__now) - self.__now
+            timeout = min(timeout, nextInvoke)
 
         # Check events first, only delivering them to registered subscribers
         while self.__eventQueue.qsize():
@@ -97,7 +97,7 @@ class EventBus:
                 for handler in self.__eventHandlers[type(event)]:
                     handler(event)
 
-        return timeout
+        return max(0.0, timeout)
 
     def exec(self, iterations: int=maxsize):
         """ Drive the main application loop for some number of iterations,
@@ -111,8 +111,10 @@ class EventBus:
 
                 iterationCount += 1
                 if iterationCount < iterations:
-                    self.__threadingEvent.wait(timeout)
-                    self.__threadingEvent.clear()
+                    if not self.__threadingEvent.is_set():
+                        self.__threadingEvent.wait(timeout)
+                    else:
+                        self.__threadingEvent.clear()
             except KeyboardInterrupt:
                 log.info("Keyboard interrupt received, shutting down")
                 break

@@ -5,12 +5,13 @@ from threading import Thread
 
 from .TerminalDisplay import TerminalDisplay
 from .TerminalRelay import TerminalRelay
+from .TerminalRgbLed import TerminalRgbLed
 from src.logging import log
 from src.core.events import  \
     PowerPriceChangedEvent, SensorDataChangedEvent
 from src.core import EventBus, Event, ThermostatState, ServiceProvider
 from src.services import ThermostatService
-from src.core.generics import GenericEnvironmentSensor
+from src.core.generics import GenericEnvironmentSensor, GenericRgbLed
 
 
 class TerminalThermostatService(ThermostatService):
@@ -35,24 +36,29 @@ class TerminalThermostatService(ThermostatService):
         curses.cbreak()
         curses.setupterm()
         curses.start_color()
-        curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
-        curses.init_pair(2, curses.COLOR_BLUE, curses.COLOR_BLACK)
-        curses.init_pair(3, curses.COLOR_GREEN, curses.COLOR_BLACK)
-        curses.init_pair(4, curses.COLOR_WHITE, curses.COLOR_BLACK)
+        curses.init_pair(1, curses.COLOR_BLUE, curses.COLOR_BLACK)
+        curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
+        curses.init_pair(3, curses.COLOR_CYAN, curses.COLOR_BLACK)
+        curses.init_pair(4, curses.COLOR_RED, curses.COLOR_BLACK)
+        curses.init_pair(5, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
+        curses.init_pair(6, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+        curses.init_pair(7, curses.COLOR_WHITE, curses.COLOR_BLACK)
         curses.curs_set(0)
 
         self.__displayWin = curses.newwin(4, 21, 0, 5)
-        self.__ledLeft = curses.newwin(2, 2, 1, 1)
-        self.__ledRight = curses.newwin(2, 2, 1, 2+20)
-        self.__instructionsWin = curses.newwin(4, 30, 0, 50)
+        self.__leftLed = TerminalRgbLed(curses.newwin(2, 3, 1, 1))
+        self.__leftLed.setColor(GenericRgbLed.Color.RED)
+        self.__rightLed = TerminalRgbLed(curses.newwin(2, 3, 1, 6+20))
+        self.__rightLed.setColor(GenericRgbLed.Color.BLUE)
+        self.__instructionsWin = curses.newwin(7, 30, 0, 50)
 
         lines, cols = self.__stdscr.getmaxyx()
         self.__logWin = curses.newwin(lines-5, cols, 5, 0)
         self.__logWin.scrollok(True)
         self.__relayList = (
-            TerminalRelay(ThermostatState.HEATING, 1, 0, 32),
-            TerminalRelay(ThermostatState.COOLING, 2, 1, 32),
-            TerminalRelay(ThermostatState.FAN, 3, 2, 32),
+            TerminalRelay(ThermostatState.HEATING, 4, 0, 32),
+            TerminalRelay(ThermostatState.COOLING, 1, 1, 32),
+            TerminalRelay(ThermostatState.FAN, 2, 2, 32),
         )
 
         self.__lcd = TerminalDisplay(self.__displayWin, 20, 4)
@@ -60,6 +66,7 @@ class TerminalThermostatService(ThermostatService):
             lcd=self.__lcd,
             sensor=self.__environmentSensor,
             relays=self.__relayList,
+            rgbLeds=[self.__leftLed, self.__rightLed]
         )
 
     def setServiceProvider(self, provider: ServiceProvider):
@@ -88,6 +95,8 @@ class TerminalThermostatService(ThermostatService):
         # Redraw the relay status
         for relay in self.__relayList:
             relay.redraw()
+        self.__leftLed.redraw()
+        self.__rightLed.redraw()
         self.__lcd.refresh()
         # self.__ledLeft.refresh()
         # self.__ledRight.refresh()
@@ -98,16 +107,16 @@ class TerminalThermostatService(ThermostatService):
         self.__instructionsWin.clear()
         self.__instructionsWin.addstr(
             0, 0, '1-4: Buttons on thermostat  ',
-            curses.A_REVERSE | curses.color_pair(4))
+            curses.A_REVERSE | curses.color_pair(7))
         self.__instructionsWin.addstr(
             1, 0, '9,0: Simulate price movement',
-            curses.A_REVERSE | curses.color_pair(4))
+            curses.A_REVERSE | curses.color_pair(7))
         self.__instructionsWin.addstr(
             2, 0, 'Up/Dwn arrows: Change temp  ',
-            curses.A_REVERSE | curses.color_pair(4))
+            curses.A_REVERSE | curses.color_pair(7))
         self.__instructionsWin.addstr(
             3, 0, 'q: quit, l: redraw screen   ',
-            curses.A_REVERSE | curses.color_pair(4))
+            curses.A_REVERSE | curses.color_pair(7))
         self.__instructionsWin.refresh()
 
     def __updateLogWin(self):

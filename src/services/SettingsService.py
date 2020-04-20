@@ -141,6 +141,8 @@ class SettingsService(EventBusMember):
         self.__delta = config.resolve('thermostat', 'delta', 1.0)
         self.__mode = SettingsService.Mode.AUTO
         self.__lastOverridePrice = None
+        self.__isInPriceOverride = False
+
         self.__programs = {}
         for name in programs:
             self.__programs[name] = Program(name, programs[name])
@@ -210,6 +212,12 @@ class SettingsService(EventBusMember):
                     self.__currentProgram = self.__programs[pName]
                     self._fireEvent(SettingsChangedEvent())
 
+    @property
+    def isInPriceOverride(self):
+        """ Returns true if the current comfortMin/comfortMax levels have been
+        influenced by pricing """
+        return self.__isInPriceOverride
+
     def priceChanged(self, price: float):
         """ Based on a new power price searches the price overrides to
         determine whether the min/max values need updating and if so,
@@ -218,23 +226,24 @@ class SettingsService(EventBusMember):
         for override in self.__currentProgram.priceOverrides:
             if price >= override.price:
                 if self.__lastOverridePrice == override.price:
-                    return False
+                    return
 
                 self.__lastOverridePrice = override.price
                 if override.comfortMin is not None:
                     self.__currentProgram.comfortMin = override.comfortMin
+                    self.__isInPriceOverride = True
+                    self._fireEvent(SettingsChangedEvent())
                 if override.comfortMax is not None:
                     self.__currentProgram.comfortMax = override.comfortMax
+                    self.__isInPriceOverride = True
                     self._fireEvent(SettingsChangedEvent())
-                return True
+                return
 
         if self.__lastOverridePrice is not None:
             self.__currentProgram.reset()
             self.__lastOverridePrice = None
+            self.__isInPriceOverride = False
             self._fireEvent(SettingsChangedEvent())
-            return True
-
-        return False
 
     @property
     def mode(self):

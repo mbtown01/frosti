@@ -39,8 +39,6 @@ class GoGriddyPriceCheckService(EventBusMember):
             'memberID': config.resolve('gogriddy', 'memberId'),
             'settlement_point': config.resolve('gogriddy', 'settlementPoint')
         }
-        super()._installEventHandler(
-            PowerPriceChangedEvent, self.__powerPriceChanged)
         self.__startUpdatePriceHandler = \
             super()._installTimerHandler(
                 5.0, self.__startUpdatePrice, oneShot=True)
@@ -55,16 +53,14 @@ class GoGriddyPriceCheckService(EventBusMember):
         result = requests.post(
             self.__apiUrl, data=json.dumps(self.__apiPostData))
         data = json.loads(result.text)
-
-        self._fireEvent(PowerPriceChangedEvent(
+        event = PowerPriceChangedEvent(
             price=float(data["now"]["price_ckwh"])/100.0,
             nextUpdate=float(data['seconds_until_refresh'])
-        ))
+        )
 
-    def __powerPriceChanged(self, event: PowerPriceChangedEvent):
-        """ Handle the results from the update thread and schedule the next
-        update call """
         self.__startUpdatePriceHandler.reset(frequency=event.nextUpdate)
         log.info(
             f"Power price is now {event.price:.4f}/kW*h, next update "
             f"in {event.nextUpdate}s")
+
+        self._fireEvent(event)

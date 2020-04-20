@@ -15,4 +15,4 @@ class GenericRgbLed:
         WHITE = 7
 
     def setColor(self, color: Color):
-        pass
+        raise NotImplementedError()
