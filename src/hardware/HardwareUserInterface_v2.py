@@ -78,7 +78,7 @@ class HardwareUserInterface_v2(UserInterfaceService):
         # 12, 13, 14 is LEFT B, R, G
         # 2, 3, 4 is RIGHT B, R, G
         super().__init__(
-            lcd=HD44780Display(0x27, 20, 4)
+            lcd=HD44780Display(0x27, 20, 4),
             rgbLeds=(
                 LtrbRasfRgbLed(self.__mcp, 13, 14, 12),
                 LtrbRasfRgbLed(self.__mcp, 3, 4, 2),
