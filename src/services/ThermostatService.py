@@ -6,7 +6,7 @@ from src.logging import log
 from src.services import SettingsService, SettingsChangedEvent
 from src.core import EventBus, EventBusMember, Event, TimerBasedHandler, \
     ServiceProvider, ThermostatState
-from src.services import ConfigService
+from src.services import ConfigService, RelayManagementService
 from src.core.events import ThermostatStateChangedEvent, \
     SensorDataChangedEvent, PowerPriceChangedEvent, \
     UserThermostatInteractionEvent
@@ -16,26 +16,8 @@ from src.core.generics import GenericEnvironmentSensor, GenericLcdDisplay, \
 
 class ThermostatService(EventBusMember):
 
-    def __init__(self,
-                 lcd: GenericLcdDisplay,
-                 sensor: GenericEnvironmentSensor,
-                 relays: list,
-                 rgbLeds: list=[]):
-        self.__lcd = lcd
-        self.__sensor = sensor
-        self.__rgbLeds = rgbLeds
-        self.__relayToggled = False
-        self.__relayMap = {r.function: r for r in relays}
-        for relay in relays:
-            relay.addCallback(self.__relayCallback)
-        if ThermostatState.OFF not in self.__relayMap:
-            self.__relayMap[ThermostatState.OFF] = \
-                GenericRelay(ThermostatState.OFF)
+    def __init__(self):
         self.__state = ThermostatState.OFF
-        self.__lcd.setBacklight(True)
-        self.__lastTemperature = 0.0
-        self.__lastState = ThermostatState.OFF
-        self.__lastPrice = 0.0
         self.__fanRunoutInvoker = None
 
     def setServiceProvider(self, provider: ServiceProvider):
@@ -46,74 +28,25 @@ class ThermostatService(EventBusMember):
             config.value('thermostat').value('delta', 1.0)
         self.__fanRunoutDuration = \
             config.value('thermostat').value('fanRunout', 30)
-        self.__backlightTimeoutDuration = \
-            config.value('thermostat').value('backlightTimeout', 10)
 
-        self.__sampleSensorsInvoker = self._installTimerHandler(
-            frequency=5.0, handlers=self.__sampleSensors)
         self.__checkScheduleInvoker = self._installTimerHandler(
             frequency=60.0, handlers=self.__checkSchedule)
-        self.__backlightTimeoutInvoker = self._installTimerHandler(
-            frequency=self.__backlightTimeoutDuration,
-            handlers=self.__backlightTimeout, oneShot=True)
-        self.__relayToggledTimeoutInvoker = self._installTimerHandler(
-            frequency=3.0, handlers=self.__relayToggledTimeout, oneShot=True)
-        self.__drawRowTwoInvoker = self._installTimerHandler(
-            frequency=3.0,
-            handlers=[
-                self.__drawRowTwoTarget,
-                self.__drawRowTwoState,
-                self.__drawRowTwoPrice,
-                self.__drawRowTwoProgram])
         self.__fanRunoutInvoker = self._installTimerHandler(
             frequency=self.__fanRunoutDuration, handlers=self.__fanRunout,
             oneShot=True)
-        self.__priceOverrideColorList = [
-            GenericRgbLed.Color.BLUE,
-            GenericRgbLed.Color.CYAN,
-            GenericRgbLed.Color.GREEN,
-            GenericRgbLed.Color.RED,
-            GenericRgbLed.Color.YELLOW,
-            GenericRgbLed.Color.MAGENTA,
-            GenericRgbLed.Color.WHITE
-        ]
-        self.__priceOverrideColorIndex = 0
-        self.__priceOverrideAnimateInvoker = self._installTimerHandler(
-            frequency=0.5, handlers=self.__priceOverrideAnimate)
         self.__fanRunoutInvoker.disable()
 
         self._installEventHandler(
-            SettingsChangedEvent, self.__processSettingsChanged)
-        self._installEventHandler(
-            SensorDataChangedEvent, self.__processSensorDataChanged)
-        self._installEventHandler(
-            ThermostatStateChangedEvent, self.__processStateChanged)
-        self._installEventHandler(
-            PowerPriceChangedEvent, self._powerPriceChanged)
-        self._installEventHandler(
             UserThermostatInteractionEvent, self.__userThermostatInteraction)
+        self._installEventHandler(
+            SensorDataChangedEvent, self.__sensorDataChanged)
 
-        self.__lcd.setBacklight(True)
-        self.__openAllRelays()
         self.__checkSchedule()
-
-    def __priceOverrideAnimate(self):
-        # log.debug(f"priceOverrideAnimate {self.__priceOverrideColorIndex}")
-        index0 = self.__priceOverrideColorIndex
-        index1 = (self.__priceOverrideColorIndex+1) % \
-            len(self.__priceOverrideColorList)
-        self.__priceOverrideColorIndex = index1
-        self.__rgbLeds[0].setColor(self.__priceOverrideColorList[index0])
-        self.__rgbLeds[1].setColor(self.__priceOverrideColorList[index1])
 
     @property
     def state(self):
         """ Current state of the thermostat """
         return self.__state
-
-    @property
-    def relayToggled(self):
-        return self.__relayToggled
 
     def __checkSchedule(self):
         settings = self._getService(SettingsService)
@@ -124,16 +57,10 @@ class ThermostatService(EventBusMember):
         values = localtime(eventBus.now)
         settings.timeChanged(
             day=values.tm_wday, hour=values.tm_hour, minute=values.tm_min)
-        # self.__sampleSensors()
 
-    def __sampleSensors(self):
-        temperature = self.__sensor.temperature
+    def __sensorDataChanged(self, event: SensorDataChangedEvent):
+        temperature = event.temperature
         settings = self._getService(SettingsService)
-        super()._fireEvent(SensorDataChangedEvent(
-            temperature=temperature,
-            pressure=self.__sensor.pressure,
-            humidity=self.__sensor.humidity
-        ))
 
         #    HEATING ZONE         COMFORT ZONE           COOLING ZONE
         # \\\\\\\\\\\\\\\\\\\                        ///////////////////
@@ -215,39 +142,29 @@ class ThermostatService(EventBusMember):
     def _modifyComfortSettings(self, increment: int):
         settings = self._getService(SettingsService)
 
-        self.__backlightReset()
         if SettingsService.Mode.HEAT == settings.mode:
             settings.comfortMin = settings.comfortMin + increment
         if SettingsService.Mode.COOL == settings.mode:
             settings.comfortMax = settings.comfortMax + increment
-        self.__sampleSensorsInvoker.reset()
 
     def _nextMode(self):
         settings = self._getService(SettingsService)
 
-        self.__backlightReset()
         settings.mode = SettingsService.Mode(
             (int(settings.mode.value)+1) % len(SettingsService.Mode))
-        self.__sampleSensorsInvoker.reset()
 
     def __changeState(self, newState: ThermostatState):
         if self.__state != newState:
+            relayManagementService = \
+                super()._getService(RelayManagementService)
+
             log.debug(f"Thermostat state {self.__state} -> {newState}")
-            self.__relayMap[self.__state].openRelay()
-            self.__relayMap[newState].closeRelay()
+            relayManagementService.openRelay(self.__state)
+            relayManagementService.closeRelay(newState)
             if newState.shouldAlsoRunFan:
-                self.__relayMap[ThermostatState.FAN].closeRelay()
+                relayManagementService.closeRelay(ThermostatState.FAN)
             self.__state = newState
             self._fireEvent(ThermostatStateChangedEvent(newState))
-
-    def __relayCallback(self, relay: GenericRelay):
-        self.__relayToggled = True
-        self.__relayToggledTimeoutInvoker.reset()
-        log.debug("Driver ENTERING relay toggle timeout")
-
-    def __relayToggledTimeout(self):
-        self.__relayToggled = False
-        log.debug("Driver COMPLETED relay toggle timeout")
 
     def __fanRunout(self):
         settings = self._getService(SettingsService)
@@ -255,74 +172,3 @@ class ThermostatService(EventBusMember):
         if self.__state == ThermostatState.FAN and \
                 settings.mode != SettingsService.Mode.FAN:
             self.__changeState(ThermostatState.OFF)
-
-    def __backlightReset(self):
-        if not self.__backlightTimeoutInvoker.isQueued:
-            self.__lcd.setBacklight(True)
-            self.__lcd.commit()
-        self.__backlightTimeoutInvoker.reset()
-
-    def __backlightTimeout(self):
-        self.__lcd.setBacklight(False)
-
-    def __openAllRelays(self):
-        for relay in self.__relayMap.values():
-            relay.openRelay()
-
-    def _powerPriceChanged(self, event: PowerPriceChangedEvent):
-        settings = self._getService(SettingsService)
-
-        settings.priceChanged(event.price)
-        self.__lastPrice = event.price
-        self.__drawRowTwoInvoker.reset(2)
-        self.__drawRowTwoInvoker.invokeCurrent()
-
-    def __processSettingsChanged(self, event: SettingsChangedEvent):
-        settings = self._getService(SettingsService)
-        log.debug(f"New settings: {settings}")
-        self.__drawLcdDisplay()
-        self.__drawRowTwoInvoker.reset(0)
-        self.__drawRowTwoInvoker.invokeCurrent()
-
-    def __processStateChanged(self, event: ThermostatStateChangedEvent):
-        self.__lastState = event.state
-        self.__drawLcdDisplay()
-        self.__drawRowTwoInvoker.reset(1)
-        self.__drawRowTwoInvoker.invokeCurrent()
-
-    def __processSensorDataChanged(self, event: SensorDataChangedEvent):
-        self.__lastTemperature = event.temperature
-        self.__drawLcdDisplay()
-
-    def __drawRowTwoTarget(self):
-        settings = self._getService(SettingsService)
-
-        heat = settings.comfortMin
-        cool = settings.comfortMax
-        self.__lcd.update(1, 0, f'Target:      {heat:<3.0f}/{cool:>3.0f}')
-        self.__lcd.commit()
-
-    def __drawRowTwoState(self):
-        state = str(self.__lastState).replace('ThermostatState.', '')
-        self.__lcd.update(1, 0, f'State:{state:>14s}')
-        self.__lcd.commit()
-
-    def __drawRowTwoPrice(self):
-        price = self.__lastPrice
-        self.__lcd.update(1, 0, f'Price:  ${price:.4f}/kW*h')
-        self.__lcd.commit()
-
-    def __drawRowTwoProgram(self):
-        settings = self._getService(SettingsService)
-        name = settings.currentProgram.name
-        self.__lcd.update(1, 0, f'Program: {name:>11s}')
-        self.__lcd.commit()
-
-    def __drawLcdDisplay(self):
-        settings = self._getService(SettingsService)
-
-        now = self.__lastTemperature
-        mode = str(settings.mode).replace('Mode.', '')
-        self.__lcd.update(0, 0, f'Now: {now:<5.1f}    {mode:>6s}')
-        self.__lcd.update(3, 0, r'UP  DOWN  MODE  NEXT')
-        self.__lcd.commit()

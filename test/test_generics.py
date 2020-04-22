@@ -12,6 +12,18 @@ from src.core.events import ThermostatStateChangedEvent, SensorDataChangedEvent
 from src.services import ThermostatService
 
 
+yamlData = """
+thermostat:
+    delta: 1.0
+    fanRunout: 30
+    backlightTimeout: 10
+    programs:
+        _default:
+            comfortMin: 68
+            comfortMax: 75
+"""
+
+
 class Test_GenericLcdDisplay(unittest.TestCase):
 
     def setup_method(self, method):
@@ -103,69 +115,3 @@ class Test_GenericLcdDisplay(unittest.TestCase):
         screen = GenericLcdDisplay(20, 2)
         with self.assertRaises(RuntimeError):
             screen.update(2, 4, 'this should throw')
-
-
-class Test_GenericHardwareDriver(unittest.TestCase):
-
-    class DummyEventBusMember(EventBusMember):
-        def __init__(self):
-            self.__lastState = None
-            self.__lastTemperature = None
-
-        def setServiceProvider(self, provider: ServiceProvider):
-            super().setServiceProvider(provider)
-            super()._installEventHandler(
-                ThermostatStateChangedEvent, self.__thermostatStateChanged)
-            super()._installEventHandler(
-                SensorDataChangedEvent, self.__sensorDataChanged)
-
-        @property
-        def lastState(self):
-            return self.__lastState
-
-        @property
-        def lastTemperature(self):
-            return self.__lastTemperature
-
-        def __thermostatStateChanged(self, event: ThermostatStateChangedEvent):
-            self.__lastState = event.state
-
-        def __sensorDataChanged(self, event: SensorDataChangedEvent):
-            self.__lastTemperature = event.temperature
-
-    def setup_method(self, method):
-        self.serviceProvider = ServiceProvider()
-        testTime = strptime('01/01/19 08:01:00', '%m/%d/%y %H:%M:%S')
-        self.eventBus = EventBus(now=mktime(testTime))
-        self.serviceProvider.installService(EventBus, self.eventBus)
-        self.config = ConfigService()
-        self.serviceProvider.installService(ConfigService, self.config)
-        self.settings = SettingsService()
-        self.settings.setServiceProvider(self.serviceProvider)
-        self.serviceProvider.installService(SettingsService, self.settings)
-
-        self.dummyEventBusMember = \
-            Test_GenericHardwareDriver.DummyEventBusMember()
-        self.dummyEventBusMember.setServiceProvider(self.serviceProvider)
-        self.environmentSensor = GenericEnvironmentSensor()
-        self.display = GenericLcdDisplay(20, 4)
-        self.relayList = (
-            GenericRelay(ThermostatState.HEATING),
-            GenericRelay(ThermostatState.COOLING),
-            GenericRelay(ThermostatState.FAN),
-        )
-
-        self.hardwareDriver = ThermostatService(
-            lcd=self.display,
-            sensor=self.environmentSensor,
-            relays=self.relayList
-        )
-        self.hardwareDriver.setServiceProvider(self.serviceProvider)
-        self.eventBus.processEvents()
-
-    def test_simple(self):
-        self.eventBus.processEvents(now=self.eventBus.now+100.0)
-
-        self.assertEqual(
-            self.environmentSensor.temperature,
-            self.dummyEventBusMember.lastTemperature)

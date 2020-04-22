@@ -1,5 +1,6 @@
 from src.core import Event
 
+
 class SensorDataChangedEvent(Event):
     def __init__(self, temperature: float, pressure: float, humidity: float):
         super().__init__(data={

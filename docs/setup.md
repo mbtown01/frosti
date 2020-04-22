@@ -57,6 +57,9 @@ If the above worked, **congrats** -- you now have a local copy of the source
 code and a container setup to run it in.  You can tweak the code and re-run the
 command above to test your changes.
 
+> *Fun fact - * Tell Docker to only use one core on your laptop!  That will
+save you a ton of battery!
+
 ## Docker Hub
 
 How do I push an image to dockerhub?

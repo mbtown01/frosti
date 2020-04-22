@@ -11,6 +11,18 @@ from src.services import SettingsService
 from src.core.events import SensorDataChangedEvent
 
 
+yamlData = """
+thermostat:
+    delta: 1.0
+    fanRunout: 30
+    backlightTimeout: 10
+    programs:
+        _default:
+            comfortMin: 68
+            comfortMax: 75
+"""
+
+
 class Test_ApiDataBroker(unittest.TestCase):
 
     def setup_method(self, method):
@@ -18,7 +30,7 @@ class Test_ApiDataBroker(unittest.TestCase):
         testTime = strptime('01/01/19 08:01:00', '%m/%d/%y %H:%M:%S')
         self.eventBus = EventBus(now=mktime(testTime))
         self.serviceProvider.installService(EventBus, self.eventBus)
-        self.config = ConfigService()
+        self.config = ConfigService(yamlData=yamlData)
         self.serviceProvider.installService(ConfigService, self.config)
         self.settings = SettingsService()
         self.settings.setServiceProvider(self.serviceProvider)

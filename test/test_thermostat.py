@@ -2,82 +2,45 @@ import unittest
 from time import mktime, strptime
 
 from src.core import EventBus, EventBusMember, ServiceProvider, ThermostatState
-from src.services import ConfigService
-from src.services import SettingsService
-from src.core.events import ThermostatStateChangedEvent
+from src.services import SettingsService, ThermostatService, ConfigService, \
+    RelayManagementService
+from src.core.events import ThermostatStateChangedEvent, SensorDataChangedEvent
 from src.core.generics import GenericLcdDisplay, GenericEnvironmentSensor, \
     GenericRelay
-from src.services import ThermostatService
 
 
-data = {
-    "thermostat": {
-        "delta": 1.0,
-        "fanRunout": 30,
-        "programs": {
-            "_default": {
-                "comfortMin": 32,
-                "comfortMax": 212
-            },
-            "home": {
-                "comfortMin": 70,
-                "comfortMax": 76,
-                "priceOverrides": [
-                    {
-                        "price": 0.50,
-                        "comfortMax": 80
-                    },
-                    {
-                        "price": 1.00,
-                        "comfortMax": 88
-                    }
-                ]
-            },
-            "away": {
-                "comfortMin": 68,
-                "comfortMax": 75,
-                "priceOverrides": [
-                    {
-                        "price": 0.25,
-                        "comfortMax": 82
-                    }
-                ]
-            }
-        },
-        "schedule": {
-            "work week": {
-                "days": [0, 1, 2, 3, 4],
-                "times": [
-                    {
-                        "hour": 8,
-                        "minute": 0,
-                        "program": "away"
-                    },
-                    {
-                        "hour": 17,
-                        "minute": 0,
-                        "program": "home"
-                    },
-                ]
-            },
-            "weekend": {
-                "days": [5, 6],
-                "times": [
-                    {
-                        "hour": 8,
-                        "minute": 0,
-                        "program": "home"
-                    },
-                    {
-                        "hour": 20,
-                        "minute": 0,
-                        "program": "away"
-                    }
-                ]
-            }
-        }
-    }
-}
+yamlData = """
+thermostat:
+    delta: 1.0
+    fanRunout: 30
+    backlightTimeout: 10
+    programs:
+        _default:
+            comfortMin: 32
+            comfortMax: 212
+        home:
+            comfortMin: 70
+            comfortMax: 76
+            priceOverrides:
+                - { price: 0.50, comfortMax: 80 }
+                - { price: 1.00, comfortMax: 88 }
+        away:
+            comfortMin: 68
+            comfortMax: 75
+            priceOverrides:
+                - { price: 0.25, comfortMax: 82 }
+    schedule:
+        work week:
+            days: [0, 1, 2, 3, 4]
+            times:
+                - { hour: 8, minute: 0, program: away }
+                - { hour: 17, minute: 0, program: home }
+        weekend:
+            days: [5, 6]
+            times:
+                - { hour: 8, minute: 0, program: home }
+                - { hour: 20, minute: 0, program: away }
+"""
 
 
 # TODO: Defaults and current time/price configuration are different,
@@ -101,18 +64,6 @@ class Test_Thermostat(unittest.TestCase):
         def _thermostatStateChanged(self, event: ThermostatStateChangedEvent):
             self.__lastState = event.state
 
-    class TestThermostatDriver(ThermostatService):
-
-        def __init__(self,
-                     sensor: GenericEnvironmentSensor,
-                     relays: list):
-
-            super().__init__(
-                lcd=GenericLcdDisplay(20, 4),
-                sensor=sensor,
-                relays=relays
-            )
-
     def setup_method(self, method):
         # This is a Tuesday FYI, day '1' of 7 [0-6]
         # All tests should be in the 'away' program above
@@ -120,66 +71,70 @@ class Test_Thermostat(unittest.TestCase):
         testTime = strptime('01/01/19 08:01:00', '%m/%d/%y %H:%M:%S')
         self.eventBus = EventBus(now=mktime(testTime))
         self.serviceProvider.installService(EventBus, self.eventBus)
-        self.config = ConfigService(data=data)
+        self.config = ConfigService(yamlData=yamlData)
         self.serviceProvider.installService(ConfigService, self.config)
         self.settings = SettingsService()
         self.settings.setServiceProvider(self.serviceProvider)
         self.serviceProvider.installService(SettingsService, self.settings)
         self.settings.mode = SettingsService.Mode.COOL
+        self.relayManagement = RelayManagementService()
+        self.relayManagement.setServiceProvider(self.serviceProvider)
+        self.serviceProvider.installService(
+            RelayManagementService, self.relayManagement)
+
+        self.thermostat = ThermostatService()
+        self.thermostat.setServiceProvider(self.serviceProvider)
 
         self.dummyEventBusMember = \
             Test_Thermostat.DummyEventBusMember()
         self.dummyEventBusMember.setServiceProvider(self.serviceProvider)
-        self.dummySensor = GenericEnvironmentSensor()
-        self.relayList = (
-            GenericRelay(ThermostatState.HEATING),
-            GenericRelay(ThermostatState.COOLING),
-            GenericRelay(ThermostatState.FAN),
-        )
-        self.relayMap = {r.function: r for r in self.relayList}
-        self.thermostatDriver = Test_Thermostat.TestThermostatDriver(
-            sensor=self.dummySensor,
-            relays=self.relayList
-        )
-        self.thermostatDriver.setServiceProvider(self.serviceProvider)
         self.eventBus.processEvents()
 
     def assertNextTemperature(
             self, temp: float, duration: float, state: ThermostatState):
-        self.dummySensor.temperature = temp
+        self.eventBus.fireEvent(SensorDataChangedEvent(
+            temperature=temp, pressure=1000.0, humidity=50.0))
+        self.eventBus.processEvents(now=self.eventBus.now)
         self.eventBus.processEvents(now=self.eventBus.now+duration)
-        self.assertEqual(self.thermostatDriver.state, state)
-        for relay in self.relayMap.values():
-            if relay.function == state:
+        self.assertEqual(self.thermostat.state, state)
+
+        states = [
+            ThermostatState.COOLING,
+            ThermostatState.HEATING,
+            ThermostatState.FAN
+        ]
+        for checkState in states:
+            if checkState == state:
                 self.assertFalse(
-                    relay.isOpen,
+                    self.relayManagement.getRelayStatus(checkState),
                     f"Relay {state} should be closed for state {state}")
-            elif relay.function == ThermostatState.FAN and \
+            elif checkState == ThermostatState.FAN and \
                     state.shouldAlsoRunFan:
                 self.assertFalse(
-                    relay.isOpen,
+                    self.relayManagement.getRelayStatus(checkState),
                     f"Relay FAN should be closed for state {state}")
-            elif relay.function == ThermostatState.FAN:
+            elif checkState == ThermostatState.FAN:
                 pass
+
         if state == ThermostatState.FAN:
             self.assertFalse(
-                self.relayMap[ThermostatState.FAN].isOpen,
+                self.relayManagement.getRelayStatus(ThermostatState.FAN),
                 "Relay FAN should be closed for state FAN")
             self.assertTrue(
-                self.relayMap[ThermostatState.COOLING].isOpen,
+                self.relayManagement.getRelayStatus(ThermostatState.COOLING),
                 "Relay COOLING should be open for state OFF")
             self.assertTrue(
-                self.relayMap[ThermostatState.HEATING].isOpen,
+                self.relayManagement.getRelayStatus(ThermostatState.HEATING),
                 "Relay HEATING should be open for state OFF")
         if state == ThermostatState.OFF:
             self.assertTrue(
-                self.relayMap[ThermostatState.FAN].isOpen,
+                self.relayManagement.getRelayStatus(ThermostatState.FAN),
                 "Relay FAN should be open for state OFF")
             self.assertTrue(
-                self.relayMap[ThermostatState.COOLING].isOpen,
+                self.relayManagement.getRelayStatus(ThermostatState.COOLING),
                 "Relay COOLING should be open for state OFF")
             self.assertTrue(
-                self.relayMap[ThermostatState.HEATING].isOpen,
+                self.relayManagement.getRelayStatus(ThermostatState.HEATING),
                 "Relay HEATING should be open for state OFF")
 
     def test_stateChangedCooling(self):

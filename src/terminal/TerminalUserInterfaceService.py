@@ -4,31 +4,36 @@ from queue import Queue
 from threading import Thread
 
 from .TerminalDisplay import TerminalDisplay
-from .TerminalRelay import TerminalRelay
 from .TerminalRgbLed import TerminalRgbLed
+from .TerminalRedrawEvent import TerminalRedrawEvent
+
 from src.logging import log
 from src.core.events import  \
     PowerPriceChangedEvent, SensorDataChangedEvent
 from src.core import EventBus, Event, ThermostatState, ServiceProvider
-from src.services import ThermostatService
+from src.services import UserInterfaceService, ThermostatService
 from src.core.generics import GenericEnvironmentSensor, GenericRgbLed
 
 
-class TerminalThermostatService(ThermostatService):
+class TerminalKeyPressedEvent(Event):
+    def __init__(self, key):
+        super().__init__(name='TerminalKeyPressedEvent', data={'key': key})
 
-    class KeyPressedEvent(Event):
-        def __init__(self, key):
-            super().__init__(name='KeyPressedEvent', data={'key': key})
+    @property
+    def key(self):
+        return super().data['key']
 
-        @property
-        def key(self):
-            return super().data['key']
 
-    def __init__(self, stdscr, messageQueue: Queue):
+class TerminalUserInterfaceService(UserInterfaceService):
+
+    def __init__(
+            self, stdscr,
+            sensor: GenericEnvironmentSensor,
+            messageQueue: Queue):
         self.__stdscr = stdscr
         self.__messageQueue = messageQueue
         self.__logWinMessages = []
-        self.__environmentSensor = GenericEnvironmentSensor()
+        self.__environmentSensor = sensor
         self.__stdscr.clear()
         self.__lastPrice = 0.0
 
@@ -55,27 +60,20 @@ class TerminalThermostatService(ThermostatService):
         lines, cols = self.__stdscr.getmaxyx()
         self.__logWin = curses.newwin(lines-5, cols, 5, 0)
         self.__logWin.scrollok(True)
-        self.__relayList = (
-            TerminalRelay(ThermostatState.HEATING, 4, 0, 32),
-            TerminalRelay(ThermostatState.COOLING, 1, 1, 32),
-            TerminalRelay(ThermostatState.FAN, 2, 2, 32),
-        )
 
         self.__lcd = TerminalDisplay(self.__displayWin, 20, 4)
         super().__init__(
             lcd=self.__lcd,
-            sensor=self.__environmentSensor,
-            relays=self.__relayList,
             rgbLeds=[self.__leftLed, self.__rightLed]
         )
 
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
         super()._installEventHandler(
-            TerminalThermostatService.KeyPressedEvent,
-            self.__keyPressedHandler)
-        # super()._installTimerHandler(
-        #     frequency=5.0, handlers=self.__updateDisplay)
+            TerminalKeyPressedEvent, self.__terminalKeyPressed)
+        super()._installEventHandler(
+            PowerPriceChangedEvent, self.__powerPriceChanged)
+
         super()._installTimerHandler(
             frequency=1.0, handlers=self.__processMessageQueue)
 
@@ -87,19 +85,15 @@ class TerminalThermostatService(ThermostatService):
 
         self.__updateDisplay()
 
-    def _powerPriceChanged(self, event: PowerPriceChangedEvent):
-        super()._powerPriceChanged(event)
+    def __powerPriceChanged(self, event: PowerPriceChangedEvent):
         self.__lastPrice = event.price
 
     def __updateDisplay(self):
-        # Redraw the relay status
-        for relay in self.__relayList:
-            relay.redraw()
+        super()._fireEvent(TerminalRedrawEvent())
+
         self.__leftLed.redraw()
         self.__rightLed.redraw()
         self.__lcd.refresh()
-        # self.__ledLeft.refresh()
-        # self.__ledRight.refresh()
         self.__updateInstructions()
         self.__updateLogWin()
 
@@ -128,7 +122,7 @@ class TerminalThermostatService(ThermostatService):
             self.__logWin.insnstr(message, x)
             self.__logWin.refresh()
 
-    def __keyPressedHandler(self, event: KeyPressedEvent):
+    def __terminalKeyPressed(self, event: TerminalKeyPressedEvent):
         # Handle any key presses
         char = event.key
         if char == ord('l'):
@@ -142,16 +136,11 @@ class TerminalThermostatService(ThermostatService):
             super()._fireEvent(PowerPriceChangedEvent(
                 price=self.__lastPrice+0.25, nextUpdate=1))
         elif char == ord('1'):
-            if not super().relayToggled:
-                super()._modifyComfortSettings(1)
+            super()._modifyComfortSettings(1)
         elif char == ord('2'):
-            if not super().relayToggled:
-                super()._modifyComfortSettings(-1)
+            super()._modifyComfortSettings(-1)
         elif char == ord('3'):
-            if not super().relayToggled:
-                super()._nextMode()
-            else:
-                log.debug("Ignoring button during relay closure")
+            super()._nextMode()
         elif char == curses.KEY_UP:
             self.__environmentSensor.temperature += 1
             self._fireEvent(SensorDataChangedEvent(
@@ -169,12 +158,12 @@ class TerminalThermostatService(ThermostatService):
             self.__logWin.resize(y, x)
 
     def __keyPressListener(self):
+        """ Marshalls an incoming threaded keypress to the main event loop """
         char = None
         while char != ord('q'):
             char = self.__stdscr.getch()
             if char >= 0:
-                super()._fireEvent(
-                    TerminalThermostatService.KeyPressedEvent(char))
+                super()._fireEvent(TerminalKeyPressedEvent(char))
 
         super()._getService(EventBus).stop()
 

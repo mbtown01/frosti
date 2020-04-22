@@ -8,38 +8,30 @@ class ConfigService:
     the constant parameters used for operation plus default thermostat
     settings that get fed tothe SettingsService """
 
-    def __init__(self, name: str='base', data: dict={}):
-        if len(data) == 0:
-            self.__initFromEnviornment()
-        else:
-            self.__name = name
+    def __init__(self, name: str='base', yamlData: str=None, data: dict={}):
+        self.__name = name
+        if len(data) > 0:
             self.__data = data
+        elif yamlData is not None:
+            self.__data = yaml.load(yamlData)
+        else:
+            localPath = os.path.realpath(__file__)
 
-    def __initFromEnviornment(self):
-        localPath = os.path.realpath(__file__)
+            searchOrder = (
+                os.path.expanduser('~/.thermostat.yaml'),
+                '/etc/thermostat.yaml',
+                os.path.abspath(
+                    os.path.dirname(localPath) + '/../../etc/thermostat.yaml')
+            )
 
-        searchOrder = (
-            os.path.expanduser('~/.thermostat.yaml'),
-            '/etc/thermostat.yaml',
-            os.path.abspath(
-                os.path.dirname(localPath) + '/../../etc/thermostat.yaml')
-        )
-
-        self.__data = None
-        for fileName in searchOrder:
-            if os.path.exists(fileName):
-                self.__name = fileName
-                with open(fileName) as configFile:
-                    self.__data = yaml.load(configFile, Loader=yaml.FullLoader)
-                break
-        if self.__data is None:
-            raise RuntimeError("No configuration was found")
-        if 'thermostat' not in self.__data:
-            raise RuntimeError("No 'thermostat' section was found in config")
-
-        if 'unitname' not in self.__data['thermostat']:
-            self.__data['thermostat']['unitname'] = \
-                os.environ.get('UNITNAME', 'test')
+            self.__data = None
+            for fileName in searchOrder:
+                if os.path.exists(fileName):
+                    self.__name = fileName
+                    with open(fileName) as configFile:
+                        self.__data = yaml.load(
+                            configFile, Loader=yaml.FullLoader)
+                    break
 
     def getData(self):
         """ Gets the fully resolved config data """

@@ -6,7 +6,6 @@ class GenericRelay:
     def __init__(self, function: ThermostatState):
         self.__function = function
         self.__isOpen = None
-        self.__callbackList = []
 
     @property
     def isOpen(self):
@@ -18,27 +17,10 @@ class GenericRelay:
         """ Gets the ThermostatState function this relay handles """
         return self.__function
 
-    def addCallback(self, callback):
-        """ Provide a callback in the form of callback(relay: GenericRelay) to
-        notify when the relay is opening or closing """
-        self.__callbackList.append(callback)
-
     def openRelay(self):
         """ Open the relay, break circuit, disabling the function """
-        for callback in self.__callbackList:
-            callback(self)
         self.__isOpen = True
-        self._openRelay()
 
     def closeRelay(self):
         """ Close the relay, connect circuit, enabling the function """
-        for callback in self.__callbackList:
-            callback(self)
         self.__isOpen = False
-        self._closeRelay()
-
-    def _openRelay(self):
-        pass
-
-    def _closeRelay(self):
-        pass

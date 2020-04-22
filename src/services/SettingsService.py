@@ -1,9 +1,9 @@
 from enum import Enum
 
-from src.core import Event, EventBus, EventBusMember
+from src.core import Event, EventBus, EventBusMember, ServiceProvider
+from src.core.events import PowerPriceChangedEvent
 from src.logging import log
 from src.services import ConfigService
-from src.core import ServiceProvider
 
 
 class SettingsChangedEvent(Event):
@@ -130,6 +130,9 @@ class SettingsService(EventBusMember):
         config = self._getService(ConfigService)
         data = self.__data or config.getData()
 
+        self._installEventHandler(
+            PowerPriceChangedEvent, self._powerPriceChanged)
+
         if 'thermostat' not in data:
             raise RuntimeError("No thermostat configuration found")
         if 'programs' not in data['thermostat']:
@@ -141,7 +144,6 @@ class SettingsService(EventBusMember):
         self.__delta = config.resolve('thermostat', 'delta', 1.0)
         self.__mode = SettingsService.Mode.AUTO
         self.__lastOverridePrice = None
-        self.__isInPriceOverride = False
 
         self.__programs = {}
         for name in programs:
@@ -212,37 +214,28 @@ class SettingsService(EventBusMember):
                     self.__currentProgram = self.__programs[pName]
                     self._fireEvent(SettingsChangedEvent())
 
-    @property
-    def isInPriceOverride(self):
-        """ Returns true if the current comfortMin/comfortMax levels have been
-        influenced by pricing """
-        return self.__isInPriceOverride
-
-    def priceChanged(self, price: float):
+    def _powerPriceChanged(self, event: PowerPriceChangedEvent):
         """ Based on a new power price searches the price overrides to
         determine whether the min/max values need updating and if so,
         applies the new settings.  Returs True if new settings were applied,
         False otherwise """
         for override in self.__currentProgram.priceOverrides:
-            if price >= override.price:
+            if event.price >= override.price:
                 if self.__lastOverridePrice == override.price:
                     return
 
                 self.__lastOverridePrice = override.price
                 if override.comfortMin is not None:
                     self.__currentProgram.comfortMin = override.comfortMin
-                    self.__isInPriceOverride = True
                     self._fireEvent(SettingsChangedEvent())
                 if override.comfortMax is not None:
                     self.__currentProgram.comfortMax = override.comfortMax
-                    self.__isInPriceOverride = True
                     self._fireEvent(SettingsChangedEvent())
                 return
 
         if self.__lastOverridePrice is not None:
             self.__currentProgram.reset()
             self.__lastOverridePrice = None
-            self.__isInPriceOverride = False
             self._fireEvent(SettingsChangedEvent())
 
     @property

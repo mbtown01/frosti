@@ -10,6 +10,7 @@ from .PanasonicAgqRelay import PanasonicAgqRelay
 from src.core.generics import GenericEnvironmentSensor
 from src.core import Event, ThermostatState, ServiceProvider
 from src.services import ThermostatService
+from src.logging import log
 
 
 class Button(Enum):
@@ -76,6 +77,6 @@ class HardwareThermostatService_v1(ThermostatService):
     def __buttonCallback(self, channel):
         """ Callback happens on another thread, so this method is marshaling
         ButtonPressedEvent instances to the main thread to handle """
-        if not super().relayToggled:
-            button = self.__pinToButtonMap[channel]
-            self._fireEvent(ButtonPressedEvent(button))
+        log.warning("Not currently filtering for recent relay activity")
+        button = self.__pinToButtonMap[channel]
+        self._fireEvent(ButtonPressedEvent(button))

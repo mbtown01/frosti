@@ -6,9 +6,11 @@ import argparse
 
 from src.logging import log, setupLogging
 from src.core import EventBus
+from src.core.generics import GenericEnvironmentSensor
 from src.services import ConfigService, SettingsService, \
     SettingsChangedEvent, ApiDataBrokerService, GoGriddyPriceCheckService, \
-    PostgresAdapterService
+    PostgresAdapterService, ThermostatService, EnvironmentSamplingService, \
+    RelayManagementService, UserInterfaceService
 from src.core import ServiceProvider
 
 
@@ -34,27 +36,47 @@ class RootDriver(ServiceProvider):
         self.__settings.setServiceProvider(self)
         self.installService(SettingsService, self.__settings)
 
+        self.__thermostat = ThermostatService()
+        self.__thermostat.setServiceProvider(self)
+        self.installService(ThermostatService, self.__thermostat)
+
         # Put all the event handlers together
         self.__apiDataBroker = ApiDataBrokerService()
         self.__apiDataBroker.setServiceProvider(self)
 
     def __start(self, stdscr):
         if stdscr is not None:
+            from src.terminal import TerminalRelayManagementService, \
+                TerminalUserInterfaceService
+
             messageQueue = Queue(128)
             setupLogging(messageQueue)
-            from src.terminal import TerminalThermostatService
-            hardwareDriver = TerminalThermostatService(
-                stdscr, messageQueue)
-            hardwareDriver.setServiceProvider(self)
+
+            self.sensor = GenericEnvironmentSensor()
+            self.environmentSampling = \
+                EnvironmentSamplingService(self.sensor)
+            self.environmentSampling.setServiceProvider(self)
+            self.installService(
+                EnvironmentSamplingService, self.environmentSampling)
+
+            self.relayManagement = TerminalRelayManagementService()
+            self.relayManagement.setServiceProvider(self)
+            self.installService(RelayManagementService, self.relayManagement)
+
+            self.userInterface = \
+                TerminalUserInterfaceService(stdscr, self.sensor, messageQueue)
+            self.userInterface.setServiceProvider(self)
         elif self.__args.hardware == 'v1':
             from src.hardware.HardwareThermostatService_v1 \
                 import HardwareThermostatService_v1
+
             hardwareDriver = HardwareThermostatService_v1()
             hardwareDriver.setServiceProvider(self)
             setupLogging()
         elif self.__args.hardware == 'v2':
             from src.hardware.HardwareThermostatService_v2 \
                 import HardwareThermostatService_v2
+
             hardwareDriver = HardwareThermostatService_v2()
             hardwareDriver.setServiceProvider(self)
             setupLogging()
