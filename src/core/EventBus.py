@@ -86,8 +86,12 @@ class EventBus:
         for handler in self.__timerHandlers:
             nextInvoke = handler.getNextInvoke(self.__now) - self.__now
             if nextInvoke < 0.2:
-                handler.invoke(self.__now)
-                nextInvoke = handler.getNextInvoke(self.__now) - self.__now
+                try:
+                    handler.invoke(self.__now)
+                    nextInvoke = handler.getNextInvoke(self.__now) - self.__now
+                except:
+                    log.error(
+                        f"Handler encountered exception: {exec_info()}")
             timeout = min(timeout, nextInvoke)
 
         # Check events first, only delivering them to registered subscribers
@@ -95,7 +99,11 @@ class EventBus:
             event = self.__eventQueue.get()
             if type(event) in self.__eventHandlers:
                 for handler in self.__eventHandlers[type(event)]:
-                    handler(event)
+                    try:
+                        handler(event)
+                    except:
+                        log.error(
+                            f"Handler encountered exception: {exec_info()}")
 
         return max(0.0, timeout)
 
