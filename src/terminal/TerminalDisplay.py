@@ -7,19 +7,23 @@ class TerminalDisplay(GenericLcdDisplay):
 
     # Modified version of the driver from
     # https://github.com/sunfounder/SunFounder_SensorKit_for_RPi2.git
-    def __init__(self, window, width, height):
+    def __init__(self, window, colorPair, width, height):
         super().__init__(width, height)
         self.__window = window
+        self.__colorPair = colorPair
         self.__backlightEnabled = False
 
     def setBacklight(self, enabled: bool):
         self.__backlightEnabled = enabled
-        self.commit()
+        self.refresh()
 
     def refresh(self):
         self.__window.clear()
         for row in range(super().height):
-            self.__window.addstr(row, 0, super().rowText(row))
+            color = self.__colorPair
+            if self.__backlightEnabled:
+                color = color | curses.A_REVERSE
+            self.__window.addstr(row, 0, super().rowText(row), color)
         self.__window.refresh()
 
     def commit(self):
@@ -28,7 +32,10 @@ class TerminalDisplay(GenericLcdDisplay):
         results = super().commit()
         for i in range(len(results)):
             for change in results[i]:
-                self.__window.addstr(i, change[0], change[1])
+                color = self.__colorPair
+                if self.__backlightEnabled:
+                    color = color | curses.A_REVERSE
+                self.__window.addstr(i, change[0], change[1], color)
                 changed = True
         if changed:
             self.__window.refresh()

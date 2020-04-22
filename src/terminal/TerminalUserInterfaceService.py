@@ -61,7 +61,7 @@ class TerminalUserInterfaceService(UserInterfaceService):
         self.__logWin = curses.newwin(lines-5, cols, 5, 0)
         self.__logWin.scrollok(True)
 
-        self.__lcd = TerminalDisplay(self.__displayWin, 20, 4)
+        self.__lcd = TerminalDisplay(self.__displayWin, 7, 20, 4)
         super().__init__(
             lcd=self.__lcd,
             rgbLeds=[self.__leftLed, self.__rightLed]
@@ -91,8 +91,6 @@ class TerminalUserInterfaceService(UserInterfaceService):
     def __updateDisplay(self):
         super()._fireEvent(TerminalRedrawEvent())
 
-        self.__leftLed.redraw()
-        self.__rightLed.redraw()
         self.__lcd.refresh()
         self.__updateInstructions()
         self.__updateLogWin()

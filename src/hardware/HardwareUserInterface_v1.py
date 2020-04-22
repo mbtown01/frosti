@@ -5,10 +5,7 @@ import RPi.GPIO as GPIO
 from enum import Enum
 
 from .HD44780Display import HD44780Display
-from .Bmp280EnvironmentSensor import Bmp280EnvironmentSensor
-from .PanasonicAgqRelay import PanasonicAgqRelay
-from src.core.generics import GenericEnvironmentSensor
-from src.core import Event, ThermostatState, ServiceProvider
+from src.core import Event, ServiceProvider
 from src.services import ThermostatService
 from src.logging import log
 
@@ -29,22 +26,12 @@ class ButtonPressedEvent(Event):
         return super().data['button']
 
 
-class HardwareThermostatService_v1(ThermostatService):
+class HardwareUserInterface_v1(ThermostatService):
 
     def __init__(self):
         GPIO.setmode(GPIO.BCM)
 
-        sensor = Bmp280EnvironmentSensor()
-
-        super().__init__(
-            lcd=HD44780Display(0x27, 20, 4),
-            sensor=sensor,
-            relays=(
-                PanasonicAgqRelay(ThermostatState.FAN, 5, 17),
-                PanasonicAgqRelay(ThermostatState.HEATING, 6, 27),
-                PanasonicAgqRelay(ThermostatState.COOLING, 13, 22)
-            )
-        )
+        super().__init__(lcd=HD44780Display(0x27, 20, 4))
 
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)

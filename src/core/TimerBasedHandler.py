@@ -54,7 +54,7 @@ class TimerBasedHandler:
     def getNextInvoke(self, now: float):
         """ Compute the next time this invoker should execute """
         self.__lastInvoke = self.__lastInvoke or now
-        if self.__oneShot and self.ONE_SHOT_COMPLETED == self.__lastInvoke:
+        if self.ONE_SHOT_COMPLETED == self.__lastInvoke:
             return maxsize
         return self.__lastInvoke + self.__frequency
 

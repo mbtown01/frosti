@@ -8,7 +8,11 @@ thermostat:
         _default: { comfortMin: 68, comfortMax: 73 }
         overnight: { comfortMin: 68, comfortMax: 73 }
         home: { comfortMin: 70, comfortMax: 76 }
-        away: { comfortMin: 64, comfortMax: 78 }
+        away:
+            comfortMin: 64
+            comfortMax: 78
+            priceOverrides:
+                - { price: 0.25, comfortMax: 76 }
     schedule:
         work week:
             days: [0, 1, 2, 3, 4]

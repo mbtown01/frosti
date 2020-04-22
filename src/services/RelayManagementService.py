@@ -6,11 +6,12 @@ class RelayManagementService(EventBusMember):
     """ Service interface for relay management.  Subclassed by code tied into
     whatever actual relay exists """
 
-    def __init__(self, relays: dict):
+    def __init__(self, relays: list=()):
         self.__relayMap = {r.function: r for r in relays}
-        if ThermostatState.OFF not in self.__relayMap:
-            self.__relayMap[ThermostatState.OFF] = \
-                GenericRelay(ThermostatState.OFF)
+
+        for state in ThermostatState:
+            if state not in self.__relayMap:
+                self.__relayMap[state] = GenericRelay(state)
 
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)

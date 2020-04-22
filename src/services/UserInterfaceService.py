@@ -52,7 +52,8 @@ class UserInterfaceService(EventBusMember):
         ]
         self.__priceOverrideColorIndex = 0
         self.__priceOverrideAnimateInvoker = self._installTimerHandler(
-            frequency=0.25, handlers=self.__priceOverrideAnimate)
+            frequency=0.5, handlers=self.__priceOverrideAnimate)
+        self.__priceOverrideAnimateInvoker.disable()
 
         self._installEventHandler(
             SettingsChangedEvent, self.__processSettingsChanged)
@@ -61,7 +62,7 @@ class UserInterfaceService(EventBusMember):
         self._installEventHandler(
             ThermostatStateChangedEvent, self.__processStateChanged)
         self._installEventHandler(
-            PowerPriceChangedEvent, self._powerPriceChanged)
+            PowerPriceChangedEvent, self.__powerPriceChanged)
         self._installEventHandler(
             UserThermostatInteractionEvent, self.__userThermostatInteraction)
 
@@ -110,13 +111,20 @@ class UserInterfaceService(EventBusMember):
     def __backlightTimeout(self):
         self.__lcd.setBacklight(False)
 
-    def _powerPriceChanged(self, event: PowerPriceChangedEvent):
+    def __powerPriceChanged(self, event: PowerPriceChangedEvent):
         self.__lastPrice = event.price
         self.__drawRowTwoInvoker.reset(2)
         self.__drawRowTwoInvoker.invokeCurrent()
 
     def __processSettingsChanged(self, event: SettingsChangedEvent):
         settings = self._getService(SettingsService)
+        if settings.isInPriceOverride:
+            self.__priceOverrideAnimateInvoker.reset()
+        else:
+            self.__priceOverrideAnimateInvoker.disable()
+            for rgbLed in self.__rgbLeds:
+                rgbLed.setColor(GenericRgbLed.Color.BLACK)
+
         log.debug(f"New settings: {settings}")
         self.__drawLcdDisplay()
         self.__drawRowTwoInvoker.reset(0)

@@ -131,7 +131,7 @@ class SettingsService(EventBusMember):
         data = self.__data or config.getData()
 
         self._installEventHandler(
-            PowerPriceChangedEvent, self._powerPriceChanged)
+            PowerPriceChangedEvent, self.__powerPriceChanged)
 
         if 'thermostat' not in data:
             raise RuntimeError("No thermostat configuration found")
@@ -144,6 +144,7 @@ class SettingsService(EventBusMember):
         self.__delta = config.resolve('thermostat', 'delta', 1.0)
         self.__mode = SettingsService.Mode.AUTO
         self.__lastOverridePrice = None
+        self.__isInPriceOverride = False
 
         self.__programs = {}
         for name in programs:
@@ -168,6 +169,10 @@ class SettingsService(EventBusMember):
     @property
     def currentProgram(self):
         return self.__currentProgram
+
+    @property
+    def isInPriceOverride(self):
+        return self.__isInPriceOverride
 
     @property
     def comfortMin(self):
@@ -214,7 +219,7 @@ class SettingsService(EventBusMember):
                     self.__currentProgram = self.__programs[pName]
                     self._fireEvent(SettingsChangedEvent())
 
-    def _powerPriceChanged(self, event: PowerPriceChangedEvent):
+    def __powerPriceChanged(self, event: PowerPriceChangedEvent):
         """ Based on a new power price searches the price overrides to
         determine whether the min/max values need updating and if so,
         applies the new settings.  Returs True if new settings were applied,
@@ -225,6 +230,7 @@ class SettingsService(EventBusMember):
                     return
 
                 self.__lastOverridePrice = override.price
+                self.__isInPriceOverride = True
                 if override.comfortMin is not None:
                     self.__currentProgram.comfortMin = override.comfortMin
                     self._fireEvent(SettingsChangedEvent())
@@ -236,6 +242,7 @@ class SettingsService(EventBusMember):
         if self.__lastOverridePrice is not None:
             self.__currentProgram.reset()
             self.__lastOverridePrice = None
+            self.__isInPriceOverride = False
             self._fireEvent(SettingsChangedEvent())
 
     @property
