@@ -2,4 +2,4 @@
 # successfully import logic from src
 
 from .TerminalRelayManagementService import TerminalRelayManagementService
-from .TerminalUserInterfaceService import TerminalUserInterfaceService
+from .TerminalUserInterface import TerminalUserInterface

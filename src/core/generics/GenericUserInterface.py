@@ -14,7 +14,7 @@ from src.core.generics import GenericEnvironmentSensor, GenericLcdDisplay, \
     GenericRelay, GenericRgbLed
 
 
-class UserInterfaceService(EventBusMember):
+class GenericUserInterface(EventBusMember):
 
     def __init__(self,
                  lcd: GenericLcdDisplay,

@@ -6,11 +6,11 @@ import argparse
 
 from src.logging import log, setupLogging
 from src.core import EventBus, ThermostatState
-from src.core.generics import GenericEnvironmentSensor
+from src.core.generics import GenericEnvironmentSensor, GenericUserInterface
 from src.services import ConfigService, SettingsService, \
     SettingsChangedEvent, ApiDataBrokerService, GoGriddyPriceCheckService, \
     PostgresAdapterService, ThermostatService, EnvironmentSamplingService, \
-    RelayManagementService, UserInterfaceService
+    RelayManagementService
 from src.core import ServiceProvider
 
 
@@ -47,7 +47,7 @@ class RootDriver(ServiceProvider):
     def __start(self, stdscr):
         if stdscr is not None:
             from src.terminal import TerminalRelayManagementService, \
-                TerminalUserInterfaceService
+                TerminalUserInterface
 
             messageQueue = Queue(128)
             setupLogging(messageQueue)
@@ -64,7 +64,7 @@ class RootDriver(ServiceProvider):
             self.installService(RelayManagementService, self.relayManagement)
 
             self.userInterface = \
-                TerminalUserInterfaceService(stdscr, self.sensor, messageQueue)
+                TerminalUserInterface(stdscr, self.sensor, messageQueue)
             self.userInterface.setServiceProvider(self)
         else:
             from src.hardware.PanasonicAgqRelay import PanasonicAgqRelay

@@ -13,7 +13,7 @@ from time import sleep
 from .HD44780Display import HD44780Display
 from .LtrbRasfRgbLed import LtrbRasfRgbLed
 from src.core import Event, ThermostatState, ServiceProvider
-from src.services import UserInterfaceService
+from src.core.generics import GenericUserInterface
 from src.logging import log
 
 
@@ -33,7 +33,7 @@ class ButtonPressedEvent(Event):
         return super().data['button']
 
 
-class HardwareUserInterface_v2(UserInterfaceService):
+class HardwareUserInterface_v2(GenericUserInterface):
 
     def __init__(self):
         GPIO.setmode(GPIO.BCM)

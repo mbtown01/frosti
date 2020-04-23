@@ -7,7 +7,8 @@ there is a set of components that need services (ServiceConsumers) and
 somewhere there is a component that provides them (ServiceProvider).
 """
 
-from .GenericEnvironmentsensor import GenericEnvironmentSensor
+from .GenericEnvironmentSensor import GenericEnvironmentSensor
 from .GenericLcdDisplay import GenericLcdDisplay
 from .GenericRelay import GenericRelay
 from .GenericRgbLed import GenericRgbLed
+from .GenericUserInterface import GenericUserInterface

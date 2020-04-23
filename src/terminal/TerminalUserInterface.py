@@ -11,8 +11,9 @@ from src.logging import log
 from src.core.events import  \
     PowerPriceChangedEvent, SensorDataChangedEvent
 from src.core import EventBus, Event, ThermostatState, ServiceProvider
-from src.services import UserInterfaceService, ThermostatService
-from src.core.generics import GenericEnvironmentSensor, GenericRgbLed
+from src.services import ThermostatService
+from src.core.generics import GenericEnvironmentSensor, GenericRgbLed, \
+    GenericUserInterface
 
 
 class TerminalKeyPressedEvent(Event):
@@ -24,7 +25,7 @@ class TerminalKeyPressedEvent(Event):
         return super().data['key']
 
 
-class TerminalUserInterfaceService(UserInterfaceService):
+class TerminalUserInterface(GenericUserInterface):
 
     def __init__(
             self, stdscr,

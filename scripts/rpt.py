@@ -34,7 +34,7 @@ class RptLauncher:
             '--test', nargs=argparse.REMAINDER,
             help='Run a test command inside the container')
         parser.add_argument(
-            '--stop', action='store_true', default=False,
+            '--down', action='store_true', default=False,
             help='Stops all containers related to rpt')
         parser.add_argument(
             '--dev', action='store_true', default=False,
@@ -61,16 +61,30 @@ class RptLauncher:
         print(f"SHELL: {arglist}")
         return call(arglist)
 
-    def run(self, name: str, runArgList: list=[], arglist: list=[]):
-        containerIsRunning = not self.shell(
-            ['bash', '-c', f'docker ps | grep {name}; exit $?'])
-        if containerIsRunning:
-            return 0
+    def run(
+            self,
+            name: str,
+            runArgList: list=[],
+            arglist: list=[],
+            restart: bool=False):
 
-        containerExists = not self.shell(
-            ['bash', '-c', f'docker ps --all | grep {name}; exit $?'])
-        if containerExists:
-            return self.shell(arglist=['docker', 'restart', name])
+        self.shell(arglist=[
+            'bash', '-c', f'FOO=$(docker ps '
+            f'--filter name={name} --format "{{{{.ID}}}}");'
+            f'if [ "$FOO" != "" ]; then docker kill $FOO; fi'
+        ])
+
+        if restart:
+            containerExists = not self.shell(
+                ['bash', '-c', f'docker ps --all | grep {name}; exit $?'])
+            if containerExists:
+                return self.shell(arglist=['docker', 'restart', name])
+        else:
+            self.shell(arglist=[
+                'bash', '-c', f'FOO=$(docker ps --all '
+                f'--filter name={name} --format "{{{{.ID}}}}");'
+                f'if [ "$FOO" != "" ]; then docker rm $FOO; fi'
+            ])
 
         args = self.baseComposeArgs + \
             ['run', '--name', name, '-e', f'TZ={self.timezone}']
@@ -102,18 +116,14 @@ class RptLauncher:
             arglist = ['python3', '-m', 'src'] + self.args.run
             return self.run(name="rpt-run", arglist=arglist)
 
-        if self.args.dev is not None:
+        if self.args.dev:
             arglist = ['bash', '-c', 'while sleep 60; do /bin/false; done']
-            return self.run(name="rpt-dev", arglist=arglist)
+            return self.run(
+                name="rpt-dev", arglist=arglist, restart=True)
 
-        # if self.args.dev:
-        #     arglist = baseComposeArgs + baseRunArgs + \
-        #         ['bash', '-c', 'while sleep 600; do /bin/false; done']
-        #     rtn = self.shell(arglist=arglist)
-        #     if 1 == rtn:
-        #         print("WARNING: rpt-dev may exist, attempting restasrt")
-        #         arglist = ['docker', 'restart', 'rpt-dev']
-        #         return self.shell(arglist=arglist)
+        if self.args.down:
+            arglist = self.baseComposeArgs + ['down']
+            return self.shell(arglist=arglist)
 
 
 if __name__ == "__main__":

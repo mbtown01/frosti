@@ -8,7 +8,7 @@ ARG HOSTTYPE
 ARG NODEJS_VERSION
 
 # upgrade base packages
-# RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y \
     python3 python3-pip python3-dev python3-smbus \
