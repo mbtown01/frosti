@@ -3,6 +3,7 @@ services:
 
   postgres:
     container_name: rpt-postgres
+    labels: [rpt]
     image: "postgres:12.2"
     environment:
       POSTGRES_PASSWORD: "rpt"
@@ -14,6 +15,7 @@ services:
 
   grafana:
     container_name: rpt-grafana
+    labels: [rpt]
     image: ${HOSTTYPE_IMAGE_GRAFANA}
     ports:
       - "3000:3000"
@@ -32,6 +34,7 @@ services:
       context: ../
       dockerfile: ./docker/rpt/Dockerfile
     container_name: rpt
+    labels: [rpt]
     privileged: true
     ports:
       - "5000:5000"

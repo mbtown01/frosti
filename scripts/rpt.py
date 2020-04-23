@@ -34,6 +34,9 @@ class RptLauncher:
             '--test', nargs=argparse.REMAINDER,
             help='Run a test command inside the container')
         parser.add_argument(
+            '--stop', action='store_true', default=False,
+            help='Stops all containers related to rpt')
+        parser.add_argument(
             '--dev', action='store_true', default=False,
             help='Start a development container to be attached to')
 
@@ -87,15 +90,10 @@ class RptLauncher:
             return self.shell(arglist=arglist)
 
         if self.args.debug is not None:
-            # run -p 3001:3001 -p 5000:5000 \
-            # rpt python3.7 -m ptvsd --host 0.0.0.0 --port 3001 --wait \
-            #     -m src --hardware v2
-
             runArgList = ['-p', '3001:3001', '-p', '5000:5000']
             arglist = [
                 'python3', '-m', 'ptvsd',
-                '--host', '0.0.0.0', '--port', '3001', '--wait',
-                '-m', 'src'
+                '--host', '0.0.0.0', '--port', '3001', '--wait', '-m', 'src'
             ] + self.args.debug
             return self.run(
                 name="rpt-debug", runArgList=runArgList, arglist=arglist)

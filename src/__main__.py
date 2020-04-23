@@ -66,61 +66,46 @@ class RootDriver(ServiceProvider):
             self.userInterface = \
                 TerminalUserInterfaceService(stdscr, self.sensor, messageQueue)
             self.userInterface.setServiceProvider(self)
-        elif self.__args.hardware == 'v1':
-            from src.hardware.HardwareUserInterface_v1 \
-                import HardwareUserInterface_v1
-            from src.hardware.Bmp280EnvironmentSensor \
-                import Bmp280EnvironmentSensor
-            from src.hardware.PanasonicAgqRelay \
-                import PanasonicAgqRelay
-
-            self.sensor = Bmp280EnvironmentSensor()
-            self.environmentSampling = \
-                EnvironmentSamplingService(self.sensor)
-            self.environmentSampling.setServiceProvider(self)
-            self.installService(
-                EnvironmentSamplingService, self.environmentSampling)
-
-            self.relayManagement = RelayManagementService(relays=(
-                PanasonicAgqRelay(ThermostatState.FAN, 5, 17),
-                PanasonicAgqRelay(ThermostatState.HEATING, 6, 27),
-                PanasonicAgqRelay(ThermostatState.COOLING, 13, 22)
-            ))
-            self.relayManagement.setServiceProvider(self)
-            self.installService(RelayManagementService, self.relayManagement)
-
-            hardwareDriver = HardwareUserInterface_v1()
-            hardwareDriver.setServiceProvider(self)
-            setupLogging()
-        elif self.__args.hardware == 'v2':
-            from src.hardware.HardwareUserInterface_v2 \
-                import HardwareUserInterface_v2
-            from src.hardware.Bme280EnvironmentSensor \
-                import Bme280EnvironmentSensor
-            from src.hardware.PanasonicAgqRelay \
-                import PanasonicAgqRelay
-
-            self.sensor = Bme280EnvironmentSensor()
-            self.environmentSampling = \
-                EnvironmentSamplingService(self.sensor)
-            self.environmentSampling.setServiceProvider(self)
-            self.installService(
-                EnvironmentSamplingService, self.environmentSampling)
-
-            self.relayManagement = RelayManagementService(relays=(
-                PanasonicAgqRelay(ThermostatState.FAN, 12, 6),
-                PanasonicAgqRelay(ThermostatState.HEATING, 21, 20),
-                PanasonicAgqRelay(ThermostatState.COOLING, 16, 19)
-            ))
-            self.relayManagement.setServiceProvider(self)
-            self.installService(RelayManagementService, self.relayManagement)
-
-            hardwareDriver = HardwareUserInterface_v2()
-            hardwareDriver.setServiceProvider(self)
-            setupLogging()
         else:
-            raise RuntimeError(
-                f'Hardware oprtion {self.__args.hardware} not supported')
+            from src.hardware.PanasonicAgqRelay import PanasonicAgqRelay
+            if self.__args.hardware == 'v1':
+                from src.hardware.HardwareUserInterface_v1 \
+                    import HardwareUserInterface_v1 as HardwareUserInterface
+                from src.hardware.Bmp280EnvironmentSensor \
+                    import Bmp280EnvironmentSensor as HardwareEnvironmentSensor
+                relays = (
+                    PanasonicAgqRelay(ThermostatState.FAN, 5, 17),
+                    PanasonicAgqRelay(ThermostatState.HEATING, 6, 27),
+                    PanasonicAgqRelay(ThermostatState.COOLING, 13, 22)
+                )
+            elif self.__args.hardware == 'v2':
+                from src.hardware.HardwareUserInterface_v2 \
+                    import HardwareUserInterface_v2 as HardwareUserInterface
+                from src.hardware.Bme280EnvironmentSensor \
+                    import Bme280EnvironmentSensor as HardwareEnvironmentSensor
+                relays = (
+                    PanasonicAgqRelay(ThermostatState.FAN, 12, 6),
+                    PanasonicAgqRelay(ThermostatState.HEATING, 21, 20),
+                    PanasonicAgqRelay(ThermostatState.COOLING, 16, 19)
+                )
+            else:
+                raise RuntimeError(
+                    f'Hardware oprtion {self.__args.hardware} not supported')
+
+            self.sensor = HardwareEnvironmentSensor()
+            self.environmentSampling = \
+                EnvironmentSamplingService(self.sensor)
+            self.environmentSampling.setServiceProvider(self)
+            self.installService(
+                EnvironmentSamplingService, self.environmentSampling)
+
+            self.relayManagement = RelayManagementService(relays=relays)
+            self.relayManagement.setServiceProvider(self)
+            self.installService(RelayManagementService, self.relayManagement)
+
+            hardwareDriver = HardwareUserInterface()
+            hardwareDriver.setServiceProvider(self)
+            setupLogging()
 
         # Setup the power price handler after the other event handlers have
         # been created so they get the first power events

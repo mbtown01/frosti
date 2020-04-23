@@ -47,8 +47,9 @@ class UserInterfaceService(EventBusMember):
             GenericRgbLed.Color.BLUE,
             GenericRgbLed.Color.CYAN,
             GenericRgbLed.Color.GREEN,
+            GenericRgbLed.Color.YELLOW,
             GenericRgbLed.Color.RED,
-            GenericRgbLed.Color.YELLOW
+            GenericRgbLed.Color.MAGENTA,
         ]
         self.__priceOverrideColorIndex = 0
         self.__priceOverrideAnimateInvoker = self._installTimerHandler(
