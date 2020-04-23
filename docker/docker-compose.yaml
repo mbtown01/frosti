@@ -4,7 +4,7 @@ services:
   postgres:
     container_name: rpt-postgres
     labels: [rpt]
-    image: "postgres:12.2"
+    image: ${HOSTTYPE_IMAGE_POSTGRES}
     environment:
       POSTGRES_PASSWORD: "rpt"
       POSTGRES_DB: "rpt"
