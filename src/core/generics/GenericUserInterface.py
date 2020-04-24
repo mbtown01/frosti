@@ -64,8 +64,6 @@ class GenericUserInterface(EventBusMember):
             ThermostatStateChangedEvent, self.__processStateChanged)
         self._installEventHandler(
             PowerPriceChangedEvent, self.__powerPriceChanged)
-        self._installEventHandler(
-            UserThermostatInteractionEvent, self.__userThermostatInteraction)
 
         self.__lcd.setBacklight(True)
 
@@ -77,31 +75,6 @@ class GenericUserInterface(EventBusMember):
             index = (index+1) % listSize
         self.__priceOverrideColorIndex = \
             (self.__priceOverrideColorIndex+1) % listSize
-
-    def __userThermostatInteraction(
-            self, event: UserThermostatInteractionEvent):
-        if event.interaction == UserThermostatInteractionEvent.MODE_NEXT:
-            self._nextMode()
-        if event.interaction == UserThermostatInteractionEvent.COMFORT_LOWER:
-            self._modifyComfortSettings(-1)
-        if event.interaction == UserThermostatInteractionEvent.COMFORT_RAISE:
-            self._modifyComfortSettings(1)
-
-    def _modifyComfortSettings(self, increment: int):
-        settings = self._getService(SettingsService)
-
-        self.__backlightReset()
-        if SettingsService.Mode.HEAT == settings.mode:
-            settings.comfortMin = settings.comfortMin + increment
-        if SettingsService.Mode.COOL == settings.mode:
-            settings.comfortMax = settings.comfortMax + increment
-
-    def _nextMode(self):
-        settings = self._getService(SettingsService)
-
-        self.__backlightReset()
-        settings.mode = SettingsService.Mode(
-            (int(settings.mode.value)+1) % len(SettingsService.Mode))
 
     def __backlightReset(self):
         if not self.__backlightTimeoutInvoker.isQueued:
@@ -127,19 +100,19 @@ class GenericUserInterface(EventBusMember):
                 rgbLed.setColor(GenericRgbLed.Color.BLACK)
 
         log.debug(f"New settings: {settings}")
-        self.__drawLcdDisplay()
+        self.redraw()
         self.__drawRowTwoInvoker.reset(0)
         self.__drawRowTwoInvoker.invokeCurrent()
 
     def __processStateChanged(self, event: ThermostatStateChangedEvent):
         self.__lastState = event.state
-        self.__drawLcdDisplay()
+        self.redraw()
         self.__drawRowTwoInvoker.reset(1)
         self.__drawRowTwoInvoker.invokeCurrent()
 
     def __processSensorDataChanged(self, event: SensorDataChangedEvent):
         self.__lastTemperature = event.temperature
-        self.__drawLcdDisplay()
+        self.redraw()
 
     def __drawRowTwoTarget(self):
         settings = self._getService(SettingsService)
@@ -165,7 +138,7 @@ class GenericUserInterface(EventBusMember):
         self.__lcd.update(1, 0, f'Program: {name:>11s}')
         self.__lcd.commit()
 
-    def __drawLcdDisplay(self):
+    def redraw(self):
         settings = self._getService(SettingsService)
 
         now = self.__lastTemperature

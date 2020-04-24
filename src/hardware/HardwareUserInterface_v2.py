@@ -14,6 +14,7 @@ from .HD44780Display import HD44780Display
 from .LtrbRasfRgbLed import LtrbRasfRgbLed
 from src.core import Event, ThermostatState, ServiceProvider
 from src.core.generics import GenericUserInterface
+from src.core.events import UserThermostatInteractionEvent
 from src.logging import log
 
 
@@ -57,11 +58,6 @@ class HardwareUserInterface_v2(GenericUserInterface):
             pin.pull = Pull.UP
             pinsEnabled = pinsEnabled | 1 << p
 
-        # for p in [2, 3, 4, 12, 13, 14]:
-        #     pin = self.__mcp.get_pin(p)
-        #     pin.direction = Direction.OUTPUT
-        #     pin.value = 1
-
         # Only docs for this I could find are at
         # https://github.com/adafruit/Adafruit_CircuitPython_MCP230xx/blob/master/examples/mcp230xx_event_detect_interrupt.py
 
@@ -75,15 +71,15 @@ class HardwareUserInterface_v2(GenericUserInterface):
         self.__mcp.io_control = 0x44
         self.__mcp.clear_ints()  # Interrupts need to be cleared initially
 
+        self.__lcd = HD44780Display(0x27, 20, 4)
+        self.__rgbLeds = (
+            LtrbRasfRgbLed(self.__mcp, 13, 14, 12),
+            LtrbRasfRgbLed(self.__mcp, 3, 4, 2),
+        )
+
         # 12, 13, 14 is LEFT B, R, G
         # 2, 3, 4 is RIGHT B, R, G
-        super().__init__(
-            lcd=HD44780Display(0x27, 20, 4),
-            rgbLeds=(
-                LtrbRasfRgbLed(self.__mcp, 13, 14, 12),
-                LtrbRasfRgbLed(self.__mcp, 3, 4, 2),
-            )
-        )
+        super().__init__(lcd=self.__lcd, rgbLeds=self.__rgbLeds)
 
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
@@ -95,20 +91,23 @@ class HardwareUserInterface_v2(GenericUserInterface):
         int_flag = self.__mcp.int_flag
         self.__mcp.clear_ints()
 
-        log.debug(f"INTERRUPT on 17, {int_flag}")
-
         for p in int_flag:
             button = self.__buttonMap.get(p)
             if button is not None:
                 pin = self.__mcp.get_pin(p)
                 if not pin.value:
-                    log.debug(f"   {button}, {p}")
                     self._fireEvent(ButtonPressedEvent(button))
 
     def __buttonPressedHandler(self, event: ButtonPressedEvent):
         if event.button == Button.UP:
-            super()._modifyComfortSettings(1)
+            self._fireEvent(UserThermostatInteractionEvent(
+                UserThermostatInteractionEvent.COMFORT_RAISE))
         elif event.button == Button.DOWN:
-            super()._modifyComfortSettings(-1)
+            self._fireEvent(UserThermostatInteractionEvent(
+                UserThermostatInteractionEvent.COMFORT_LOWER))
         elif event.button == Button.MODE:
-            super()._nextMode()
+            self._fireEvent(UserThermostatInteractionEvent(
+                UserThermostatInteractionEvent.MODE_NEXT))
+        elif event.button == Button.WAKE:
+            self.__lcd.hardReset()
+            super().redraw()

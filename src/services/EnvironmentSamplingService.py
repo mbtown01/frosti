@@ -15,6 +15,7 @@ class EnvironmentSamplingService(EventBusMember):
 
         self.__sampleSensorsInvoker = self._installTimerHandler(
             frequency=5.0, handlers=self.__sampleSensors)
+        self.__sampleSensors()
 
     def __sampleSensors(self):
         super()._fireEvent(SensorDataChangedEvent(

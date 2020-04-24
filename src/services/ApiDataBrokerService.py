@@ -84,9 +84,9 @@ class ApiDataBrokerService(EventBusMember):
         response = {
             'version': self.api_version(),
             'sensors': {
-                'temperature': self.__lastTemperature,
-                'pressure': self.__lastPressure,
-                'humidity': self.__lastHumidity,
+                'temperature': f"{self.__lastTemperature:.1f}",
+                'pressure': f"{self.__lastPressure:.1f}",
+                'humidity': f"{self.__lastHumidity:.1f}",
             },
             'state': str(self.__lastState).replace('ThermostatState.', ''),
         }
@@ -106,15 +106,17 @@ class ApiDataBrokerService(EventBusMember):
     def api_action_next_mode(self):
         self._fireEvent(UserThermostatInteractionEvent(
             UserThermostatInteractionEvent.MODE_NEXT))
-        return 0
+        return ""
 
     def api_action_raise_comfort(self):
         self._fireEvent(UserThermostatInteractionEvent(
             UserThermostatInteractionEvent.COMFORT_RAISE))
+        return ""
 
     def api_action_lower_comfort(self):
         self._fireEvent(UserThermostatInteractionEvent(
             UserThermostatInteractionEvent.COMFORT_LOWER))
+        return ""
 
     def __processThermostatStateChanged(
             self, event: ThermostatStateChangedEvent):

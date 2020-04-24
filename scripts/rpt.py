@@ -117,9 +117,11 @@ class RptLauncher:
             return self.run(name="rpt-run", arglist=arglist)
 
         if self.args.dev:
+            runArgList = ['-p', '5000:5000']
             arglist = ['bash', '-c', 'while sleep 60; do /bin/false; done']
             return self.run(
-                name="rpt-dev", arglist=arglist, restart=True)
+                name="rpt-dev", runArgList=runArgList,
+                arglist=arglist, restart=True)
 
         if self.args.down:
             arglist = self.baseComposeArgs + ['down']

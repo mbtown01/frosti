@@ -63,9 +63,9 @@ class HD44780Display(GenericLcdDisplay):
         self.__backlightState = self.LCD_BACKLIGHT
         self.__failCount = 0
 
-        self.__hardReset()
+        self.hardReset()
 
-    def __hardReset(self):
+    def hardReset(self):
         self.__write(0x03)
         self.__write(0x03)
         self.__write(0x03)
@@ -85,7 +85,7 @@ class HD44780Display(GenericLcdDisplay):
             sleep(0.0001)
             if self.__failCount:
                 self.__failCount = 0
-                self.__hardReset()
+                self.hardReset()
                 self.clear()
                 log.info("Re-connected to LCD, reset failuire count to zero")
         except:

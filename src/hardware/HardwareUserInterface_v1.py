@@ -47,11 +47,14 @@ class HardwareUserInterface_v1(ThermostatService):
 
     def __buttonPressedHandler(self, event: ButtonPressedEvent):
         if event.button == Button.UP:
-            super()._modifyComfortSettings(1)
+            self._fireEvent(UserThermostatInteractionEvent(
+                UserThermostatInteractionEvent.COMFORT_RAISE))
         elif event.button == Button.DOWN:
-            super()._modifyComfortSettings(-1)
+            self._fireEvent(UserThermostatInteractionEvent(
+                UserThermostatInteractionEvent.COMFORT_LOWER))
         elif event.button == Button.MODE:
-            super()._nextMode()
+            self._fireEvent(UserThermostatInteractionEvent(
+                UserThermostatInteractionEvent.MODE_NEXT))
 
     def __subscribeToButton(self, pin: int, button: Button):
         self.__pinToButtonMap[pin] = button

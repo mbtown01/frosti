@@ -38,6 +38,9 @@ class TimerBasedHandler:
         self.__eventBusSync = sync
         self.__oneShot = oneShot
 
+    def __repr__(self):
+        return f"{self.__handlers[self.__lastHandler]}"
+
     @property
     def isQueued(self):
         """ True if this handler is active and will be run again"""

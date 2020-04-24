@@ -81,12 +81,14 @@ class EventBus:
             raise RuntimeError(
                 f"EventBus.processEvents:  now must be >0, got {self.__now}")
 
+        # log.debug(f"EventBus::processEvents(now={now})")
         # Check if any timers need handling
         timeout = 60.0
         for handler in self.__timerHandlers:
             nextInvoke = handler.getNextInvoke(self.__now) - self.__now
             if nextInvoke < 0.2:
                 try:
+                    # log.debug(f"===> TIMER {handler}")
                     handler.invoke(self.__now)
                     nextInvoke = handler.getNextInvoke(self.__now) - self.__now
                 except:
@@ -100,6 +102,7 @@ class EventBus:
             if type(event) in self.__eventHandlers:
                 for handler in self.__eventHandlers[type(event)]:
                     try:
+                        # log.debug(f"===> HANDLER {handler}")
                         handler(event)
                     except:
                         log.error(

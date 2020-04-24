@@ -9,7 +9,8 @@ from .TerminalRedrawEvent import TerminalRedrawEvent
 
 from src.logging import log
 from src.core.events import  \
-    PowerPriceChangedEvent, SensorDataChangedEvent
+    PowerPriceChangedEvent, SensorDataChangedEvent, \
+    UserThermostatInteractionEvent
 from src.core import EventBus, Event, ThermostatState, ServiceProvider
 from src.services import ThermostatService
 from src.core.generics import GenericEnvironmentSensor, GenericRgbLed, \
@@ -114,12 +115,15 @@ class TerminalUserInterface(GenericUserInterface):
 
     def __updateLogWin(self):
         self.__logWin.clear()
+        y, x = self.__logWin.getmaxyx()
+        self.__logWin.clear()
         for message in self.__logWinMessages:
-            y, x = self.__logWin.getmaxyx()
             self.__logWin.scroll()
             self.__logWin.move(y-1, 0)
             self.__logWin.insnstr(message, x)
-            self.__logWin.refresh()
+
+        self.__logWin.refresh()
+        self.__logWinMessages = self.__logWinMessages[-y:]
 
     def __terminalKeyPressed(self, event: TerminalKeyPressedEvent):
         # Handle any key presses
@@ -135,11 +139,14 @@ class TerminalUserInterface(GenericUserInterface):
             super()._fireEvent(PowerPriceChangedEvent(
                 price=self.__lastPrice+0.25, nextUpdate=1))
         elif char == ord('1'):
-            super()._modifyComfortSettings(1)
+            self._fireEvent(UserThermostatInteractionEvent(
+                UserThermostatInteractionEvent.COMFORT_RAISE))
         elif char == ord('2'):
-            super()._modifyComfortSettings(-1)
+            self._fireEvent(UserThermostatInteractionEvent(
+                UserThermostatInteractionEvent.COMFORT_LOWER))
         elif char == ord('3'):
-            super()._nextMode()
+            self._fireEvent(UserThermostatInteractionEvent(
+                UserThermostatInteractionEvent.MODE_NEXT))
         elif char == curses.KEY_UP:
             self.__environmentSensor.temperature += 1
             self._fireEvent(SensorDataChangedEvent(
