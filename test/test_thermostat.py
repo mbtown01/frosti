@@ -5,8 +5,7 @@ from src.core import EventBus, EventBusMember, ServiceProvider, ThermostatState
 from src.services import SettingsService, ThermostatService, ConfigService, \
     RelayManagementService
 from src.core.events import ThermostatStateChangedEvent, SensorDataChangedEvent
-from src.core.generics import GenericLcdDisplay, GenericEnvironmentSensor, \
-    GenericRelay
+from src.core.generics import GenericLcdDisplay, GenericEnvironmentSensor
 
 
 yamlData = """

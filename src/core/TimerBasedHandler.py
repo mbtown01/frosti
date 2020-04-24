@@ -1,10 +1,6 @@
-from queue import Queue
 from threading import Event as ThreadingEvent
-from sys import exc_info, maxsize
+from sys import maxsize
 from time import time
-
-from src.logging import log
-from src.core import ServiceProvider, ServiceConsumer
 
 
 class TimerBasedHandler:
@@ -48,11 +44,6 @@ class TimerBasedHandler:
             return self.__lastInvoke != self.ONE_SHOT_COMPLETED
 
         return True
-
-    @property
-    def frequency(self):
-        """ Time in fractional seconds to wait between invocations """
-        return self.__frequency
 
     def getNextInvoke(self, now: float):
         """ Compute the next time this invoker should execute """

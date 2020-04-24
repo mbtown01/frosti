@@ -7,12 +7,10 @@ from .TerminalDisplay import TerminalDisplay
 from .TerminalRgbLed import TerminalRgbLed
 from .TerminalRedrawEvent import TerminalRedrawEvent
 
-from src.logging import log
 from src.core.events import  \
     PowerPriceChangedEvent, SensorDataChangedEvent, \
     UserThermostatInteractionEvent
-from src.core import EventBus, Event, ThermostatState, ServiceProvider
-from src.services import ThermostatService
+from src.core import EventBus, Event, ServiceProvider
 from src.core.generics import GenericEnvironmentSensor, GenericRgbLed, \
     GenericUserInterface
 

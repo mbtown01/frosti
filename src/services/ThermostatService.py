@@ -1,17 +1,12 @@
-from enum import Enum
 from time import time, localtime
-import atexit
 
 from src.logging import log
-from src.services import SettingsService, SettingsChangedEvent
-from src.core import EventBus, EventBusMember, Event, TimerBasedHandler, \
+from src.services import SettingsService
+from src.core import EventBus, EventBusMember, \
     ServiceProvider, ThermostatState
 from src.services import ConfigService, RelayManagementService
 from src.core.events import ThermostatStateChangedEvent, \
-    SensorDataChangedEvent, PowerPriceChangedEvent, \
-    UserThermostatInteractionEvent
-from src.core.generics import GenericEnvironmentSensor, GenericLcdDisplay, \
-    GenericRelay, GenericRgbLed
+    SensorDataChangedEvent, UserThermostatInteractionEvent
 
 
 class ThermostatService(EventBusMember):

@@ -1,15 +1,6 @@
 import unittest
-from time import strptime, mktime
 
-from src.services import ConfigService
-from src.core import ServiceProvider
-from src.services import SettingsService
-from src.core import EventBus, EventBusMember, TimerBasedHandler, \
-    ThermostatState
-from src.core.generics import GenericLcdDisplay, GenericEnvironmentSensor, \
-    GenericRelay
-from src.core.events import ThermostatStateChangedEvent, SensorDataChangedEvent
-from src.services import ThermostatService
+from src.core.generics import GenericLcdDisplay
 
 
 yamlData = """

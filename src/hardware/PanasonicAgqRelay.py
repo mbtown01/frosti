@@ -23,12 +23,14 @@ class PanasonicAgqRelay(GenericRelay):
         GPIO.setup(self.__pinOut, GPIO.OUT)
         self.openRelay()
 
-    def _openRelay(self):
+    def openRelay(self):
         # NEGATIVE 3V from IN->OUT opens the relay
         GPIO.output(self.__pinIn, False)
         GPIO.output(self.__pinOut, True)
+        super().openRelay()
 
-    def _closeRelay(self):
+    def closeRelay(self):
         # POSITIVE 3V from IN->OUT opens the relay
         GPIO.output(self.__pinIn, True)
         GPIO.output(self.__pinOut, False)
+        super().closeRelay()

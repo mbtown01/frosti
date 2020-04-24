@@ -2,6 +2,18 @@ from src.core import EventBusMember, ThermostatState, ServiceProvider
 from src.core.generics import GenericRelay
 
 
+class MemoryOnlyRelay(GenericRelay):
+
+    def __init__(self, function: ThermostatState):
+        super().__init__(function)
+
+    def openRelay(self):
+        super().openRelay()
+
+    def closeRelay(self):
+        super().closeRelay()
+
+
 class RelayManagementService(EventBusMember):
     """ Service interface for relay management.  Subclassed by code tied into
     whatever actual relay exists """
@@ -11,7 +23,7 @@ class RelayManagementService(EventBusMember):
 
         for state in ThermostatState:
             if state not in self.__relayMap:
-                self.__relayMap[state] = GenericRelay(state)
+                self.__relayMap[state] = MemoryOnlyRelay(state)
 
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)

@@ -1,7 +1,9 @@
+from abc import ABC, abstractmethod
+
 from enum import Enum
 
 
-class GenericRgbLed:
+class GenericRgbLed(ABC):
     """ Simple three-color RGB LED that can only be in 8 states """
 
     class Color(Enum):
@@ -14,5 +16,6 @@ class GenericRgbLed:
         YELLOW = 6
         WHITE = 7
 
+    @abstractmethod
     def setColor(self, color: Color):
         pass

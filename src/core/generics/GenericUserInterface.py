@@ -1,17 +1,10 @@
-from enum import Enum
-from time import time, localtime
-import atexit
-
 from src.logging import log
 from src.services import SettingsService, SettingsChangedEvent
-from src.core import EventBus, EventBusMember, Event, TimerBasedHandler, \
-    ServiceProvider, ThermostatState
+from src.core import EventBusMember, ServiceProvider, ThermostatState
 from src.services import ConfigService
 from src.core.events import ThermostatStateChangedEvent, \
-    SensorDataChangedEvent, PowerPriceChangedEvent, \
-    UserThermostatInteractionEvent
-from src.core.generics import GenericEnvironmentSensor, GenericLcdDisplay, \
-    GenericRelay, GenericRgbLed
+    SensorDataChangedEvent, PowerPriceChangedEvent
+from src.core.generics import GenericLcdDisplay, GenericRgbLed
 
 
 class GenericUserInterface(EventBusMember):
@@ -36,13 +29,14 @@ class GenericUserInterface(EventBusMember):
         self.__backlightTimeoutInvoker = self._installTimerHandler(
             frequency=self.__backlightTimeoutDuration,
             handlers=self.__backlightTimeout, oneShot=True)
-        self.__drawRowTwoInvoker = self._installTimerHandler(
-            frequency=3.0,
-            handlers=[
-                self.__drawRowTwoTarget,
-                self.__drawRowTwoState,
-                self.__drawRowTwoPrice,
-                self.__drawRowTwoProgram])
+        self.__redrawAndRotateInvoker = self._installTimerHandler(
+            frequency=3.0, handlers=self.__redrawAndRotate)
+        self.__rowTwoOffset = 0
+        self.__rowTwoEntries = [
+            "Target:             ", "State:              ",
+            "Price:              ", "Program:            ",
+        ]
+
         self.__priceOverrideColorList = [
             GenericRgbLed.Color.BLUE,
             GenericRgbLed.Color.CYAN,
@@ -57,11 +51,11 @@ class GenericUserInterface(EventBusMember):
         self.__priceOverrideAnimateInvoker.disable()
 
         self._installEventHandler(
-            SettingsChangedEvent, self.__processSettingsChanged)
+            SettingsChangedEvent, self.__settingsChanged)
         self._installEventHandler(
-            SensorDataChangedEvent, self.__processSensorDataChanged)
+            SensorDataChangedEvent, self.__sensorDataChanged)
         self._installEventHandler(
-            ThermostatStateChangedEvent, self.__processStateChanged)
+            ThermostatStateChangedEvent, self.__stateChanged)
         self._installEventHandler(
             PowerPriceChangedEvent, self.__powerPriceChanged)
 
@@ -76,7 +70,7 @@ class GenericUserInterface(EventBusMember):
         self.__priceOverrideColorIndex = \
             (self.__priceOverrideColorIndex+1) % listSize
 
-    def __backlightReset(self):
+    def backlightReset(self):
         if not self.__backlightTimeoutInvoker.isQueued:
             self.__lcd.setBacklight(True)
             self.__lcd.commit()
@@ -85,12 +79,11 @@ class GenericUserInterface(EventBusMember):
     def __backlightTimeout(self):
         self.__lcd.setBacklight(False)
 
-    def __powerPriceChanged(self, event: PowerPriceChangedEvent):
-        self.__lastPrice = event.price
-        self.__drawRowTwoInvoker.reset(2)
-        self.__drawRowTwoInvoker.invokeCurrent()
+    def __sensorDataChanged(self, event: SensorDataChangedEvent):
+        self.__lastTemperature = event.temperature
+        self.redraw()
 
-    def __processSettingsChanged(self, event: SettingsChangedEvent):
+    def __settingsChanged(self, event: SettingsChangedEvent):
         settings = self._getService(SettingsService)
         if settings.isInPriceOverride:
             self.__priceOverrideAnimateInvoker.reset()
@@ -99,44 +92,35 @@ class GenericUserInterface(EventBusMember):
             for rgbLed in self.__rgbLeds:
                 rgbLed.setColor(GenericRgbLed.Color.BLACK)
 
-        log.debug(f"New settings: {settings}")
-        self.redraw()
-        self.__drawRowTwoInvoker.reset(0)
-        self.__drawRowTwoInvoker.invokeCurrent()
-
-    def __processStateChanged(self, event: ThermostatStateChangedEvent):
-        self.__lastState = event.state
-        self.redraw()
-        self.__drawRowTwoInvoker.reset(1)
-        self.__drawRowTwoInvoker.invokeCurrent()
-
-    def __processSensorDataChanged(self, event: SensorDataChangedEvent):
-        self.__lastTemperature = event.temperature
-        self.redraw()
-
-    def __drawRowTwoTarget(self):
-        settings = self._getService(SettingsService)
-
         heat = settings.comfortMin
         cool = settings.comfortMax
-        self.__lcd.update(1, 0, f'Target:      {heat:<3.0f}/{cool:>3.0f}')
-        self.__lcd.commit()
-
-    def __drawRowTwoState(self):
-        state = str(self.__lastState).replace('ThermostatState.', '')
-        self.__lcd.update(1, 0, f'State:{state:>14s}')
-        self.__lcd.commit()
-
-    def __drawRowTwoPrice(self):
-        price = self.__lastPrice
-        self.__lcd.update(1, 0, f'Price:  ${price:.4f}/kW*h')
-        self.__lcd.commit()
-
-    def __drawRowTwoProgram(self):
-        settings = self._getService(SettingsService)
         name = settings.currentProgram.name
-        self.__lcd.update(1, 0, f'Program: {name:>11s}')
-        self.__lcd.commit()
+        mode = str(settings.mode).replace('Mode.', '')
+        log.debug(f"[{name}] mode={mode} {heat:<3.0f}/{cool:>3.0f}")
+
+        self.__rowTwoEntries[0] = f'Target:      {heat:<3.0f}/{cool:>3.0f}'
+        self.__rowTwoEntries[3] = f'Program: {name:>11s}'
+        self.__rowTwoOffset = 0
+        self.__redrawAndRotateInvoker.reset()
+        self.redraw()
+
+    def __stateChanged(self, event: ThermostatStateChangedEvent):
+        state = str(event.state).replace('ThermostatState.', '')
+        self.__rowTwoEntries[1] = f'State: {state:>13s}'
+        self.__rowTwoOffset = 1
+        self.__redrawAndRotateInvoker.reset()
+        self.redraw()
+
+    def __powerPriceChanged(self, event: PowerPriceChangedEvent):
+        self.__rowTwoEntries[2] = f'Price:  ${event.price:.4f}/kW*h'
+        self.__rowTwoOffset = 2
+        self.__redrawAndRotateInvoker.reset()
+        self.redraw()
+
+    def __redrawAndRotate(self):
+        self.redraw()
+        self.__rowTwoOffset = (self.__rowTwoOffset + 1) % \
+            len(self.__rowTwoEntries)
 
     def redraw(self):
         settings = self._getService(SettingsService)
@@ -144,5 +128,6 @@ class GenericUserInterface(EventBusMember):
         now = self.__lastTemperature
         mode = str(settings.mode).replace('Mode.', '')
         self.__lcd.update(0, 0, f'Now: {now:<5.1f}    {mode:>6s}')
+        self.__lcd.update(1, 0, self.__rowTwoEntries[self.__rowTwoOffset])
         self.__lcd.update(3, 0, r'UP  DOWN  MODE  NEXT')
         self.__lcd.commit()

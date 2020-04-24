@@ -99,6 +99,8 @@ class HardwareUserInterface_v2(GenericUserInterface):
                     self._fireEvent(ButtonPressedEvent(button))
 
     def __buttonPressedHandler(self, event: ButtonPressedEvent):
+        super().backlightReset()
+
         if event.button == Button.UP:
             self._fireEvent(UserThermostatInteractionEvent(
                 UserThermostatInteractionEvent.COMFORT_RAISE))
@@ -110,4 +112,5 @@ class HardwareUserInterface_v2(GenericUserInterface):
                 UserThermostatInteractionEvent.MODE_NEXT))
         elif event.button == Button.WAKE:
             self.__lcd.hardReset()
+            self.__lcd.clear()
             super().redraw()
