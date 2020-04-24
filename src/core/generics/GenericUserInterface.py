@@ -1,7 +1,7 @@
 from src.logging import log
 from src.services import SettingsService, SettingsChangedEvent
 from src.core import EventBusMember, ServiceProvider, ThermostatState
-from src.services import ConfigService
+from src.services import ConfigService, ThermostatService
 from src.core.events import ThermostatStateChangedEvent, \
     SensorDataChangedEvent, PowerPriceChangedEvent
 from src.core.generics import GenericLcdDisplay, GenericRgbLed
@@ -16,8 +16,17 @@ class GenericUserInterface(EventBusMember):
         self.__rgbLeds = rgbLeds
         self.__lcd.setBacklight(True)
         self.__lastTemperature = 0.0
-        self.__lastState = ThermostatState.OFF
-        self.__lastPrice = 0.0
+        self.__rowTwoOffset = 0
+        self.__ledColorIndex = 0
+
+        self.__rowTwoEntries = [
+            "Target:             ",
+            "State:              ",
+            "Price:              ",
+            "Program:            ",
+        ]
+
+        self.__ledColorList = []
 
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
@@ -30,25 +39,10 @@ class GenericUserInterface(EventBusMember):
             frequency=self.__backlightTimeoutDuration,
             handlers=self.__backlightTimeout, oneShot=True)
         self.__redrawAndRotateInvoker = self._installTimerHandler(
-            frequency=3.0, handlers=self.__redrawAndRotate)
-        self.__rowTwoOffset = 0
-        self.__rowTwoEntries = [
-            "Target:             ", "State:              ",
-            "Price:              ", "Program:            ",
-        ]
-
-        self.__priceOverrideColorList = [
-            GenericRgbLed.Color.BLUE,
-            GenericRgbLed.Color.CYAN,
-            GenericRgbLed.Color.GREEN,
-            GenericRgbLed.Color.YELLOW,
-            GenericRgbLed.Color.RED,
-            GenericRgbLed.Color.MAGENTA,
-        ]
-        self.__priceOverrideColorIndex = 0
-        self.__priceOverrideAnimateInvoker = self._installTimerHandler(
-            frequency=0.5, handlers=self.__priceOverrideAnimate)
-        self.__priceOverrideAnimateInvoker.disable()
+            frequency=5.0, handlers=self.__redrawAndRotate)
+        self.__ledAnimateInvoker = self._installTimerHandler(
+            frequency=0.5, handlers=self.__ledAnimate)
+        self.__ledAnimateInvoker.disable()
 
         self._installEventHandler(
             SettingsChangedEvent, self.__settingsChanged)
@@ -59,22 +53,24 @@ class GenericUserInterface(EventBusMember):
         self._installEventHandler(
             PowerPriceChangedEvent, self.__powerPriceChanged)
 
-        self.__lcd.setBacklight(True)
+        thermostat = self._getService(ThermostatService)
+        self.__stateChanged(ThermostatStateChangedEvent(thermostat.state))
 
-    def __priceOverrideAnimate(self):
-        index = self.__priceOverrideColorIndex
-        listSize = len(self.__priceOverrideColorList)
-        for rgbLed in self.__rgbLeds:
-            rgbLed.setColor(self.__priceOverrideColorList[index])
-            index = (index+1) % listSize
-        self.__priceOverrideColorIndex = \
-            (self.__priceOverrideColorIndex+1) % listSize
+        self.__lcd.setBacklight(True)
 
     def backlightReset(self):
         if not self.__backlightTimeoutInvoker.isQueued:
             self.__lcd.setBacklight(True)
             self.__lcd.commit()
         self.__backlightTimeoutInvoker.reset()
+
+    def __ledAnimate(self):
+        listSize = len(self.__ledColorList)
+        for rgbLed in self.__rgbLeds:
+            rgbLed.setColor(self.__ledColorList[self.__ledColorIndex])
+            # index = (index+1) % listSize
+        self.__ledColorIndex = \
+            (self.__ledColorIndex+1) % listSize
 
     def __backlightTimeout(self):
         self.__lcd.setBacklight(False)
@@ -86,9 +82,17 @@ class GenericUserInterface(EventBusMember):
     def __settingsChanged(self, event: SettingsChangedEvent):
         settings = self._getService(SettingsService)
         if settings.isInPriceOverride:
-            self.__priceOverrideAnimateInvoker.reset()
+            self.__ledColorList = [
+                GenericRgbLed.Color.BLUE,
+                GenericRgbLed.Color.CYAN,
+                GenericRgbLed.Color.GREEN,
+                GenericRgbLed.Color.YELLOW,
+                GenericRgbLed.Color.RED,
+                GenericRgbLed.Color.MAGENTA,
+            ]
+            self.__ledAnimateInvoker.reset()
         else:
-            self.__priceOverrideAnimateInvoker.disable()
+            self.__ledAnimateInvoker.disable()
             for rgbLed in self.__rgbLeds:
                 rgbLed.setColor(GenericRgbLed.Color.BLACK)
 

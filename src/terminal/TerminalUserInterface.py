@@ -137,14 +137,19 @@ class TerminalUserInterface(GenericUserInterface):
             super()._fireEvent(PowerPriceChangedEvent(
                 price=self.__lastPrice+0.25, nextUpdate=1))
         elif char == ord('1'):
+            super().backlightReset()
             self._fireEvent(UserThermostatInteractionEvent(
                 UserThermostatInteractionEvent.COMFORT_RAISE))
         elif char == ord('2'):
+            super().backlightReset()
             self._fireEvent(UserThermostatInteractionEvent(
                 UserThermostatInteractionEvent.COMFORT_LOWER))
         elif char == ord('3'):
+            super().backlightReset()
             self._fireEvent(UserThermostatInteractionEvent(
                 UserThermostatInteractionEvent.MODE_NEXT))
+        elif char == ord('4'):
+            super().backlightReset()
         elif char == curses.KEY_UP:
             self.__environmentSensor.temperature += 1
             self._fireEvent(SensorDataChangedEvent(

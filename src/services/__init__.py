@@ -2,8 +2,8 @@
 # successfully import logic from src
 
 from .ConfigService import ConfigService
-from .RelayManagementService import RelayManagementService
 from .SettingsService import SettingsChangedEvent, SettingsService
+from .RelayManagementService import RelayManagementService
 from .PostgresAdapterService import PostgresAdapterService
 from .ApiDataBrokerService import ApiDataBrokerService
 from .GoGriddyPriceCheckService import GoGriddyPriceCheckService

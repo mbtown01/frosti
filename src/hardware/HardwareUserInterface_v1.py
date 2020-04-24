@@ -46,6 +46,8 @@ class HardwareUserInterface_v1(ThermostatService):
         self.__subscribeToButton(12, Button.WAKE)
 
     def __buttonPressedHandler(self, event: ButtonPressedEvent):
+        super().backlightReset()
+
         if event.button == Button.UP:
             self._fireEvent(UserThermostatInteractionEvent(
                 UserThermostatInteractionEvent.COMFORT_RAISE))
