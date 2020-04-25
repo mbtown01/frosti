@@ -1,9 +1,3 @@
-from queue import Queue
-from threading import Event as ThreadingEvent
-from sys import exc_info, maxsize
-from time import time
-
-from src.logging import log
 from . import ServiceProvider, ServiceConsumer, Event, EventBus
 
 

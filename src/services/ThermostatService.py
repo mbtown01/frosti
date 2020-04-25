@@ -1,4 +1,4 @@
-from time import time, localtime
+from time import localtime
 
 from src.logging import log
 from src.services import SettingsService
@@ -61,10 +61,10 @@ class ThermostatService(EventBusMember):
         # \\\\\\\\\\\\\\\\\\\                        ///////////////////
         # --------(----+----)------------------------(----+----)--------
         #        h1    H    h2                      c2    C    c1
-        c1 = settings.comfortMax+self.__delta
-        c2 = settings.comfortMax-self.__delta
-        h2 = settings.comfortMin+self.__delta
-        h1 = settings.comfortMin-self.__delta
+        c1 = settings.comfortMax + self.__delta
+        c2 = settings.comfortMax - self.__delta
+        h2 = settings.comfortMin + self.__delta
+        h1 = settings.comfortMin - self.__delta
 
         modeOff = SettingsService.Mode.OFF == settings.mode
         modeFan = SettingsService.Mode.FAN == settings.mode
@@ -146,7 +146,7 @@ class ThermostatService(EventBusMember):
         settings = self._getService(SettingsService)
 
         settings.mode = SettingsService.Mode(
-            (int(settings.mode.value)+1) % len(SettingsService.Mode))
+            (int(settings.mode.value) + 1) % len(SettingsService.Mode))
 
     def __changeState(self, newState: ThermostatState):
         if self.__state != newState:

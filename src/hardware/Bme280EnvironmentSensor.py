@@ -16,7 +16,7 @@ class Bme280EnvironmentSensor(GenericEnvironmentSensor):
 
     @property
     def temperature(self):
-        return self.__bme280.temperature*9.0/5.0+32.0
+        return self.__bme280.temperature * 9.0 / 5.0 + 32.0
 
     @property
     def pressure(self):

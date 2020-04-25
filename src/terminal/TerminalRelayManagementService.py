@@ -1,7 +1,7 @@
 import curses
 
 from .TerminalRedrawEvent import TerminalRedrawEvent
-from src.core import EventBusMember, ThermostatState, ServiceProvider
+from src.core import ThermostatState, ServiceProvider
 from src.services import RelayManagementService
 from src.core.generics import GenericRelay
 

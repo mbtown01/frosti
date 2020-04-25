@@ -8,14 +8,12 @@ from adafruit_mcp230xx.mcp23017 import MCP23017
 # pylint: enable=import-error
 
 from enum import Enum
-from time import sleep
 
 from .HD44780Display import HD44780Display
 from .LtrbRasfRgbLed import LtrbRasfRgbLed
-from src.core import Event, ThermostatState, ServiceProvider
+from src.core import Event, ServiceProvider
 from src.core.generics import GenericUserInterface
 from src.core.events import UserThermostatInteractionEvent
-from src.logging import log
 
 
 class Button(Enum):

@@ -1,10 +1,8 @@
 import requests
 import json
-import sys
-from time import time
 from threading import Thread
 
-from src.core import Event, EventBusMember, EventBus
+from src.core import EventBusMember
 from src.services import ConfigService
 from src.core.events import PowerPriceChangedEvent
 from src.logging import log
@@ -54,7 +52,7 @@ class GoGriddyPriceCheckService(EventBusMember):
             self.__apiUrl, data=json.dumps(self.__apiPostData))
         data = json.loads(result.text)
         event = PowerPriceChangedEvent(
-            price=float(data["now"]["price_ckwh"])/100.0,
+            price=float(data["now"]["price_ckwh"]) / 100.0,
             nextUpdate=float(data['seconds_until_refresh'])
         )
 

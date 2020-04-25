@@ -1,12 +1,6 @@
 # pylint: disable=import-error
-import board
-import smbus
-import busio
-import adafruit_bme280
 import RPi.GPIO as GPIO
 # pylint: enable=import-error
-
-from time import sleep
 
 from src.core.generics import GenericRelay
 from src.core import ThermostatState

@@ -1,8 +1,7 @@
 from enum import Enum
 
-from src.core import Event, EventBus, EventBusMember, ServiceProvider
+from src.core import Event, EventBusMember, ServiceProvider
 from src.core.events import PowerPriceChangedEvent
-from src.logging import log
 from src.services import ConfigService
 
 
@@ -90,7 +89,7 @@ class Schedule:
                 raise RuntimeError(
                     f"Schedule '{name}' 'times' entry missing 'program'")
             self.__times.append(Schedule.ScheduleTime(
-                minutes=60*t['hour']+t['minute'],
+                minutes=60 * t['hour'] + t['minute'],
                 program=t['program']))
 
         self.__times = sorted(
@@ -104,7 +103,7 @@ class Schedule:
     def getProgram(self, hour: int, minute: int):
         """ Returns the name of the program associated with this time """
         for t in self.__times:
-            if hour*60+minute >= t.minutes:
+            if hour * 60 + minute >= t.minutes:
                 return t.program
         return self.__times[0].program
 
@@ -186,7 +185,7 @@ class SettingsService(EventBusMember):
         self.__currentProgram.comfortMin = value
         self.__currentProgram.comfortMax = max(
             self.__currentProgram.comfortMax,
-            self.__currentProgram.comfortMin+2*self.__delta)
+            self.__currentProgram.comfortMin + 2 * self.__delta)
         self._fireEvent(SettingsChangedEvent())
 
     @property
@@ -201,7 +200,7 @@ class SettingsService(EventBusMember):
         self.__currentProgram.comfortMax = value
         self.__currentProgram.comfortMin = min(
             self.__currentProgram.comfortMin,
-            self.__currentProgram.comfortMax-2*self.__delta)
+            self.__currentProgram.comfortMax - 2 * self.__delta)
         self._fireEvent(SettingsChangedEvent())
 
     def timeChanged(self, day: int, hour: int, minute: int):

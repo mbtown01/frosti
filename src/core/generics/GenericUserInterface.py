@@ -1,6 +1,6 @@
 from src.logging import log
 from src.services import SettingsService, SettingsChangedEvent
-from src.core import EventBusMember, ServiceProvider, ThermostatState
+from src.core import EventBusMember, ServiceProvider
 from src.services import ConfigService, ThermostatService
 from src.core.events import ThermostatStateChangedEvent, \
     SensorDataChangedEvent, PowerPriceChangedEvent

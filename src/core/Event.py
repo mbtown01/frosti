@@ -1,11 +1,3 @@
-from queue import Queue
-from threading import Event as ThreadingEvent
-from sys import exc_info, maxsize
-from time import time
-
-from src.logging import log
-from src.core import ServiceProvider, ServiceConsumer
-
 
 class Event:
     def __init__(self, name: str=None, data: dict={}):

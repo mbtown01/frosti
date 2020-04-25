@@ -109,14 +109,14 @@ class HD44780Display(GenericLcdDisplay):
         self.__write_four_bits(mode | ((cmd << 4) & 0xF0))
 
     def __write_str(self, x, y, str):
-        x = min(self.width-1, max(0, x))
-        y = min(self.height-1, max(0, y))
+        x = min(self.width - 1, max(0, x))
+        y = min(self.height - 1, max(0, y))
 
         # Move cursor
         if y < 2:
             addr = 0x80 + 0x40 * y + x
         else:
-            addr = 0x80 + self.width + 0x40 * (y-2) + x
+            addr = 0x80 + self.width + 0x40 * (y - 2) + x
         self.__write(addr)
 
         for char in str:

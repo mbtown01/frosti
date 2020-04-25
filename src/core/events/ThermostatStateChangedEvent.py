@@ -9,4 +9,3 @@ class ThermostatStateChangedEvent(Event):
     def state(self):
         """ Returns the new state of the thermostat """
         return self._data['state']
-

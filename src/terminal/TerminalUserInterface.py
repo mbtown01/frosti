@@ -53,12 +53,12 @@ class TerminalUserInterface(GenericUserInterface):
         self.__displayWin = curses.newwin(4, 21, 0, 5)
         self.__leftLed = TerminalRgbLed(curses.newwin(2, 3, 1, 1))
         self.__leftLed.setColor(GenericRgbLed.Color.RED)
-        self.__rightLed = TerminalRgbLed(curses.newwin(2, 3, 1, 6+20))
+        self.__rightLed = TerminalRgbLed(curses.newwin(2, 3, 1, 6 + 20))
         self.__rightLed.setColor(GenericRgbLed.Color.BLUE)
         self.__instructionsWin = curses.newwin(7, 30, 0, 50)
 
         lines, cols = self.__stdscr.getmaxyx()
-        self.__logWin = curses.newwin(lines-5, cols, 5, 0)
+        self.__logWin = curses.newwin(lines - 5, cols, 5, 0)
         self.__logWin.scrollok(True)
 
         self.__lcd = TerminalDisplay(self.__displayWin, 7, 20, 4)
@@ -117,7 +117,7 @@ class TerminalUserInterface(GenericUserInterface):
         self.__logWin.clear()
         for message in self.__logWinMessages:
             self.__logWin.scroll()
-            self.__logWin.move(y-1, 0)
+            self.__logWin.move(y - 1, 0)
             self.__logWin.insnstr(message, x)
 
         self.__logWin.refresh()
@@ -132,10 +132,10 @@ class TerminalUserInterface(GenericUserInterface):
             self.__updateDisplay()
         elif char == ord('9'):
             super()._fireEvent(PowerPriceChangedEvent(
-                price=self.__lastPrice-0.25, nextUpdate=1))
+                price=self.__lastPrice - 0.25, nextUpdate=1))
         elif char == ord('0'):
             super()._fireEvent(PowerPriceChangedEvent(
-                price=self.__lastPrice+0.25, nextUpdate=1))
+                price=self.__lastPrice + 0.25, nextUpdate=1))
         elif char == ord('1'):
             super().backlightReset()
             self._fireEvent(UserThermostatInteractionEvent(

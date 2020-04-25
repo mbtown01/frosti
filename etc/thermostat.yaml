@@ -32,8 +32,8 @@ thermostat:
                 - { hour: 20, minute: 0, program: overnight }
            
 priceOverrides:
-    - { price: 0.25, comfortMax: 76 }
-    - { price: 0.50, comfortMax: 78 }
+    - { price: 0.25, comfortMax: 78 }
+    - { price: 0.50, comfortMax: 80 }
     - { price: 1.00, comfortMax: 88 }
 
 gogriddy:

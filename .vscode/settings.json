@@ -19,9 +19,12 @@
     // For the MacBook, this is /usr/local/bin/python3
     // For the Linux, this is /usr/bin/python3
     "python.pythonPath": "/usr/bin/python3.7",
-    "python.linting.pylintEnabled": true,
+    "python.linting.pylintEnabled": false,
     "python.linting.enabled": true,
-    "python.linting.pycodestyleEnabled": true,
+    "python.linting.flake8Args": [
+        "--ignore=E252,E722"
+    ],
+    "python.linting.pycodestyleEnabled": false,
     "python.linting.pycodestyleArgs": [
         "--ignore=E402,E226,E252,E722,W504"
     ],
@@ -48,5 +51,6 @@
     // If you want to NOT see highlights on coverage, set the 4th value below to 0
     "python.coverageView.highlight": "rgba(255,55,55,0)",
     "python.coverageView.highlightMode": "uncovered",
+    "python.linting.flake8Enabled": true,
 
 }

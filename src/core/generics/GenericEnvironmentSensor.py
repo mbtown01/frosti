@@ -1,5 +1,3 @@
-
-
 class GenericEnvironmentSensor:
 
     def __init__(self):

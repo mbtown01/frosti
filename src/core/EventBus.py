@@ -93,7 +93,7 @@ class EventBus:
                     nextInvoke = handler.getNextInvoke(self.__now) - self.__now
                 except:
                     log.error(
-                        f"Handler encountered exception: {exec_info()}")
+                        f"Handler encountered exception: {exc_info()}")
             timeout = min(timeout, nextInvoke)
 
         # Check events first, only delivering them to registered subscribers
@@ -106,7 +106,7 @@ class EventBus:
                         handler(event)
                     except:
                         log.error(
-                            f"Handler encountered exception: {exec_info()}")
+                            f"Handler encountered exception: {exc_info()}")
 
         return max(0.0, timeout)
 

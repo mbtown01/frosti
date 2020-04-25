@@ -1,6 +1,6 @@
 from src.core.generics import GenericRgbLed
 
-from digitalio import Direction, Pull
+from digitalio import Direction
 from adafruit_mcp230xx.mcp23017 import MCP23017
 
 

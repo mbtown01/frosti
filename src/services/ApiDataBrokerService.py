@@ -1,12 +1,9 @@
-from flask import Flask, render_template, request, send_from_directory
-from flask.logging import default_handler
+from flask import Flask, render_template, send_from_directory
 from threading import Thread
-import logging
 import json
 
-from src.logging import log
 from src.services import SettingsService
-from src.core import ServiceProvider, Event, EventBus, EventBusMember, \
+from src.core import ServiceProvider, EventBusMember, \
     ThermostatState
 from src.core.events import \
     ThermostatStateChangedEvent, \

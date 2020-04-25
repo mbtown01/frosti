@@ -1,5 +1,3 @@
-
-
 class GenericLcdDisplay:
     """ Generic implementation of a multi-line LCD with a cursor-based
     interface """

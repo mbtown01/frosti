@@ -1,12 +1,11 @@
 from queue import Queue
 from curses import wrapper
 from sys import exc_info
-import logging
 import argparse
 
 from src.logging import log, setupLogging
 from src.core import EventBus, ThermostatState
-from src.core.generics import GenericEnvironmentSensor, GenericUserInterface
+from src.core.generics import GenericEnvironmentSensor
 from src.services import ConfigService, SettingsService, \
     SettingsChangedEvent, ApiDataBrokerService, GoGriddyPriceCheckService, \
     PostgresAdapterService, ThermostatService, EnvironmentSamplingService, \

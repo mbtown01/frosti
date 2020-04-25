@@ -5,6 +5,7 @@ import RPi.GPIO as GPIO
 from enum import Enum
 
 from .HD44780Display import HD44780Display
+from src.core.events import UserThermostatInteractionEvent
 from src.core import Event, ServiceProvider
 from src.services import ThermostatService
 from src.logging import log

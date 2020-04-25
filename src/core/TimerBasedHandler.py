@@ -1,6 +1,5 @@
 from threading import Event as ThreadingEvent
 from sys import maxsize
-from time import time
 
 
 class TimerBasedHandler:
