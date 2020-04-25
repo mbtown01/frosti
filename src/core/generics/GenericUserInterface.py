@@ -1,10 +1,11 @@
+from .GenericLcdDisplay import GenericLcdDisplay
+from .GenericRgbLed import GenericRgbLed
 from src.logging import log
 from src.services import SettingsService, SettingsChangedEvent
 from src.core import EventBusMember, ServiceProvider
 from src.services import ConfigService, ThermostatService
 from src.core.events import ThermostatStateChangedEvent, \
     SensorDataChangedEvent, PowerPriceChangedEvent
-from src.core.generics import GenericLcdDisplay, GenericRgbLed
 
 
 class GenericUserInterface(EventBusMember):
@@ -70,7 +71,7 @@ class GenericUserInterface(EventBusMember):
             rgbLed.setColor(self.__ledColorList[self.__ledColorIndex])
             # index = (index+1) % listSize
         self.__ledColorIndex = \
-            (self.__ledColorIndex+1) % listSize
+            (self.__ledColorIndex + 1) % listSize
 
     def __backlightTimeout(self):
         self.__lcd.setBacklight(False)

@@ -3,9 +3,9 @@
 
 from .ConfigService import ConfigService
 from .SettingsService import SettingsChangedEvent, SettingsService
-from .RelayManagementService import RelayManagementService
 from .PostgresAdapterService import PostgresAdapterService
 from .ApiDataBrokerService import ApiDataBrokerService
 from .GoGriddyPriceCheckService import GoGriddyPriceCheckService
 from .ThermostatService import ThermostatService
 from .EnvironmentSamplingService import EnvironmentSamplingService
+from .RelayManagementService import RelayManagementService

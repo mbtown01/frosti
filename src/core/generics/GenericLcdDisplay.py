@@ -25,8 +25,8 @@ class GenericLcdDisplay:
             if offset < 0:
                 text = text[abs(offset):]
                 offset = 0
-            for i in range(min(self.__width-offset, len(text))):
-                self.__updates[i+offset] = text[i]
+            for i in range(min(self.__width - offset, len(text))):
+                self.__updates[i + offset] = text[i]
 
         def commit(self):
             """ Commit all pending updates and build a list of changes """
@@ -34,12 +34,12 @@ class GenericLcdDisplay:
             offset = 0
             while offset < self.__width:
                 change = list()
-                while offset+len(change) < self.__width and \
-                        self.__updates[offset+len(change)] != \
-                        self.__buffer[offset+len(change)]:
-                    self.__buffer[offset+len(change)] = \
-                        self.__updates[offset+len(change)]
-                    change.append(self.__updates[offset+len(change)])
+                while offset + len(change) < self.__width and \
+                        self.__updates[offset + len(change)] != \
+                        self.__buffer[offset + len(change)]:
+                    self.__buffer[offset + len(change)] = \
+                        self.__updates[offset + len(change)]
+                    change.append(self.__updates[offset + len(change)])
                 if len(change):
                     results.append([offset, ''.join(change)])
                 offset += len(change) + 1

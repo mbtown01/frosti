@@ -1,5 +1,3 @@
-
-
 class ServiceProvider:
     """ Provies services to ServiceConsumer instances """
 

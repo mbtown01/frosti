@@ -1,4 +1,7 @@
-from . import ServiceProvider, ServiceConsumer, Event, EventBus
+from .ServiceProvider import ServiceProvider
+from .ServiceConsumer import ServiceConsumer
+from .Event import Event
+from .EventBus import EventBus
 
 
 class EventBusMember(ServiceConsumer):

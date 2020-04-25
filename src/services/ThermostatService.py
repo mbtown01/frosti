@@ -1,10 +1,10 @@
 from time import localtime
 
+from .ConfigService import ConfigService
+from .RelayManagementService import RelayManagementService
+from .SettingsService import SettingsService
 from src.logging import log
-from src.services import SettingsService
-from src.core import EventBus, EventBusMember, \
-    ServiceProvider, ThermostatState
-from src.services import ConfigService, RelayManagementService
+from src.core import EventBus, EventBusMember, ServiceProvider, ThermostatState
 from src.core.events import ThermostatStateChangedEvent, \
     SensorDataChangedEvent, UserThermostatInteractionEvent
 

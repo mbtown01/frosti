@@ -2,7 +2,7 @@ from flask import Flask, render_template, send_from_directory
 from threading import Thread
 import json
 
-from src.services import SettingsService
+from .SettingsService import SettingsService
 from src.core import ServiceProvider, EventBusMember, \
     ThermostatState
 from src.core.events import \

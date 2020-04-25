@@ -2,11 +2,10 @@ import requests
 import json
 from threading import Thread
 
-from src.core import EventBusMember
-from src.services import ConfigService
+from .ConfigService import ConfigService
+from src.core import EventBusMember, ServiceProvider
 from src.core.events import PowerPriceChangedEvent
 from src.logging import log
-from src.core import ServiceProvider
 
 # GoGriddy billing is actually based on 15-minute RTSPP intervals indicated
 # here

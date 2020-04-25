@@ -5,7 +5,6 @@ from src.core import EventBus, EventBusMember, ServiceProvider, ThermostatState
 from src.services import SettingsService, ThermostatService, ConfigService, \
     RelayManagementService
 from src.core.events import ThermostatStateChangedEvent, SensorDataChangedEvent
-from src.core.generics import GenericLcdDisplay, GenericEnvironmentSensor
 
 
 yamlData = """
@@ -94,7 +93,7 @@ class Test_Thermostat(unittest.TestCase):
         self.eventBus.fireEvent(SensorDataChangedEvent(
             temperature=temp, pressure=1000.0, humidity=50.0))
         self.eventBus.processEvents(now=self.eventBus.now)
-        self.eventBus.processEvents(now=self.eventBus.now+duration)
+        self.eventBus.processEvents(now=self.eventBus.now + duration)
         self.assertEqual(self.thermostat.state, state)
 
         states = [

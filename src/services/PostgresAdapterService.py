@@ -4,12 +4,12 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy.sql import func
 
+from .SettingsService import SettingsService, SettingsChangedEvent
 from src.logging import log
 from src.core import ServiceProvider, EventBusMember, \
     ThermostatState
 from src.core.events import ThermostatStateChangedEvent, \
     SensorDataChangedEvent, PowerPriceChangedEvent
-from src.services import SettingsChangedEvent, SettingsService
 
 
 Base = declarative_base()

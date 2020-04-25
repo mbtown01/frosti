@@ -1,8 +1,8 @@
 from enum import Enum
 
+from .ConfigService import ConfigService
 from src.core import Event, EventBusMember, ServiceProvider
 from src.core.events import PowerPriceChangedEvent
-from src.services import ConfigService
 
 
 class SettingsChangedEvent(Event):

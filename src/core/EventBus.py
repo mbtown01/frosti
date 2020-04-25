@@ -3,8 +3,8 @@ from threading import Event as ThreadingEvent
 from sys import exc_info, maxsize
 from time import time
 
-from src.logging import log
 from .TimerBasedHandler import TimerBasedHandler
+from src.logging import log
 from .Event import Event
 
 
@@ -90,23 +90,22 @@ class EventBus:
                 try:
                     # log.debug(f"===> TIMER {handler}")
                     handler.invoke(self.__now)
-                    nextInvoke = handler.getNextInvoke(self.__now) - self.__now
                 except:
                     log.error(
                         f"Handler encountered exception: {exc_info()}")
             timeout = min(timeout, nextInvoke)
 
         # Check events first, only delivering them to registered subscribers
-        while self.__eventQueue.qsize():
+        while not self.__eventQueue.empty():
             event = self.__eventQueue.get()
-            if type(event) in self.__eventHandlers:
-                for handler in self.__eventHandlers[type(event)]:
-                    try:
-                        # log.debug(f"===> HANDLER {handler}")
-                        handler(event)
-                    except:
-                        log.error(
-                            f"Handler encountered exception: {exc_info()}")
+            eventHandlers = self.__eventHandlers.get(type(event), [])
+            for handler in eventHandlers:
+                try:
+                    # log.debug(f"===> HANDLER {handler}")
+                    handler(event)
+                except:
+                    log.error(
+                        f"Handler encountered exception: {exc_info()}")
 
         return max(0.0, timeout)
 

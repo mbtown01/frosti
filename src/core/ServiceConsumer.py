@@ -1,4 +1,4 @@
-from . import ServiceProvider
+from .ServiceProvider import ServiceProvider
 
 
 class ServiceConsumer:
