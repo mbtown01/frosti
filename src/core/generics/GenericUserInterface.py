@@ -37,13 +37,13 @@ class GenericUserInterface(ServiceConsumer):
             config.value('thermostat').value('backlightTimeout', 10)
 
         eventBus = self._getService(EventBus)
-        self.__backlightTimeoutInvoker = eventBus.installTimerHandler(
+        self.__backlightTimeoutInvoker = eventBus.installTimer(
             frequency=self.__backlightTimeoutDuration,
-            handlers=self.__backlightTimeout, oneShot=True)
-        self.__redrawAndRotateInvoker = eventBus.installTimerHandler(
-            frequency=5.0, handlers=self.__redrawAndRotate)
-        self.__ledAnimateInvoker = eventBus.installTimerHandler(
-            frequency=0.5, handlers=self.__ledAnimate)
+            handler=self.__backlightTimeout, oneShot=True)
+        self.__redrawAndRotateInvoker = eventBus.installTimer(
+            frequency=5.0, handler=self.__redrawAndRotate)
+        self.__ledAnimateInvoker = eventBus.installTimer(
+            frequency=0.5, handler=self.__ledAnimate)
         self.__ledAnimateInvoker.disable()
 
         eventBus.installEventHandler(

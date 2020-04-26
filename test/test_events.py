@@ -59,7 +59,7 @@ class Test_EventBus(unittest.TestCase):
     def test_timerEventChain(self):
         """ Tests that a timer can fire an event """
         self.eventBus.processEvents(self.eventBus.now + 2)
-        self.eventBus.installTimerHandler(1.0, self.timerHandler)
+        self.eventBus.installTimer(1.0, handler=self.timerHandler)
 
         self.assertEqual(self.eventHandler.eventCount, 0)
         self.eventBus.processEvents(self.eventBus.now + 5)
@@ -70,7 +70,7 @@ class Test_EventBus(unittest.TestCase):
         """ Tests that another thread can preempt a timer wait and
         force the EventBus to service events """
         self.eventBus.exec(1)
-        self.eventBus.installTimerHandler(60.0, self.timerHandler)
+        self.eventBus.installTimer(60.0, handler=self.timerHandler)
         timer = Timer(0.1, self.timerCallback)
         timer.start()
 
@@ -84,9 +84,9 @@ class Test_EventBus(unittest.TestCase):
     def test_oneShot(self):
         """ Ensure a oneShot timer fires once and can be reset """
         self.eventBus.exec(1)
-        handler = self.eventBus.installTimerHandler(
+        handler = self.eventBus.installTimer(
             frequency=60.0,
-            handlers=self.timerHandler,
+            handler=self.timerHandler,
             oneShot=True)
 
         self.eventBus.processEvents(now=self.eventBus.now + 1)

@@ -26,10 +26,10 @@ class ThermostatService(ServiceConsumer):
             config.value('thermostat').value('fanRunout', 30)
 
         eventBus = self._getService(EventBus)
-        self.__checkScheduleInvoker = eventBus.installTimerHandler(
-            frequency=60.0, handlers=self.__checkSchedule)
-        self.__fanRunoutInvoker = eventBus.installTimerHandler(
-            frequency=self.__fanRunoutDuration, handlers=self.__fanRunout,
+        self.__checkScheduleInvoker = eventBus.installTimer(
+            frequency=60.0, handler=self.__checkSchedule)
+        self.__fanRunoutInvoker = eventBus.installTimer(
+            frequency=self.__fanRunoutDuration, handler=self.__fanRunout,
             oneShot=True)
         self.__fanRunoutInvoker.disable()
 

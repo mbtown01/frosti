@@ -38,8 +38,8 @@ class GoGriddyPriceCheckService(ServiceConsumer):
         }
         eventBus = self._getService(EventBus)
         self.__startUpdatePriceHandler = \
-            eventBus.installTimerHandler(
-                5.0, self.__startUpdatePrice, oneShot=True)
+            eventBus.installTimer(
+                5.0, handler=self.__startUpdatePrice, oneShot=True)
 
     def __startUpdatePrice(self):
         """ Kickoff a 2nd thread to get the actual power price """

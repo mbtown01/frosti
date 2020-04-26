@@ -76,8 +76,8 @@ class TerminalUserInterface(GenericUserInterface):
         eventBus.installEventHandler(
             PowerPriceChangedEvent, self.__powerPriceChanged)
 
-        eventBus.installTimerHandler(
-            frequency=1.0, handlers=self.__processMessageQueue)
+        eventBus.installTimer(
+            frequency=1.0, handler=self.__processMessageQueue)
 
         self.__keyPressThread = Thread(
             target=self.__keyPressListener,

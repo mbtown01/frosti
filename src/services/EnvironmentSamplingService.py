@@ -14,8 +14,8 @@ class EnvironmentSamplingService(ServiceConsumer):
         super().setServiceProvider(provider)
 
         eventBus = self._getService(EventBus)
-        self.__sampleSensorsInvoker = eventBus.installTimerHandler(
-            frequency=5.0, handlers=self.__sampleSensors)
+        self.__sampleSensorsInvoker = eventBus.installTimer(
+            frequency=5.0, handler=self.__sampleSensors)
         self.__sampleSensors()
 
     def __sampleSensors(self):

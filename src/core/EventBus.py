@@ -3,7 +3,7 @@ from threading import Event as ThreadingEvent
 from sys import exc_info, maxsize
 from time import time
 
-from .TimerBasedHandler import TimerBasedHandler
+from .EventBusTimer import EventBusTimer
 from src.logging import log
 from .Event import Event
 
@@ -14,7 +14,7 @@ class EventBus:
 
     def __init__(self, now: float=time()):
         self.__threadingEvent = ThreadingEvent()
-        self.__timerHandlers = []
+        self.__timers = []
         self.__eventHandlers = {}
         self.__eventQueue = Queue()
         self.__now = now
@@ -32,8 +32,8 @@ class EventBus:
             self.__eventHandlers[eventType] = []
         self.__eventHandlers[eventType].append(handler)
 
-    def installTimerHandler(
-            self, frequency: float, handlers: list, oneShot: bool=False):
+    def installTimer(
+            self, frequency: float, handler, oneShot: bool=False):
         """ Installs the provided list of handlers as a series of callbacks
         to be called at the provided frequency.  If more than one handler is
         provided, handlers are rotated through one at a time on successive
@@ -46,13 +46,13 @@ class EventBus:
         oneShot: boolean
             If true, timer is only fired once and not again until it receives
             a call to reset() """
-        handler = TimerBasedHandler(
+        timer = EventBusTimer(
             sync=self.__threadingEvent,
             frequency=frequency,
-            handlers=handlers,
+            handler=handler,
             oneShot=oneShot)
-        self.__timerHandlers.append(handler)
-        return handler
+        self.__timers.append(timer)
+        return timer
 
     def fireEvent(self, event: Event):
         """ Fires the event to any subscribed listeners """
@@ -84,18 +84,17 @@ class EventBus:
         # log.debug(f"EventBus::processEvents(now={now})")
         # Check if any timers need handling
         timeout = 60.0
-        for handler in self.__timerHandlers:
-            nextInvoke = handler.getNextInvoke(self.__now) - self.__now
+        for timer in self.__timers:
+            nextInvoke = timer.getNextInvoke(self.__now) - self.__now
             if nextInvoke < 0.2:
                 try:
-                    # log.debug(f"===> TIMER {handler}")
-                    handler.invoke(self.__now)
+                    # log.debug(f"===> TIMER {timer}")
+                    timer.invoke(self.__now)
                 except:
-                    log.error(
-                        f"Handler encountered exception: {exc_info()}")
+                    log.error(f"Timer encountered exception: {exc_info()}")
             timeout = min(timeout, nextInvoke)
 
-        # Check events first, only delivering them to registered subscribers
+        # Only deliver events to registered subscribers
         while not self.__eventQueue.empty():
             event = self.__eventQueue.get()
             eventHandlers = self.__eventHandlers.get(type(event), [])
@@ -104,8 +103,7 @@ class EventBus:
                     # log.debug(f"===> HANDLER {handler}")
                     handler(event)
                 except:
-                    log.error(
-                        f"Handler encountered exception: {exc_info()}")
+                    log.error(f"Handler encountered exception: {exc_info()}")
 
         return max(0.0, timeout)
 

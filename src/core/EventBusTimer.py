@@ -2,22 +2,22 @@ from threading import Event as ThreadingEvent
 from sys import maxsize
 
 
-class TimerBasedHandler:
+class EventBusTimer:
     """ Invokes a handler based on a set number of ticks """
     ONE_SHOT_COMPLETED = -1
 
     def __init__(
             self,
             frequency: float,
-            handlers: list,
+            handler,
             oneShot: bool,
             sync: ThreadingEvent):
-        """ Creates a new TimerBasedHandler
+        """ Creates a new EventBusTimer
 
         frequency: float
             Time in fractional seconds to wait between invocations
-        handlers: list
-            List of handlers, called in sequential/rotating order
+        handler: method
+            Method to be called when timer expires
         oneShot: bool
             True if this timer is intended on only firing once and not at a
             set frequency
@@ -25,16 +25,13 @@ class TimerBasedHandler:
             Threading object, for internal use
         """
         self.__frequency = frequency
-        self.__handlers = handlers
-        if type(self.__handlers) is not list:
-            self.__handlers = [handlers]
-        self.__lastHandler = 0
+        self.__handler = handler
         self.__lastInvoke = None
         self.__eventBusSync = sync
         self.__oneShot = oneShot
 
     def __repr__(self):
-        return f"{self.__handlers[self.__lastHandler]}"
+        return f"{self.__handler}"
 
     @property
     def isQueued(self):
@@ -53,17 +50,10 @@ class TimerBasedHandler:
 
     def invoke(self, now: float):
         """ Invoke the current handler and mark the current time """
-        self.invokeCurrent()
+        self.__handler()
         self.__lastInvoke = now
         if self.__oneShot:
             self.__lastInvoke = self.ONE_SHOT_COMPLETED
-        self.__lastHandler = \
-            (self.__lastHandler + 1) % len(self.__handlers)
-
-    def invokeCurrent(self):
-        """ Force an invoke of the current handler, does not update the
-        lastInvoke timestamp """
-        self.__handlers[self.__lastHandler]()
 
     def disable(self):
         self.__lastInvoke = self.ONE_SHOT_COMPLETED
@@ -76,7 +66,6 @@ class TimerBasedHandler:
         frequency: float
             New frequency for this timer, default is no change
          """
-        self.__lastHandler = handler or 0
         self.__frequency = frequency or self.__frequency
         self.__lastInvoke = None
         self.__eventBusSync.set()

@@ -11,5 +11,5 @@ from .ServiceConsumer import ServiceConsumer
 from .ServiceProvider import ServiceProvider
 from .Event import Event
 from .EventBus import EventBus
-from .TimerBasedHandler import TimerBasedHandler
+from .EventBusTimer import EventBusTimer
 from .ThermostatState import ThermostatState
