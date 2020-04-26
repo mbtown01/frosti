@@ -1,7 +1,7 @@
 from enum import Enum
 
 from .ConfigService import ConfigService
-from src.core import Event, EventBusMember, ServiceProvider
+from src.core import Event, ServiceConsumer, ServiceProvider, EventBus
 from src.core.events import PowerPriceChangedEvent
 
 
@@ -108,7 +108,7 @@ class Schedule:
         return self.__times[0].program
 
 
-class SettingsService(EventBusMember):
+class SettingsService(ServiceConsumer):
     """ Captures the settings for the thermostat.  SettingsService are changed
     by the user during normal thermostat operation, and an event is
     fired when they are changed.
@@ -129,7 +129,8 @@ class SettingsService(EventBusMember):
         config = self._getService(ConfigService)
         data = self.__data or config.getData()
 
-        self._installEventHandler(
+        eventBus = self._getService(EventBus)
+        eventBus.installEventHandler(
             PowerPriceChangedEvent, self.__powerPriceChanged)
 
         if 'thermostat' not in data:
@@ -182,11 +183,12 @@ class SettingsService(EventBusMember):
 
     @comfortMin.setter
     def comfortMin(self, value):
+        eventBus = self._getService(EventBus)
         self.__currentProgram.comfortMin = value
         self.__currentProgram.comfortMax = max(
             self.__currentProgram.comfortMax,
             self.__currentProgram.comfortMin + 2 * self.__delta)
-        self._fireEvent(SettingsChangedEvent())
+        eventBus.fireEvent(SettingsChangedEvent())
 
     @property
     def comfortMax(self):
@@ -197,15 +199,17 @@ class SettingsService(EventBusMember):
 
     @comfortMax.setter
     def comfortMax(self, value):
+        eventBus = self._getService(EventBus)
         self.__currentProgram.comfortMax = value
         self.__currentProgram.comfortMin = min(
             self.__currentProgram.comfortMin,
             self.__currentProgram.comfortMax - 2 * self.__delta)
-        self._fireEvent(SettingsChangedEvent())
+        eventBus.fireEvent(SettingsChangedEvent())
 
     def timeChanged(self, day: int, hour: int, minute: int):
         """ Called when a relevent amount of time has passed so any new
         settings can potentially be applied."""
+        eventBus = self._getService(EventBus)
         for name in self.__schedules:
             schedule = self.__schedules[name]
             if day in schedule.days:
@@ -216,13 +220,14 @@ class SettingsService(EventBusMember):
                 newProgram = self.__programs[pName]
                 if self.__currentProgram.name != newProgram.name:
                     self.__currentProgram = self.__programs[pName]
-                    self._fireEvent(SettingsChangedEvent())
+                    eventBus.fireEvent(SettingsChangedEvent())
 
     def __powerPriceChanged(self, event: PowerPriceChangedEvent):
         """ Based on a new power price searches the price overrides to
         determine whether the min/max values need updating and if so,
         applies the new settings.  Returs True if new settings were applied,
         False otherwise """
+        eventBus = self._getService(EventBus)
         for override in self.__currentProgram.priceOverrides:
             if event.price >= override.price:
                 if self.__lastOverridePrice == override.price:
@@ -232,17 +237,17 @@ class SettingsService(EventBusMember):
                 self.__isInPriceOverride = True
                 if override.comfortMin is not None:
                     self.__currentProgram.comfortMin = override.comfortMin
-                    self._fireEvent(SettingsChangedEvent())
+                    eventBus.fireEvent(SettingsChangedEvent())
                 if override.comfortMax is not None:
                     self.__currentProgram.comfortMax = override.comfortMax
-                    self._fireEvent(SettingsChangedEvent())
+                    eventBus.fireEvent(SettingsChangedEvent())
                 return
 
         if self.__lastOverridePrice is not None:
             self.__currentProgram.reset()
             self.__lastOverridePrice = None
             self.__isInPriceOverride = False
-            self._fireEvent(SettingsChangedEvent())
+            eventBus.fireEvent(SettingsChangedEvent())
 
     @property
     def mode(self):
@@ -251,5 +256,6 @@ class SettingsService(EventBusMember):
 
     @mode.setter
     def mode(self, value):
+        eventBus = self._getService(EventBus)
         self.__mode = value
-        self._fireEvent(SettingsChangedEvent())
+        eventBus.fireEvent(SettingsChangedEvent())

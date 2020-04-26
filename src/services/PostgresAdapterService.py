@@ -6,7 +6,7 @@ from sqlalchemy.sql import func
 
 from .SettingsService import SettingsService, SettingsChangedEvent
 from src.logging import log
-from src.core import ServiceProvider, EventBusMember, \
+from src.core import ServiceProvider, ServiceConsumer, EventBus, \
     ThermostatState
 from src.core.events import ThermostatStateChangedEvent, \
     SensorDataChangedEvent, PowerPriceChangedEvent
@@ -102,7 +102,7 @@ class OrmGriddyUpdate(Base):
     price = Column(Float)
 
 
-class PostgresAdapterService(EventBusMember):
+class PostgresAdapterService(ServiceConsumer):
     MODE_CODES = {
         SettingsService.Mode.OFF: 0x00,
         SettingsService.Mode.FAN: 0x01,
@@ -125,13 +125,14 @@ class PostgresAdapterService(EventBusMember):
         Base.metadata.create_all(self.__engine)
 
         try:
-            super()._installEventHandler(
+            eventBus = self._getService(EventBus)
+            eventBus.installEventHandler(
                 SensorDataChangedEvent, self.__sensorDataChanged)
-            super()._installEventHandler(
+            eventBus.installEventHandler(
                 ThermostatStateChangedEvent, self.__thermostatStateChanged)
-            super()._installEventHandler(
+            eventBus.installEventHandler(
                 PowerPriceChangedEvent, self.__powerPriceChanged)
-            super()._installEventHandler(
+            eventBus.installEventHandler(
                 SettingsChangedEvent, self.__processSettingsChanged)
         except Exception:
             log.warning('Unable to connect to local influx instance')

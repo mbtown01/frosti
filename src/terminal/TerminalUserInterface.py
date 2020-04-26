@@ -69,12 +69,14 @@ class TerminalUserInterface(GenericUserInterface):
 
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
-        super()._installEventHandler(
+
+        eventBus = self._getService(EventBus)
+        eventBus.installEventHandler(
             TerminalKeyPressedEvent, self.__terminalKeyPressed)
-        super()._installEventHandler(
+        eventBus.installEventHandler(
             PowerPriceChangedEvent, self.__powerPriceChanged)
 
-        super()._installTimerHandler(
+        eventBus.installTimerHandler(
             frequency=1.0, handlers=self.__processMessageQueue)
 
         self.__keyPressThread = Thread(
@@ -89,7 +91,8 @@ class TerminalUserInterface(GenericUserInterface):
         self.__lastPrice = event.price
 
     def __updateDisplay(self):
-        super()._fireEvent(TerminalRedrawEvent())
+        eventBus = self._getService(EventBus)
+        eventBus.fireEvent(TerminalRedrawEvent())
 
         self.__lcd.refresh()
         self.__updateInstructions()
@@ -125,40 +128,41 @@ class TerminalUserInterface(GenericUserInterface):
 
     def __terminalKeyPressed(self, event: TerminalKeyPressedEvent):
         # Handle any key presses
+        eventBus = self._getService(EventBus)
         char = event.key
         if char == ord('l'):
             self.__stdscr.clear()
             self.__stdscr.refresh()
             self.__updateDisplay()
         elif char == ord('9'):
-            super()._fireEvent(PowerPriceChangedEvent(
+            eventBus.fireEvent(PowerPriceChangedEvent(
                 price=self.__lastPrice - 0.25, nextUpdate=1))
         elif char == ord('0'):
-            super()._fireEvent(PowerPriceChangedEvent(
+            eventBus.fireEvent(PowerPriceChangedEvent(
                 price=self.__lastPrice + 0.25, nextUpdate=1))
         elif char == ord('1'):
             super().backlightReset()
-            self._fireEvent(UserThermostatInteractionEvent(
+            eventBus.fireEvent(UserThermostatInteractionEvent(
                 UserThermostatInteractionEvent.COMFORT_RAISE))
         elif char == ord('2'):
             super().backlightReset()
-            self._fireEvent(UserThermostatInteractionEvent(
+            eventBus.fireEvent(UserThermostatInteractionEvent(
                 UserThermostatInteractionEvent.COMFORT_LOWER))
         elif char == ord('3'):
             super().backlightReset()
-            self._fireEvent(UserThermostatInteractionEvent(
+            eventBus.fireEvent(UserThermostatInteractionEvent(
                 UserThermostatInteractionEvent.MODE_NEXT))
         elif char == ord('4'):
             super().backlightReset()
         elif char == curses.KEY_UP:
             self.__environmentSensor.temperature += 1
-            self._fireEvent(SensorDataChangedEvent(
+            eventBus.fireEvent(SensorDataChangedEvent(
                 temperature=self.__environmentSensor.temperature,
                 pressure=self.__environmentSensor.pressure,
                 humidity=self.__environmentSensor.humidity))
         elif char == curses.KEY_DOWN:
             self.__environmentSensor.temperature -= 1
-            self._fireEvent(SensorDataChangedEvent(
+            eventBus.fireEvent(SensorDataChangedEvent(
                 temperature=self.__environmentSensor.temperature,
                 pressure=self.__environmentSensor.pressure,
                 humidity=self.__environmentSensor.humidity))
@@ -168,11 +172,12 @@ class TerminalUserInterface(GenericUserInterface):
 
     def __keyPressListener(self):
         """ Marshalls an incoming threaded keypress to the main event loop """
+        eventBus = self._getService(EventBus)
         char = None
         while char != ord('q'):
             char = self.__stdscr.getch()
             if char >= 0:
-                super()._fireEvent(TerminalKeyPressedEvent(char))
+                eventBus.fireEvent(TerminalKeyPressedEvent(char))
 
         super()._getService(EventBus).stop()
 

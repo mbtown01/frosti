@@ -1,8 +1,7 @@
 import unittest
-import sys
 from time import mktime, strptime
 
-from src.core import Event, EventBus, EventBusMember, ServiceProvider
+from src.core import EventBus, ServiceProvider
 from src.services import SettingsService
 from src.core.events import PowerPriceChangedEvent
 from src.services import ConfigService

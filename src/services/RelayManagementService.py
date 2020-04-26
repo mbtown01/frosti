@@ -1,4 +1,4 @@
-from src.core import EventBusMember, ThermostatState, ServiceProvider
+from src.core import ServiceConsumer, ThermostatState, ServiceProvider
 from src.core.generics import GenericRelay
 
 
@@ -14,7 +14,7 @@ class MemoryOnlyRelay(GenericRelay):
         super().closeRelay()
 
 
-class RelayManagementService(EventBusMember):
+class RelayManagementService(ServiceConsumer):
     """ Service interface for relay management.  Subclassed by code tied into
     whatever actual relay exists """
 

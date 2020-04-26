@@ -3,14 +3,14 @@ from threading import Thread
 import json
 
 from .SettingsService import SettingsService
-from src.core import ServiceProvider, EventBusMember, \
+from src.core import ServiceProvider, ServiceConsumer, EventBus, \
     ThermostatState
 from src.core.events import \
     ThermostatStateChangedEvent, \
     SensorDataChangedEvent, UserThermostatInteractionEvent
 
 
-class ApiDataBrokerService(EventBusMember):
+class ApiDataBrokerService(ServiceConsumer):
     """ Dedicated to responding to the REST API for the thermostat and
     brokering any necessary data/events """
 
@@ -55,9 +55,11 @@ class ApiDataBrokerService(EventBusMember):
 
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
-        super()._installEventHandler(
+
+        eventBus = self._getService(EventBus)
+        eventBus.installEventHandler(
             SensorDataChangedEvent, self.__processSensorDataChanged)
-        super()._installEventHandler(
+        eventBus.installEventHandler(
             ThermostatStateChangedEvent, self.__processThermostatStateChanged)
 
     def serve_root(self):
@@ -101,17 +103,20 @@ class ApiDataBrokerService(EventBusMember):
         return json.dumps(response, indent=4)
 
     def api_action_next_mode(self):
-        self._fireEvent(UserThermostatInteractionEvent(
+        eventBus = self._getService(EventBus)
+        eventBus.fireEvent(UserThermostatInteractionEvent(
             UserThermostatInteractionEvent.MODE_NEXT))
         return ""
 
     def api_action_raise_comfort(self):
-        self._fireEvent(UserThermostatInteractionEvent(
+        eventBus = self._getService(EventBus)
+        eventBus.fireEvent(UserThermostatInteractionEvent(
             UserThermostatInteractionEvent.COMFORT_RAISE))
         return ""
 
     def api_action_lower_comfort(self):
-        self._fireEvent(UserThermostatInteractionEvent(
+        eventBus = self._getService(EventBus)
+        eventBus.fireEvent(UserThermostatInteractionEvent(
             UserThermostatInteractionEvent.COMFORT_LOWER))
         return ""
 

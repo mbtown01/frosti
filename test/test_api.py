@@ -1,11 +1,10 @@
 import unittest
 import requests
-import sys
 import json
 from time import sleep, strptime, mktime
 
 from src.services import ApiDataBrokerService
-from src.core import Event, EventBus, ServiceProvider
+from src.core import EventBus, ServiceProvider
 from src.services import ConfigService
 from src.services import SettingsService
 from src.core.events import SensorDataChangedEvent

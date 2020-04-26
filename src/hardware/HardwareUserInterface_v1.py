@@ -6,9 +6,8 @@ from enum import Enum
 
 from .HD44780Display import HD44780Display
 from src.core.events import UserThermostatInteractionEvent
-from src.core import Event, ServiceProvider
+from src.core import Event, ServiceProvider, EventBus
 from src.services import ThermostatService
-from src.logging import log
 
 
 class Button(Enum):
@@ -37,7 +36,8 @@ class HardwareUserInterface_v1(ThermostatService):
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
 
-        self._installEventHandler(
+        eventBus = self._getService(EventBus)
+        eventBus.installEventHandler(
             ButtonPressedEvent, self.__buttonPressedHandler)
 
         self.__pinToButtonMap = {}
@@ -48,15 +48,16 @@ class HardwareUserInterface_v1(ThermostatService):
 
     def __buttonPressedHandler(self, event: ButtonPressedEvent):
         super().backlightReset()
+        eventBus = self._getService(EventBus)
 
         if event.button == Button.UP:
-            self._fireEvent(UserThermostatInteractionEvent(
+            eventBus.fireEvent(UserThermostatInteractionEvent(
                 UserThermostatInteractionEvent.COMFORT_RAISE))
         elif event.button == Button.DOWN:
-            self._fireEvent(UserThermostatInteractionEvent(
+            eventBus.fireEvent(UserThermostatInteractionEvent(
                 UserThermostatInteractionEvent.COMFORT_LOWER))
         elif event.button == Button.MODE:
-            self._fireEvent(UserThermostatInteractionEvent(
+            eventBus.fireEvent(UserThermostatInteractionEvent(
                 UserThermostatInteractionEvent.MODE_NEXT))
 
     def __subscribeToButton(self, pin: int, button: Button):
@@ -70,6 +71,6 @@ class HardwareUserInterface_v1(ThermostatService):
     def __buttonCallback(self, channel):
         """ Callback happens on another thread, so this method is marshaling
         ButtonPressedEvent instances to the main thread to handle """
-        log.warning("Not currently filtering for recent relay activity")
+        eventBus = self._getService(EventBus)
         button = self.__pinToButtonMap[channel]
-        self._fireEvent(ButtonPressedEvent(button))
+        eventBus.fireEvent(ButtonPressedEvent(button))

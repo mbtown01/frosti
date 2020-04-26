@@ -1,7 +1,7 @@
 import curses
 
 from .TerminalRedrawEvent import TerminalRedrawEvent
-from src.core import ThermostatState, ServiceProvider
+from src.core import ThermostatState, ServiceProvider, EventBus
 from src.services import RelayManagementService
 from src.core.generics import GenericRelay
 
@@ -56,7 +56,8 @@ class TerminalRelayManagementService(RelayManagementService):
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
 
-        super()._installEventHandler(
+        eventBus = self._getService(EventBus)
+        eventBus.installEventHandler(
             TerminalRedrawEvent, self.__terminalRedraw)
 
     def __terminalRedraw(self, event: TerminalRedrawEvent):

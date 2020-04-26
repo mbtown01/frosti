@@ -13,7 +13,7 @@ from .HD44780Display import HD44780Display
 from .LtrbRasfRgbLed import LtrbRasfRgbLed
 from src.core import Event, ServiceProvider
 from src.core.generics import GenericUserInterface
-from src.core.events import UserThermostatInteractionEvent
+from src.core.events import UserThermostatInteractionEvent, EventBus
 
 
 class Button(Enum):
@@ -82,10 +82,12 @@ class HardwareUserInterface_v2(GenericUserInterface):
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
 
-        self._installEventHandler(
+        eventBus = self._getService(EventBus)
+        eventBus.installEventHandler(
             ButtonPressedEvent, self.__buttonPressedHandler)
 
     def __mcp23017_callback(self, port):
+        eventBus = self._getService(EventBus)
         int_flag = self.__mcp.int_flag
         self.__mcp.clear_ints()
 
@@ -94,19 +96,20 @@ class HardwareUserInterface_v2(GenericUserInterface):
             if button is not None:
                 pin = self.__mcp.get_pin(p)
                 if not pin.value:
-                    self._fireEvent(ButtonPressedEvent(button))
+                    eventBus.fireEvent(ButtonPressedEvent(button))
 
     def __buttonPressedHandler(self, event: ButtonPressedEvent):
+        eventBus = self._getService(EventBus)
         super().backlightReset()
 
         if event.button == Button.UP:
-            self._fireEvent(UserThermostatInteractionEvent(
+            eventBus.fireEvent(UserThermostatInteractionEvent(
                 UserThermostatInteractionEvent.COMFORT_RAISE))
         elif event.button == Button.DOWN:
-            self._fireEvent(UserThermostatInteractionEvent(
+            eventBus.fireEvent(UserThermostatInteractionEvent(
                 UserThermostatInteractionEvent.COMFORT_LOWER))
         elif event.button == Button.MODE:
-            self._fireEvent(UserThermostatInteractionEvent(
+            eventBus.fireEvent(UserThermostatInteractionEvent(
                 UserThermostatInteractionEvent.MODE_NEXT))
         elif event.button == Button.WAKE:
             self.__lcd.hardReset()

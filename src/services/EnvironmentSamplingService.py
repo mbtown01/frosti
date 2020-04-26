@@ -1,9 +1,9 @@
-from src.core import EventBusMember, ServiceProvider
+from src.core import ServiceConsumer, ServiceProvider, EventBus
 from src.core.generics import GenericEnvironmentSensor
 from src.core.events import SensorDataChangedEvent
 
 
-class EnvironmentSamplingService(EventBusMember):
+class EnvironmentSamplingService(ServiceConsumer):
     """ Holds a GenericEnvironmentSensor and at a specified frequency
     takes a sampling and fires a SensorDataChangedEvent """
 
@@ -13,12 +13,14 @@ class EnvironmentSamplingService(EventBusMember):
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
 
-        self.__sampleSensorsInvoker = self._installTimerHandler(
+        eventBus = self._getService(EventBus)
+        self.__sampleSensorsInvoker = eventBus.installTimerHandler(
             frequency=5.0, handlers=self.__sampleSensors)
         self.__sampleSensors()
 
     def __sampleSensors(self):
-        super()._fireEvent(SensorDataChangedEvent(
+        eventBus = self._getService(EventBus)
+        eventBus.fireEvent(SensorDataChangedEvent(
             temperature=self.__sensor.temperature,
             pressure=self.__sensor.pressure,
             humidity=self.__sensor.humidity

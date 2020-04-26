@@ -1,7 +1,8 @@
 import unittest
 from time import mktime, strptime
 
-from src.core import EventBus, EventBusMember, ServiceProvider, ThermostatState
+from src.core import EventBus, ServiceConsumer, ServiceProvider, \
+    ThermostatState
 from src.services import SettingsService, ThermostatService, ConfigService, \
     RelayManagementService
 from src.core.events import ThermostatStateChangedEvent, SensorDataChangedEvent
@@ -46,13 +47,15 @@ thermostat:
 
 class Test_Thermostat(unittest.TestCase):
 
-    class DummyEventBusMember(EventBusMember):
+    class DummyServiceConsumer(ServiceConsumer):
         def __init__(self):
             self.__lastState = None
 
         def setServiceProvider(self, provider: ServiceProvider):
             super().setServiceProvider(provider)
-            super()._installEventHandler(
+
+            eventBus = self._getService(EventBus)
+            eventBus.installEventHandler(
                 ThermostatStateChangedEvent, self._thermostatStateChanged)
 
         @property
@@ -84,7 +87,7 @@ class Test_Thermostat(unittest.TestCase):
         self.thermostat.setServiceProvider(self.serviceProvider)
 
         self.dummyEventBusMember = \
-            Test_Thermostat.DummyEventBusMember()
+            Test_Thermostat.DummyServiceConsumer()
         self.dummyEventBusMember.setServiceProvider(self.serviceProvider)
         self.eventBus.processEvents()
 

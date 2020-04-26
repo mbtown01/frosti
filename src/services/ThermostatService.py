@@ -4,12 +4,13 @@ from .ConfigService import ConfigService
 from .RelayManagementService import RelayManagementService
 from .SettingsService import SettingsService
 from src.logging import log
-from src.core import EventBus, EventBusMember, ServiceProvider, ThermostatState
+from src.core import EventBus, ServiceConsumer, ServiceProvider, \
+    ThermostatState
 from src.core.events import ThermostatStateChangedEvent, \
     SensorDataChangedEvent, UserThermostatInteractionEvent
 
 
-class ThermostatService(EventBusMember):
+class ThermostatService(ServiceConsumer):
 
     def __init__(self):
         self.__state = ThermostatState.OFF
@@ -24,16 +25,17 @@ class ThermostatService(EventBusMember):
         self.__fanRunoutDuration = \
             config.value('thermostat').value('fanRunout', 30)
 
-        self.__checkScheduleInvoker = self._installTimerHandler(
+        eventBus = self._getService(EventBus)
+        self.__checkScheduleInvoker = eventBus.installTimerHandler(
             frequency=60.0, handlers=self.__checkSchedule)
-        self.__fanRunoutInvoker = self._installTimerHandler(
+        self.__fanRunoutInvoker = eventBus.installTimerHandler(
             frequency=self.__fanRunoutDuration, handlers=self.__fanRunout,
             oneShot=True)
         self.__fanRunoutInvoker.disable()
 
-        self._installEventHandler(
+        eventBus.installEventHandler(
             UserThermostatInteractionEvent, self.__userThermostatInteraction)
-        self._installEventHandler(
+        eventBus.installEventHandler(
             SensorDataChangedEvent, self.__sensorDataChanged)
 
         self.__checkSchedule()
@@ -149,6 +151,7 @@ class ThermostatService(EventBusMember):
             (int(settings.mode.value) + 1) % len(SettingsService.Mode))
 
     def __changeState(self, newState: ThermostatState):
+        eventBus = self._getService(EventBus)
         if self.__state != newState:
             relayManagementService = \
                 super()._getService(RelayManagementService)
@@ -159,7 +162,7 @@ class ThermostatService(EventBusMember):
             if newState.shouldAlsoRunFan:
                 relayManagementService.closeRelay(ThermostatState.FAN)
             self.__state = newState
-            self._fireEvent(ThermostatStateChangedEvent(newState))
+            eventBus.fireEvent(ThermostatStateChangedEvent(newState))
 
     def __fanRunout(self):
         settings = self._getService(SettingsService)

@@ -2,13 +2,13 @@ from .GenericLcdDisplay import GenericLcdDisplay
 from .GenericRgbLed import GenericRgbLed
 from src.logging import log
 from src.services import SettingsService, SettingsChangedEvent
-from src.core import EventBusMember, ServiceProvider
+from src.core import ServiceConsumer, ServiceProvider, EventBus
 from src.services import ConfigService, ThermostatService
 from src.core.events import ThermostatStateChangedEvent, \
     SensorDataChangedEvent, PowerPriceChangedEvent
 
 
-class GenericUserInterface(EventBusMember):
+class GenericUserInterface(ServiceConsumer):
 
     def __init__(self,
                  lcd: GenericLcdDisplay,
@@ -36,22 +36,23 @@ class GenericUserInterface(EventBusMember):
         self.__backlightTimeoutDuration = \
             config.value('thermostat').value('backlightTimeout', 10)
 
-        self.__backlightTimeoutInvoker = self._installTimerHandler(
+        eventBus = self._getService(EventBus)
+        self.__backlightTimeoutInvoker = eventBus.installTimerHandler(
             frequency=self.__backlightTimeoutDuration,
             handlers=self.__backlightTimeout, oneShot=True)
-        self.__redrawAndRotateInvoker = self._installTimerHandler(
+        self.__redrawAndRotateInvoker = eventBus.installTimerHandler(
             frequency=5.0, handlers=self.__redrawAndRotate)
-        self.__ledAnimateInvoker = self._installTimerHandler(
+        self.__ledAnimateInvoker = eventBus.installTimerHandler(
             frequency=0.5, handlers=self.__ledAnimate)
         self.__ledAnimateInvoker.disable()
 
-        self._installEventHandler(
+        eventBus.installEventHandler(
             SettingsChangedEvent, self.__settingsChanged)
-        self._installEventHandler(
+        eventBus.installEventHandler(
             SensorDataChangedEvent, self.__sensorDataChanged)
-        self._installEventHandler(
+        eventBus.installEventHandler(
             ThermostatStateChangedEvent, self.__stateChanged)
-        self._installEventHandler(
+        eventBus.installEventHandler(
             PowerPriceChangedEvent, self.__powerPriceChanged)
 
         thermostat = self._getService(ThermostatService)

@@ -1,22 +1,22 @@
 import unittest
-import sys
 from time import strptime, mktime
 
 from src.services import GoGriddyPriceCheckService
 from src.core.events import PowerPriceChangedEvent
-from src.core import Event, EventBus, EventBusMember, ServiceProvider
+from src.core import EventBus, ServiceConsumer, ServiceProvider
 from src.services import SettingsService
 
 
 class Test_GoGriddyInterface(unittest.TestCase):
 
-    class DummyEventBusMember(EventBusMember):
+    class DummyServiceConsumer(ServiceConsumer):
         def __init__(self):
             self.lastPrice = None
             self.netUpdate = None
 
         def setServiceProvider(self, provider: ServiceProvider):
-            super()._installEventHandler(
+            eventBus = self._getService(EventBus)
+            eventBus.installEventHandler(
                 PowerPriceChangedEvent, self._powerPriceChangedEvent)
 
         def _powerPriceChangedEvent(self, event: PowerPriceChangedEvent):
@@ -33,7 +33,7 @@ class Test_GoGriddyInterface(unittest.TestCase):
         self.serviceProvider.installService(SettingsService, self.settings)
 
         self.dummyEventBusMember = \
-            Test_GoGriddyInterface.DummyEventBusMember()
+            Test_GoGriddyInterface.DummyServiceConsumer()
         self.dummyEventBusMember.setServiceProvider(self.serviceProvider)
         self.priceChecker = GoGriddyPriceCheckService()
         self.priceChecker.setServiceProvider(self.serviceProvider)

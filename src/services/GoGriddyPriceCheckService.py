@@ -3,7 +3,7 @@ import json
 from threading import Thread
 
 from .ConfigService import ConfigService
-from src.core import EventBusMember, ServiceProvider
+from src.core import ServiceConsumer, ServiceProvider, EventBus
 from src.core.events import PowerPriceChangedEvent
 from src.logging import log
 
@@ -22,8 +22,8 @@ from src.logging import log
 # consuming power again
 
 
-class GoGriddyPriceCheckService(EventBusMember):
-    """ EventBusMember thread that monitors power prices and fires an event
+class GoGriddyPriceCheckService(ServiceConsumer):
+    """ ServiceConsumer thread that monitors power prices and fires an event
     if there is a change """
 
     def setServiceProvider(self, provider: ServiceProvider):
@@ -36,8 +36,9 @@ class GoGriddyPriceCheckService(EventBusMember):
             'memberID': config.resolve('gogriddy', 'memberId'),
             'settlement_point': config.resolve('gogriddy', 'settlementPoint')
         }
+        eventBus = self._getService(EventBus)
         self.__startUpdatePriceHandler = \
-            super()._installTimerHandler(
+            eventBus.installTimerHandler(
                 5.0, self.__startUpdatePrice, oneShot=True)
 
     def __startUpdatePrice(self):
@@ -47,6 +48,8 @@ class GoGriddyPriceCheckService(EventBusMember):
     def __updatePrice(self):
         """ Gets the current price info and fires a PowerPriceChangedEvent.
         Designed to be called on another thread to not block execution """
+        eventBus = self._getService(EventBus)
+
         result = requests.post(
             self.__apiUrl, data=json.dumps(self.__apiPostData))
         data = json.loads(result.text)
@@ -60,4 +63,4 @@ class GoGriddyPriceCheckService(EventBusMember):
             f"Power price is now {event.price:.4f}/kW*h, next update "
             f"in {event.nextUpdate}s")
 
-        self._fireEvent(event)
+        eventBus.fireEvent(event)
