@@ -7,6 +7,7 @@ there is a set of components that need services (ServiceConsumers) and
 somewhere there is a component that provides them (ServiceProvider).
 """
 
+from .ThermostatStateChangingEvent import ThermostatStateChangingEvent
 from .ThermostatStateChangedEvent import ThermostatStateChangedEvent
 from .PowerPriceChangedEvent import PowerPriceChangedEvent
 from .SensorDataChangedEvent import SensorDataChangedEvent
