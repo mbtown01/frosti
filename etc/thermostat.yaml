@@ -3,27 +3,27 @@ thermostat:
     fanRunout: 30
     backlightTimeout: 10
     comfortMin: 68
-    comfortMax: 75
+    comfortMax: 88
     programs:
-        _default: { comfortMin: 68, comfortMax: 73 }
-        overnight: { comfortMin: 68, comfortMax: 73 }
-        home: { comfortMin: 70, comfortMax: 76 }
+        _default: { comfortMin: 68, comfortMax: 88 }
+        overnight: { comfortMin: 68, comfortMax: 88 }
         home:
             comfortMin: 70
-            comfortMax: 76
+            comfortMax: 83
             priceOverrides:
-                - { price: 0.01, comfortMax: 88 }
+                - { price: 0.10, comfortMax: 85 }
+                - { price: 0.20, comfortMax: 88 }
+                - { price: 0.40, comfortMax: 99 }
         away:
             comfortMin: 64
-            comfortMax: 78
+            comfortMax: 86
             priceOverrides:
-                - { price: 0.25, comfortMax: 88 }
+                - { price: 0.25, comfortMax: 99 }
     schedule:
         work week:
             days: [0, 1, 2, 3, 4]
             times:
-                - { hour: 8, minute: 0, program: away }
-                - { hour: 17, minute: 0, program: home }
+                - { hour: 8, minute: 0, program: home }
                 - { hour: 20, minute: 0, program: overnight }
         weekend:
             days: [5, 6]

@@ -113,8 +113,10 @@ class RptLauncher:
                 name="rpt-debug", runArgList=runArgList, arglist=arglist)
 
         if self.args.run is not None:
+            runArgList = ['-p', '5000:5000']
             arglist = ['python3', '-m', 'src'] + self.args.run
-            return self.run(name="rpt-run", arglist=arglist)
+            return self.run(
+                name="rpt-run", runArgList=runArgList, arglist=arglist)
 
         if self.args.dev:
             runArgList = ['-p', '5000:5000']

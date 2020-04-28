@@ -70,8 +70,8 @@ class RootDriver(ServiceProvider):
             if self.__args.hardware == 'v1':
                 from src.hardware.HardwareUserInterface_v1 \
                     import HardwareUserInterface_v1 as HardwareUserInterface
-                from src.hardware.Bmp280EnvironmentSensor \
-                    import Bmp280EnvironmentSensor as HardwareEnvironmentSensor
+                from src.hardware.Bme280EnvironmentSensor \
+                    import Bme280EnvironmentSensor as HardwareEnvironmentSensor
                 relays = (
                     PanasonicAgqRelay(ThermostatState.FAN, 5, 17),
                     PanasonicAgqRelay(ThermostatState.HEATING, 6, 27),

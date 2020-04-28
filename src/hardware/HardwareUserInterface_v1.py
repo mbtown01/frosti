@@ -8,6 +8,7 @@ from .HD44780Display import HD44780Display
 from src.core.events import UserThermostatInteractionEvent
 from src.core import Event, ServiceProvider, EventBus
 from src.services import ThermostatService
+from src.core.generics import GenericUserInterface
 
 
 class Button(Enum):
@@ -26,12 +27,14 @@ class ButtonPressedEvent(Event):
         return super().data['button']
 
 
-class HardwareUserInterface_v1(ThermostatService):
+class HardwareUserInterface_v1(GenericUserInterface):
 
     def __init__(self):
         GPIO.setmode(GPIO.BCM)
 
-        super().__init__(lcd=HD44780Display(0x27, 20, 4))
+        self.__lcd = HD44780Display(0x27, 20, 4)
+        self.__rgbLeds = [] 
+        super().__init__(lcd=self.__lcd, rgbLeds=self.__rgbLeds)
 
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
@@ -59,6 +62,10 @@ class HardwareUserInterface_v1(ThermostatService):
         elif event.button == Button.MODE:
             eventBus.fireEvent(UserThermostatInteractionEvent(
                 UserThermostatInteractionEvent.MODE_NEXT))
+        elif event.button == Button.WAKE:
+            self.__lcd.hardReset()
+            self.__lcd.clear()
+            super().redraw()
 
     def __subscribeToButton(self, pin: int, button: Button):
         self.__pinToButtonMap[pin] = button
