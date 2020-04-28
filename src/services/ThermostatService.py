@@ -1,4 +1,4 @@
-from time import localtime
+from time import localtime, sleep
 
 from .ConfigService import ConfigService
 from .RelayManagementService import RelayManagementService
@@ -127,6 +127,22 @@ class ThermostatService(ServiceConsumer):
         else:
             raise RuntimeError(f"Encountered unknown state {self.__state}")
 
+    def __changeState(self, newState: ThermostatState):
+        eventBus = self._getService(EventBus)
+        if self.__state != newState:
+            relayManagementService = \
+                self._getService(RelayManagementService)
+
+            log.debug(f"Thermostat state {self.__state} -> {newState}")
+            relayManagementService.openRelay(self.__state)
+            if newState.shouldAlsoRunFan:
+                sleep(0.5)
+                relayManagementService.closeRelay(ThermostatState.FAN)
+            sleep(0.5)
+            relayManagementService.closeRelay(newState)
+            self.__state = newState
+            eventBus.fireEvent(ThermostatStateChangedEvent(newState))
+
     def __userThermostatInteraction(
             self, event: UserThermostatInteractionEvent):
         if event.interaction == UserThermostatInteractionEvent.MODE_NEXT:
@@ -149,20 +165,6 @@ class ThermostatService(ServiceConsumer):
 
         settings.mode = SettingsService.Mode(
             (int(settings.mode.value) + 1) % len(SettingsService.Mode))
-
-    def __changeState(self, newState: ThermostatState):
-        eventBus = self._getService(EventBus)
-        if self.__state != newState:
-            relayManagementService = \
-                super()._getService(RelayManagementService)
-
-            log.debug(f"Thermostat state {self.__state} -> {newState}")
-            relayManagementService.openRelay(self.__state)
-            relayManagementService.closeRelay(newState)
-            if newState.shouldAlsoRunFan:
-                relayManagementService.closeRelay(ThermostatState.FAN)
-            self.__state = newState
-            eventBus.fireEvent(ThermostatStateChangedEvent(newState))
 
     def __fanRunout(self):
         settings = self._getService(SettingsService)
