@@ -2,6 +2,7 @@ from queue import Queue
 from threading import Event as ThreadingEvent
 from sys import exc_info, maxsize as MAX_INT
 from time import time
+from traceback import format_exception
 
 from .EventBusTimer import EventBusTimer
 from src.logging import log
@@ -54,10 +55,22 @@ class EventBus:
         self.__timers.append(timer)
         return timer
 
-    def fireEvent(self, event: Event):
-        """ Fires the event to any subscribed listeners """
-        self.__eventQueue.put(event)
-        self.__threadingEvent.set()
+    def fireEvent(self, event: Event, immediately: bool=False):
+        """ Fires the event to any subscribed listeners
+
+        immediately: bool
+            True if the event should be dispatched on this call, otherwise
+            the event is queued and processed at the next call to
+            processEvents()
+        """
+
+        if immediately:
+            eventHandlers = self.__eventHandlers.get(type(event), [])
+            for handler in eventHandlers:
+                handler(event)
+        else:
+            self.__eventQueue.put(event)
+            self.__threadingEvent.set()
 
     @property
     def now(self):
@@ -91,7 +104,7 @@ class EventBus:
                     # log.debug(f"===> TIMER {timer}")
                     timer.invoke(self.__now)
                 except:
-                    log.error(f"Timer encountered exception: {exc_info()}")
+                    self.__handleException()
             timeout = min(timeout, nextInvoke)
 
         # Only deliver events to registered subscribers
@@ -103,7 +116,7 @@ class EventBus:
                     # log.debug(f"===> HANDLER {handler}")
                     handler(event)
                 except:
-                    log.error(f"Handler encountered exception: {exc_info()}")
+                    self.__handleException()
 
         return max(0.0, timeout)
 
@@ -129,3 +142,11 @@ class EventBus:
             except:
                 info = exc_info()
                 log.warning(f"Invoker caught exception: {info}")
+
+    def __handleException(self):
+        exc_type, exc_value, exc_traceback = exc_info()
+        errors = format_exception(
+            exc_type, exc_value, exc_traceback)
+        log.error("Timer encountered exception:")
+        for error in errors:
+            log.error(f"{error.rstrip()}")

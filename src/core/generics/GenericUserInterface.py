@@ -117,7 +117,7 @@ class GenericUserInterface(ServiceConsumer):
         elif event.button == GenericUserInterface.Button.WAKE:
             self.__lcd.hardReset()
             self.__lcd.clear()
-            super().redraw()
+            self.redraw()
 
     def __settingsChanged(self, event: SettingsChangedEvent):
         settings = self._getService(SettingsService)

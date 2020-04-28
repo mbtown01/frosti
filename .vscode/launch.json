@@ -22,7 +22,7 @@
             "module": "src",
             "console": "integratedTerminal",
             "stopOnEntry": false,
-            "args": ["--hardware", "v2"],
+            "args": ["--hardware", "auto"],
         },
         {
             "name": "Python: Local RPT Launcher",

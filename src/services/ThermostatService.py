@@ -131,8 +131,8 @@ class ThermostatService(ServiceConsumer):
     def __changeState(self, newState: ThermostatState):
         eventBus = self._getService(EventBus)
         if self.__state != newState:
-            eventBus.fireEvent(ThermostatStateChangingEvent(newState))
-            eventBus.processEvents()
+            event = ThermostatStateChangingEvent(newState)
+            eventBus.fireEvent(event, immediately=True)
 
             relayManagementService = \
                 self._getService(RelayManagementService)

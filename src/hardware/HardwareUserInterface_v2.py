@@ -9,9 +9,8 @@ from adafruit_mcp230xx.mcp23017 import MCP23017
 
 from .HD44780Display import HD44780Display
 from .LtrbRasfRgbLed import LtrbRasfRgbLed
-from src.core import ServiceProvider
+from src.core import EventBus
 from src.core.generics import GenericUserInterface
-from src.core.events import EventBus
 
 
 class HardwareUserInterface_v2(GenericUserInterface):
@@ -60,14 +59,6 @@ class HardwareUserInterface_v2(GenericUserInterface):
         # 12, 13, 14 is LEFT B, R, G
         # 2, 3, 4 is RIGHT B, R, G
         super().__init__(lcd=self.__lcd, rgbLeds=self.__rgbLeds)
-
-    def setServiceProvider(self, provider: ServiceProvider):
-        super().setServiceProvider(provider)
-
-        eventBus = self._getService(EventBus)
-        eventBus.installEventHandler(
-            GenericUserInterface.ButtonPressedEvent,
-            self.__buttonPressedHandler)
 
     def __mcp23017_callback(self, port):
         eventBus = self._getService(EventBus)

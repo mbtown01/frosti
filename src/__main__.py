@@ -21,7 +21,7 @@ class RootDriver(ServiceProvider):
         parser = argparse.ArgumentParser(
             description='RPT main process')
         parser.add_argument(
-            '--hardware', choices=['term', 'v1', 'v2'], default='term',
+            '--hardware', choices=['term', 'v1', 'v2', 'auto'], default='term',
             help='Pick the underlying hardware supporting operations')
         self.__args = parser.parse_args()
 
@@ -67,6 +67,19 @@ class RootDriver(ServiceProvider):
             self.userInterface.setServiceProvider(self)
         else:
             from src.hardware.PanasonicAgqRelay import PanasonicAgqRelay
+
+            if self.__args.hardware == 'auto':
+                from board import SDA, SCL
+                from busio import I2C
+                i2c = I2C(SCL, SDA)
+                results = i2c.scan()
+
+                # Only Hardware v2 has the MCP23017 at address 0x20
+                self.__args.hardware = "v1"
+                if 0x20 in results:
+                    self.__args.hardware = "v2"
+                log.info("Auto-detected hardware '{self.__args.hardware}'")
+
             if self.__args.hardware == 'v1':
                 from src.hardware.HardwareUserInterface_v1 \
                     import HardwareUserInterface_v1 as HardwareUserInterface
@@ -89,7 +102,7 @@ class RootDriver(ServiceProvider):
                 )
             else:
                 raise RuntimeError(
-                    f'Hardware oprtion {self.__args.hardware} not supported')
+                    f'Hardware option {self.__args.hardware} not supported')
 
             self.sensor = HardwareEnvironmentSensor()
             self.environmentSampling = \
