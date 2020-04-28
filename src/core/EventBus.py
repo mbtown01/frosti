@@ -1,6 +1,6 @@
 from queue import Queue
 from threading import Event as ThreadingEvent
-from sys import exc_info, maxsize
+from sys import exc_info, maxsize as MAX_INT
 from time import time
 
 from .EventBusTimer import EventBusTimer
@@ -107,7 +107,7 @@ class EventBus:
 
         return max(0.0, timeout)
 
-    def exec(self, iterations: int=maxsize):
+    def exec(self, iterations: int=MAX_INT):
         """ Drive the main application loop for some number of iterations,
         using the system time() command to tell processEvents the current
         time """

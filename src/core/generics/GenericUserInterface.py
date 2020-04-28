@@ -1,14 +1,31 @@
+from enum import Enum
+
 from .GenericLcdDisplay import GenericLcdDisplay
 from .GenericRgbLed import GenericRgbLed
 from src.logging import log
 from src.services import SettingsService, SettingsChangedEvent
-from src.core import ServiceConsumer, ServiceProvider, EventBus
+from src.core import ServiceConsumer, ServiceProvider, EventBus, Event
 from src.services import ConfigService, ThermostatService
 from src.core.events import ThermostatStateChangedEvent, \
-    SensorDataChangedEvent, PowerPriceChangedEvent
+    SensorDataChangedEvent, PowerPriceChangedEvent, \
+    UserThermostatInteractionEvent
 
 
 class GenericUserInterface(ServiceConsumer):
+
+    class Button(Enum):
+        UP = 1
+        DOWN = 2
+        MODE = 3
+        WAKE = 4
+
+    class ButtonPressedEvent(Event):
+        def __init__(self, button):
+            super().__init__(data={'button': button})
+
+        @property
+        def button(self):
+            return super().data['button']
 
     def __init__(self,
                  lcd: GenericLcdDisplay,
@@ -54,6 +71,9 @@ class GenericUserInterface(ServiceConsumer):
             ThermostatStateChangedEvent, self.__stateChanged)
         eventBus.installEventHandler(
             PowerPriceChangedEvent, self.__powerPriceChanged)
+        eventBus.installEventHandler(
+            GenericUserInterface.ButtonPressedEvent,
+            self.__buttonPressedHandler)
 
         thermostat = self._getService(ThermostatService)
         self.__stateChanged(ThermostatStateChangedEvent(thermostat.state))
@@ -80,6 +100,24 @@ class GenericUserInterface(ServiceConsumer):
     def __sensorDataChanged(self, event: SensorDataChangedEvent):
         self.__lastTemperature = event.temperature
         self.redraw()
+
+    def __buttonPressedHandler(self, event: ButtonPressedEvent):
+        self.backlightReset()
+        eventBus = self._getService(EventBus)
+
+        if event.button == GenericUserInterface.Button.UP:
+            eventBus.fireEvent(UserThermostatInteractionEvent(
+                UserThermostatInteractionEvent.COMFORT_RAISE))
+        elif event.button == GenericUserInterface.Button.DOWN:
+            eventBus.fireEvent(UserThermostatInteractionEvent(
+                UserThermostatInteractionEvent.COMFORT_LOWER))
+        elif event.button == GenericUserInterface.Button.MODE:
+            eventBus.fireEvent(UserThermostatInteractionEvent(
+                UserThermostatInteractionEvent.MODE_NEXT))
+        elif event.button == GenericUserInterface.Button.WAKE:
+            self.__lcd.hardReset()
+            self.__lcd.clear()
+            super().redraw()
 
     def __settingsChanged(self, event: SettingsChangedEvent):
         settings = self._getService(SettingsService)

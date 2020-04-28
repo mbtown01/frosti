@@ -7,7 +7,8 @@ from src.logging import log
 from src.core import EventBus, ServiceConsumer, ServiceProvider, \
     ThermostatState
 from src.core.events import ThermostatStateChangedEvent, \
-    SensorDataChangedEvent, UserThermostatInteractionEvent
+    SensorDataChangedEvent, UserThermostatInteractionEvent, \
+    ThermostatStateChangingEvent
 
 
 class ThermostatService(ServiceConsumer):
@@ -130,15 +131,19 @@ class ThermostatService(ServiceConsumer):
     def __changeState(self, newState: ThermostatState):
         eventBus = self._getService(EventBus)
         if self.__state != newState:
+            eventBus.fireEvent(ThermostatStateChangingEvent(newState))
+            eventBus.processEvents()
+
             relayManagementService = \
                 self._getService(RelayManagementService)
 
-            log.debug(f"Thermostat state {self.__state} -> {newState}")
             relayManagementService.openRelay(self.__state)
             if newState.shouldAlsoRunFan:
                 sleep(0.5)
+                log.debug(f"State from {self.__state} -> ThermostatState.FAN")
                 relayManagementService.closeRelay(ThermostatState.FAN)
             sleep(0.5)
+            log.debug(f"State from {self.__state} -> {newState}")
             relayManagementService.closeRelay(newState)
             self.__state = newState
             eventBus.fireEvent(ThermostatStateChangedEvent(newState))

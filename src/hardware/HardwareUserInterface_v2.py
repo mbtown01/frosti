@@ -7,29 +7,11 @@ from digitalio import Direction, Pull
 from adafruit_mcp230xx.mcp23017 import MCP23017
 # pylint: enable=import-error
 
-from enum import Enum
-
 from .HD44780Display import HD44780Display
 from .LtrbRasfRgbLed import LtrbRasfRgbLed
-from src.core import Event, ServiceProvider
+from src.core import ServiceProvider
 from src.core.generics import GenericUserInterface
-from src.core.events import UserThermostatInteractionEvent, EventBus
-
-
-class Button(Enum):
-    UP = 1
-    DOWN = 2
-    MODE = 3
-    WAKE = 4
-
-
-class ButtonPressedEvent(Event):
-    def __init__(self, button: Button):
-        super().__init__(data={'button': button})
-
-    @property
-    def button(self):
-        return super().data['button']
+from src.core.events import EventBus
 
 
 class HardwareUserInterface_v2(GenericUserInterface):
@@ -43,10 +25,10 @@ class HardwareUserInterface_v2(GenericUserInterface):
         self.__i2c = I2C(board.SCL, board.SDA)
         self.__mcp = MCP23017(self.__i2c)
         self.__buttonMap = {
-            6: Button.WAKE,
-            5: Button.MODE,
-            10: Button.UP,
-            11: Button.DOWN,
+            6: GenericUserInterface.Button.WAKE,
+            5: GenericUserInterface.Button.MODE,
+            10: GenericUserInterface.Button.UP,
+            11: GenericUserInterface.Button.DOWN,
         }
 
         pinsEnabled = 0
@@ -84,7 +66,8 @@ class HardwareUserInterface_v2(GenericUserInterface):
 
         eventBus = self._getService(EventBus)
         eventBus.installEventHandler(
-            ButtonPressedEvent, self.__buttonPressedHandler)
+            GenericUserInterface.ButtonPressedEvent,
+            self.__buttonPressedHandler)
 
     def __mcp23017_callback(self, port):
         eventBus = self._getService(EventBus)
@@ -96,22 +79,5 @@ class HardwareUserInterface_v2(GenericUserInterface):
             if button is not None:
                 pin = self.__mcp.get_pin(p)
                 if not pin.value:
-                    eventBus.fireEvent(ButtonPressedEvent(button))
-
-    def __buttonPressedHandler(self, event: ButtonPressedEvent):
-        eventBus = self._getService(EventBus)
-        super().backlightReset()
-
-        if event.button == Button.UP:
-            eventBus.fireEvent(UserThermostatInteractionEvent(
-                UserThermostatInteractionEvent.COMFORT_RAISE))
-        elif event.button == Button.DOWN:
-            eventBus.fireEvent(UserThermostatInteractionEvent(
-                UserThermostatInteractionEvent.COMFORT_LOWER))
-        elif event.button == Button.MODE:
-            eventBus.fireEvent(UserThermostatInteractionEvent(
-                UserThermostatInteractionEvent.MODE_NEXT))
-        elif event.button == Button.WAKE:
-            self.__lcd.hardReset()
-            self.__lcd.clear()
-            super().redraw()
+                    eventBus.fireEvent(
+                        GenericUserInterface.ButtonPressedEvent(button))
