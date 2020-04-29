@@ -59,7 +59,7 @@ class RootDriver(ServiceProvider):
 
         # Put all the event handlers together
         self.__apiDataBroker = ApiDataBrokerService()
-        self.__apiDataBroker.setServiceProvider(self)      
+        self.__apiDataBroker.setServiceProvider(self)
 
     def __start(self, stdscr):
         if stdscr is not None:
@@ -88,6 +88,7 @@ class RootDriver(ServiceProvider):
 
             if self.__args.hardware == 'auto':
                 self.__args.hardware = self.__detectHardware()
+                log.info(f"Starting RPT on hardware {self.__args.hardware}")
 
             if self.__args.hardware == 'v1':
                 from src.hardware.HardwareUserInterface_v1 \

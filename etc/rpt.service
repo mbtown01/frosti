@@ -12,3 +12,6 @@ User=pi
 
 [Install]
 WantedBy=multi-user.target
+
+# future work
+# https://stackoverflow.com/questions/38986057/how-to-set-image-name-in-dockerfile

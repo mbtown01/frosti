@@ -1,14 +1,8 @@
 #!/usr/bin/env python3
 
-import os
-import sys
-import re
 import argparse
-
+from os import environ
 from subprocess import call, check_output
-from threading import Thread
-from io import StringIO
-from queue import Queue, Empty
 
 
 class RptLauncher:
@@ -57,9 +51,12 @@ class RptLauncher:
             '--env-file', f"docker/docker-hosttype-{hosttype}.env"
         ]
 
-    def shell(self, arglist):
-        print(f"SHELL: {arglist}")
-        return call(arglist)
+    def shell(self, arglist, env: dict={}):
+        print(f"SHELL: {arglist}, {env}")
+        myEnv = environ.copy()
+        for key, value in env.items():
+            myEnv[key] = value
+        return call(arglist, env=myEnv)
 
     def run(
             self,
