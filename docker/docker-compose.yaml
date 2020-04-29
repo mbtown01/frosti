@@ -33,9 +33,11 @@ services:
         NODEJS_VERSION: ${NODEJS_VERSION}
       context: ../
       dockerfile: ./docker/rpt/Dockerfile
-    container_name: rpt
+    container_name: rpt-driver
     labels: [rpt]
     privileged: true
+    environment:
+      TZ: ${TZ:-America/Chicago}
     ports:
       - "5000:5000"
     depends_on:
@@ -43,6 +45,7 @@ services:
       - grafana
     volumes:
       - ../:/usr/local/rpt
+    entrypoint: ['python3', '-m', 'src', '--hardware', 'auto']
 
 volumes:
   postgres:

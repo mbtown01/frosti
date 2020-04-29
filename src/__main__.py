@@ -26,24 +26,6 @@ class RootDriver(ServiceProvider):
             help='Pick the underlying hardware supporting operations')
         self.__args = parser.parse_args()
 
-        self.__eventBus = EventBus()
-        self.installService(EventBus, self.__eventBus)
-
-        self.__config = ConfigService()
-        self.installService(ConfigService, self.__config)
-
-        self.__settings = SettingsService()
-        self.__settings.setServiceProvider(self)
-        self.installService(SettingsService, self.__settings)
-
-        self.__thermostat = ThermostatService()
-        self.__thermostat.setServiceProvider(self)
-        self.installService(ThermostatService, self.__thermostat)
-
-        # Put all the event handlers together
-        self.__apiDataBroker = ApiDataBrokerService()
-        self.__apiDataBroker.setServiceProvider(self)
-
     def __detectHardware(self):
         from board import SDA, SCL
         from busio import I2C
@@ -60,6 +42,25 @@ class RootDriver(ServiceProvider):
             instance.setServiceProvider(self)
         self.installService(type, instance)
 
+    def __setupCore(self):
+        self.__eventBus = EventBus()
+        self.installService(EventBus, self.__eventBus)
+
+        self.__config = ConfigService()
+        self.installService(ConfigService, self.__config)
+
+        self.__settings = SettingsService()
+        self.__settings.setServiceProvider(self)
+        self.installService(SettingsService, self.__settings)
+
+        self.__thermostat = ThermostatService()
+        self.__thermostat.setServiceProvider(self)
+        self.installService(ThermostatService, self.__thermostat)
+
+        # Put all the event handlers together
+        self.__apiDataBroker = ApiDataBrokerService()
+        self.__apiDataBroker.setServiceProvider(self)      
+
     def __start(self, stdscr):
         if stdscr is not None:
             from src.terminal import TerminalRelayManagementService, \
@@ -67,6 +68,7 @@ class RootDriver(ServiceProvider):
 
             messageQueue = Queue(128)
             setupLogging(messageQueue)
+            self.__setupCore()
 
             self.sensor = GenericEnvironmentSensor()
             self.__installService(
@@ -82,6 +84,7 @@ class RootDriver(ServiceProvider):
                 import Bme280EnvironmentSensor as HardwareEnvironmentSensor
 
             setupLogging()
+            self.__setupCore()
 
             if self.__args.hardware == 'auto':
                 self.__args.hardware = self.__detectHardware()
