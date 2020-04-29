@@ -1,6 +1,7 @@
 from queue import Queue
 from curses import wrapper
 from sys import exc_info
+from traceback import format_exception
 import argparse
 
 from src.logging import log, setupLogging
@@ -10,7 +11,7 @@ from src.services import ConfigService, SettingsService, \
     SettingsChangedEvent, ApiDataBrokerService, GoGriddyPriceCheckService, \
     PostgresAdapterService, ThermostatService, EnvironmentSamplingService, \
     RelayManagementService
-from src.core import ServiceProvider
+from src.core import ServiceProvider, ServiceConsumer
 
 
 class RootDriver(ServiceProvider):
@@ -43,6 +44,22 @@ class RootDriver(ServiceProvider):
         self.__apiDataBroker = ApiDataBrokerService()
         self.__apiDataBroker.setServiceProvider(self)
 
+    def __detectHardware(self):
+        from board import SDA, SCL
+        from busio import I2C
+        i2c = I2C(SCL, SDA)
+        results = i2c.scan()
+
+        # Only Hardware v2 has the MCP23017 at address 0x20
+        if 0x20 in results:
+            return "v2"
+        return "v1"
+
+    def __installService(self, type, instance):
+        if isinstance(instance, ServiceConsumer):
+            instance.setServiceProvider(self)
+        self.installService(type, instance)
+
     def __start(self, stdscr):
         if stdscr is not None:
             from src.terminal import TerminalRelayManagementService, \
@@ -52,72 +69,49 @@ class RootDriver(ServiceProvider):
             setupLogging(messageQueue)
 
             self.sensor = GenericEnvironmentSensor()
-            self.environmentSampling = \
-                EnvironmentSamplingService(self.sensor)
-            self.environmentSampling.setServiceProvider(self)
-            self.installService(
-                EnvironmentSamplingService, self.environmentSampling)
-
-            self.relayManagement = TerminalRelayManagementService()
-            self.relayManagement.setServiceProvider(self)
-            self.installService(RelayManagementService, self.relayManagement)
+            self.__installService(
+                RelayManagementService, TerminalRelayManagementService())
 
             self.userInterface = \
                 TerminalUserInterface(stdscr, self.sensor, messageQueue)
             self.userInterface.setServiceProvider(self)
         else:
-            from src.hardware.PanasonicAgqRelay import PanasonicAgqRelay
+            from src.hardware.PanasonicAgqRelay \
+                import PanasonicAgqRelay as HardwareRelay
+            from src.hardware.Bme280EnvironmentSensor \
+                import Bme280EnvironmentSensor as HardwareEnvironmentSensor
+
+            setupLogging()
 
             if self.__args.hardware == 'auto':
-                from board import SDA, SCL
-                from busio import I2C
-                i2c = I2C(SCL, SDA)
-                results = i2c.scan()
-
-                # Only Hardware v2 has the MCP23017 at address 0x20
-                self.__args.hardware = "v1"
-                if 0x20 in results:
-                    self.__args.hardware = "v2"
-                log.info("Auto-detected hardware '{self.__args.hardware}'")
+                self.__args.hardware = self.__detectHardware()
 
             if self.__args.hardware == 'v1':
                 from src.hardware.HardwareUserInterface_v1 \
                     import HardwareUserInterface_v1 as HardwareUserInterface
-                from src.hardware.Bme280EnvironmentSensor \
-                    import Bme280EnvironmentSensor as HardwareEnvironmentSensor
                 relays = (
-                    PanasonicAgqRelay(ThermostatState.FAN, 5, 17),
-                    PanasonicAgqRelay(ThermostatState.HEATING, 6, 27),
-                    PanasonicAgqRelay(ThermostatState.COOLING, 13, 22)
+                    HardwareRelay(ThermostatState.FAN, 5, 17),
+                    HardwareRelay(ThermostatState.HEATING, 6, 27),
+                    HardwareRelay(ThermostatState.COOLING, 13, 22)
                 )
             elif self.__args.hardware == 'v2':
                 from src.hardware.HardwareUserInterface_v2 \
                     import HardwareUserInterface_v2 as HardwareUserInterface
-                from src.hardware.Bme280EnvironmentSensor \
-                    import Bme280EnvironmentSensor as HardwareEnvironmentSensor
                 relays = (
-                    PanasonicAgqRelay(ThermostatState.FAN, 12, 6),
-                    PanasonicAgqRelay(ThermostatState.HEATING, 21, 20),
-                    PanasonicAgqRelay(ThermostatState.COOLING, 16, 19)
+                    HardwareRelay(ThermostatState.FAN, 12, 6),
+                    HardwareRelay(ThermostatState.HEATING, 21, 20),
+                    HardwareRelay(ThermostatState.COOLING, 16, 19)
                 )
             else:
                 raise RuntimeError(
                     f'Hardware option {self.__args.hardware} not supported')
 
             self.sensor = HardwareEnvironmentSensor()
-            self.environmentSampling = \
-                EnvironmentSamplingService(self.sensor)
-            self.environmentSampling.setServiceProvider(self)
-            self.installService(
-                EnvironmentSamplingService, self.environmentSampling)
+            self.__installService(
+                RelayManagementService, RelayManagementService(relays=relays))
 
-            self.relayManagement = RelayManagementService(relays=relays)
-            self.relayManagement.setServiceProvider(self)
-            self.installService(RelayManagementService, self.relayManagement)
-
-            hardwareDriver = HardwareUserInterface()
-            hardwareDriver.setServiceProvider(self)
-            setupLogging()
+            self.userInterface = HardwareUserInterface()
+            self.userInterface.setServiceProvider(self)
 
         # Setup the power price handler after the other event handlers have
         # been created so they get the first power events
@@ -132,8 +126,16 @@ class RootDriver(ServiceProvider):
             dataExporter = PostgresAdapterService()
             dataExporter.setServiceProvider(self)
         except:
-            info = exc_info()
-            log.warning(f"Postgres startup encountered exception: {info}")
+            exc_type, exc_value, exc_traceback = exc_info()
+            lines = format_exception(
+                exc_type, exc_value, exc_traceback)
+            log.warning(f"Postgres startup encountered exception:")
+            for line in lines:
+                log.warning(f"{line.rstrip()}")
+
+        self.__installService(
+            EnvironmentSamplingService,
+            EnvironmentSamplingService(self.sensor))
 
         log.info('Entering into standard operation')
         self.__eventBus.fireEvent(SettingsChangedEvent())

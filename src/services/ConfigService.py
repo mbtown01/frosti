@@ -1,6 +1,8 @@
 import os
 import yaml
 
+from src.logging import log
+
 
 class ConfigService:
     """ Represents the configuration for the system.  Configuration includes
@@ -27,6 +29,7 @@ class ConfigService:
             for fileName in searchOrder:
                 if os.path.exists(fileName):
                     self.__name = fileName
+                    log.info(f"Configuration coming from {self.__name}")
                     with open(fileName) as configFile:
                         self.__data = yaml.load(
                             configFile, Loader=yaml.FullLoader)

@@ -22,7 +22,7 @@
     "python.linting.pylintEnabled": false,
     "python.linting.enabled": true,
     "python.linting.flake8Args": [
-        "--ignore=E252,E722"
+        "--ignore=E402,E226,E252,E722,W504"
     ],
     "python.linting.pycodestyleEnabled": false,
     "python.linting.pycodestyleArgs": [

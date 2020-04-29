@@ -104,7 +104,7 @@ class EventBus:
                     # log.debug(f"===> TIMER {timer}")
                     timer.invoke(self.__now)
                 except:
-                    self.__handleException()
+                    self.__handleException("processing timers")
             timeout = min(timeout, nextInvoke)
 
         # Only deliver events to registered subscribers
@@ -116,7 +116,7 @@ class EventBus:
                     # log.debug(f"===> HANDLER {handler}")
                     handler(event)
                 except:
-                    self.__handleException()
+                    self.__handleException("processing event queue")
 
         return max(0.0, timeout)
 
@@ -140,13 +140,12 @@ class EventBus:
                 log.info("Keyboard interrupt received, shutting down")
                 break
             except:
-                info = exc_info()
-                log.warning(f"Invoker caught exception: {info}")
+                self.__handleException("executing main event loop")
 
-    def __handleException(self):
+    def __handleException(self, source: str):
         exc_type, exc_value, exc_traceback = exc_info()
         errors = format_exception(
             exc_type, exc_value, exc_traceback)
-        log.error("Timer encountered exception:")
+        log.error(f"Encountered exception while {source}:")
         for error in errors:
             log.error(f"{error.rstrip()}")
