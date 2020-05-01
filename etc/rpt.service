@@ -7,13 +7,11 @@ Requires=docker.service
 After=docker.service
 
 [Service]
+Type=oneshot
+RemainAfterExit=true
 WorkingDirectory=/usr/local/rpt
-ExecStart=/usr/local/rpt/scripts/docker-compose.py up -d rpt-daemon
+ExecStart=/usr/local/rpt/scripts/docker-compose.py up -d --remove-orphans rpt-daemon
 ExecStop=/usr/local/rpt/scripts/docker-compose.py down
-TimeoutStartSec=0
-Restart=on-failure
-StartLimitIntervalSec=60
-StartLimitBurst=3
 
 [Install]
 WantedBy=multi-user.target
