@@ -114,7 +114,7 @@ class PostgresAdapterService(ServiceConsumer):
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
 
-        self.__postgresUrl = 'postgresql://postgres:rpt@postgres/rpt'
+        self.__postgresUrl = 'postgresql://rpt:rpt@postgres/rpt'
         if not database_exists(self.__postgresUrl):
             create_database(self.__postgresUrl)
         self.__engine = create_engine(self.__postgresUrl, echo=False)
