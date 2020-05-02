@@ -2,10 +2,8 @@ thermostat:
     delta: 1.0
     fanRunout: 30
     backlightTimeout: 10
-    comfortMin: 68
-    comfortMax: 88
+    defaults: { comfortMin: 68, comfortMax: 88 }
     programs:
-        _default: { comfortMin: 68, comfortMax: 88 }
         overnight: { comfortMin: 68, comfortMax: 88 }
         home:
             comfortMin: 70
@@ -31,14 +29,14 @@ thermostat:
                 - { hour: 8, minute: 0, program: home }
                 - { hour: 20, minute: 0, program: overnight }
            
-priceOverrides:
-    - { price: 0.25, comfortMax: 78 }
-    - { price: 0.50, comfortMax: 80 }
-    - { price: 1.00, comfortMax: 88 }
+    priceOverrides:
+        - { price: 0.25, comfortMax: 78 }
+        - { price: 0.50, comfortMax: 80 }
+        - { price: 1.00, comfortMax: 88 }
 
 gogriddy:
     enabled: true
-    meterID: 1008901023809085840100
-    memberID: 32795
-    settlementPoint: LZ_HOUSTON
-    apiUrl: https://app.gogriddy.com/api/v1/insights/getnow
+    meterID: '1008901023809085840100'
+    memberID: '32795'
+    settlementPoint: 'LZ_HOUSTON'
+    apiUrl: 'https://app.gogriddy.com/api/v1/insights/getnow'

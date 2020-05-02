@@ -94,9 +94,9 @@ class RootDriver(ServiceProvider):
                 from src.hardware.HardwareUserInterface_v1 \
                     import HardwareUserInterface_v1 as HardwareUserInterface
                 relays = (
-                    HardwareRelay(ThermostatState.FAN, 5, 17),
-                    HardwareRelay(ThermostatState.HEATING, 6, 27),
-                    HardwareRelay(ThermostatState.COOLING, 13, 22)
+                    HardwareRelay(ThermostatState.FAN, 5, 17, delay=0.5),
+                    HardwareRelay(ThermostatState.HEATING, 6, 27, delay=0.5),
+                    HardwareRelay(ThermostatState.COOLING, 13, 22, delay=0.5)
                 )
             elif self.__args.hardware == 'v2':
                 from src.hardware.HardwareUserInterface_v2 \
