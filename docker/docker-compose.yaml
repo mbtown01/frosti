@@ -25,7 +25,7 @@ services:
     volumes:
       - ./grafana:/var/lib/grafana:delegated
 
-  rpt:
+  rpt-daemon:
     build:
       args:
         HOSTTYPE: ${HOSTTYPE}
@@ -33,11 +33,12 @@ services:
         NODEJS_VERSION: ${NODEJS_VERSION}
       context: ../
       dockerfile: ./docker/rpt/Dockerfile
-    container_name: rpt-driver
+    image: mbtown01/rpt:latest
+    container_name: rpt-daemon
     labels: [rpt]
     privileged: true
     environment:
-      TZ: ${TZ:-America/Chicago}
+      TZ: ${TZ}
     ports:
       - "5000:5000"
     depends_on:
@@ -46,6 +47,81 @@ services:
     volumes:
       - ../:/usr/local/rpt
     entrypoint: ['python3', '-m', 'src', '--hardware', 'auto']
+
+  rpt-term:
+    build:
+      args:
+        HOSTTYPE: ${HOSTTYPE}
+        HOSTTYPE_IMAGE: ${HOSTTYPE_IMAGE_RPT}
+        NODEJS_VERSION: ${NODEJS_VERSION}
+      context: ../
+      dockerfile: ./docker/rpt/Dockerfile
+    image: mbtown01/rpt:latest
+    container_name: rpt-term
+    labels: [rpt]
+    privileged: true
+    environment:
+      TZ: ${TZ}
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+      - grafana
+    volumes:
+      - ../:/usr/local/rpt
+    entrypoint: ['python3', '-m', 'src', '--hardware', 'term']
+
+  rpt-daemon-debug:
+    build:
+      args:
+        HOSTTYPE: ${HOSTTYPE}
+        HOSTTYPE_IMAGE: ${HOSTTYPE_IMAGE_RPT}
+        NODEJS_VERSION: ${NODEJS_VERSION}
+      context: ../
+      dockerfile: ./docker/rpt/Dockerfile
+    image: mbtown01/rpt:latest
+    container_name: rpt-daemon-debug
+    labels: [rpt]
+    privileged: true
+    environment:
+      TZ: ${TZ}
+    ports:
+      - "5000:5000"
+      - "3001:3001"
+    depends_on:
+      - postgres
+      - grafana
+    volumes:
+      - ../:/usr/local/rpt
+    entrypoint: ['python3', '-m', 'ptvsd',
+      '--host', '0.0.0.0', '--port', '3001', '--wait', '-m', 'src',
+      '--hardware', 'auto']
+
+  rpt-term-debug:
+    build:
+      args:
+        HOSTTYPE: ${HOSTTYPE}
+        HOSTTYPE_IMAGE: ${HOSTTYPE_IMAGE_RPT}
+        NODEJS_VERSION: ${NODEJS_VERSION}
+      context: ../
+      dockerfile: ./docker/rpt/Dockerfile
+    image: mbtown01/rpt:latest
+    container_name: rpt-term-debug
+    labels: [rpt]
+    privileged: true
+    environment:
+      TZ: ${TZ}
+    ports:
+      - "5000:5000"
+      - "3001:3001"
+    depends_on:
+      - postgres
+      - grafana
+    volumes:
+      - ../:/usr/local/rpt
+    entrypoint: ['python3', '-m', 'ptvsd',
+      '--host', '0.0.0.0', '--port', '3001', '--wait', '-m', 'src',
+      '--hardware', 'term']
 
 volumes:
   postgres:

@@ -8,9 +8,8 @@ git clone https://github.com/mbtown01/rpt.git
 
 ## Docker
 
-We're using docker-compose to encapsulate the entire set of runtime
-dependencies.  This includes not only python and the modules, but also any
-libraries that need to be installed in support of python-land *plus* all
+We're using docker-compose to make the runtime and it's set of dependencies as portable as possible.  This includes not only python and the modules, but also 
+any libraries that need to be installed in support of python-land *plus* all
 the services like postgres and grafana that run in support of the thermostat.
 
 Containers are ephemeral, and once spun down any content generated in the
@@ -32,25 +31,20 @@ Once you have the source pulled down and the latest version of docker, let's
 make the first container orchestration to host the dev environment
 
 ```bash
-docker-compose \
-    --file docker/docker-compose.yaml \
-    --env-file docker/docker-hosttype-${HOSTTYPE}.env \
-    build rpt
+./scripts/docker-compose.py build rpt
 ```
 
+For convenience, we've wrapped docker-compose so that the appropriate flags and environment are set before the real docker-compose is exec()'d. 
+
 The process above is essentially building out your development environment
-with a base Ubuntu 18 image, python, and all the modules you'll need to
+with a base linux, python, and all the modules you'll need to
 develop and run.  It will take some time to execute, especially if you're
 running on a Raspberry Pi.
 
 Once completed, we can test if it worked by running the thermostat simulator:
 
 ```bash
-docker-compose \
-    --file docker/docker-compose.yaml \
-    --env-file docker/docker-hosttype-${HOSTTYPE}.env \
-    run --name rpt-dev -e TZ=America/Chicago \
-        rpt python3.7 -m src --hardware term
+./scripts/docker-compose.py run --service-ports rpt-term
 ```
 
 If the above worked, **congrats** -- you now have a local copy of the source
@@ -77,12 +71,9 @@ the first time, install the following extensions:
 Next, start a development container on the local machine
 
 ```bash
-docker-compose \
-    --file docker/docker-compose.yaml \
-    --env-file docker/docker-hosttype-${HOSTTYPE}.env \
-    run --name rpt-dev --restart yes \
-        -e TZ=America/Chicago \  # Use your own timezone here
-        rpt bash -c "while sleep 600; do /bin/false; done"
+./scripts/docker-compose.py run \
+    --name rpt-dev --restart yes \
+    rpt-daemon bash -c "while sleep 600; do /bin/false; done"
 ```
 
 Now, instead of opening the project directly from your local cloned workspace,
@@ -119,16 +110,11 @@ lower-left-hand corner quick menu and select 'Remote-SSH: Connect to
 Host...' and choose the pi you're working on.  
 
 Once there, you can clone the github repo, build (or pull) the  arm-based
-rpi container, and you're off!  If want to debug your code interactively
+rpi container, and you're off!  If you want to debug your code interactively
 with VSCode, first open a local terminal and start python under the debugger
 
 ```bash
-docker-compose \
-    --file docker/docker-compose.yaml \
-    --env-file docker/docker-hosttype-${HOSTTYPE}.env \
-    run -p 3001:3001 -p 5000:5000 \
-    rpt python3.7 -m ptvsd --host 0.0.0.0 --port 3001 --wait \
-        -m src --hardware v2
+./scripts/docker-compose.py run --service-ports rpt-daemon-debug
 ```
 
 Once the avove is complete, you should be able to choose the 'Python: Local
@@ -157,25 +143,21 @@ This one seems the best and easiest to implement looks like the following:
 This one has more info, but relies on the 'watchdog' service.  The link above relies on Systemd
 [https://www.raspberrypi.org/forums/viewtopic.php?t=210974](https://www.raspberrypi.org/forums/viewtopic.php?t=210974)
 
-## Extra Commands
+## Install RPT as a service on the Raspberry Pi
 
-### Download the docker documentation
-
-In case you're on a plane and are too cheap for WiFi...
+I got the info for how to do this from [https://stackoverflow.com/questions/43671482/how-to-run-docker-compose-up-d-at-system-start-up](https://stackoverflow.com/questions/43671482/how-to-run-docker-compose-up-d-at-system-start-up).  In
+summary, from your local repo
 
 ```bash
-docker run -ti -p 4000:4000 docs/docker.github.io:latest
+cp etc/rpt.service /etc/systemd/system
+sudo systemctl enable rpt
 ```
-
 ### Random terminal
 
 To get a terminal in one of your composed containers (e.g. rpt)
 
 ```bash
-docker-compose \
-    --file docker/docker-compose.yaml \
-    --env-file docker/docker-hosttype-${HOSTTYPE}.env \
-    run --entrypoint sh rpt
+./scripts/docker-compose.py run --entrypoint sh rpt
 ```
 
 ### Docker and MacOS

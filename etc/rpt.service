@@ -1,17 +1,17 @@
+# /etc/systemd/system/docker-compose-app.service
+# https://stackoverflow.com/questions/43671482/how-to-run-docker-compose-up-d-at-system-start-up
+
 [Unit]
 Description=RPT Thermostat Service
-After=network.target
+Requires=docker.service
+After=docker.service
 
 [Service]
-ExecStart=/usr/bin/python3 -m src
-WorkingDirectory=/home/pi/rpt
-StandardOutput=inherit
-StandardError=inherit
-Restart=always
-User=pi
+Type=oneshot
+RemainAfterExit=true
+WorkingDirectory=/usr/local/rpt
+ExecStart=/usr/local/rpt/scripts/docker-compose.py up -d --remove-orphans rpt-daemon
+ExecStop=/usr/local/rpt/scripts/docker-compose.py down
 
 [Install]
 WantedBy=multi-user.target
-
-# future work
-# https://stackoverflow.com/questions/38986057/how-to-set-image-name-in-dockerfile
