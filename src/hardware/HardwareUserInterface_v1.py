@@ -22,6 +22,11 @@ class HardwareUserInterface_v1(GenericUserInterface):
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
 
+        # There's something about our 24V -> 5V transformer circuit and
+        # how the voltage changes when the HVAC goes on and off that
+        # causes 'edges' on the GPIO pins.  To get around it, we simply
+        # catch the ThermostatStateChangingEvent and ignore *ALL* user
+        # interactions until we receive the ThermostatStateChangedEvent
         eventBus = self._getService(EventBus)
         eventBus.installEventHandler(
             ThermostatStateChangingEvent, self.__thermostatStateChanging)
@@ -38,7 +43,7 @@ class HardwareUserInterface_v1(GenericUserInterface):
         self.__ignoreButtons = True
 
     def __thermostatStateChanged(self, event: ThermostatStateChangedEvent):
-        self.__ignoreButtons = True
+        self.__ignoreButtons = False
 
     def __subscribeToButton(
             self, pin: int, button: GenericUserInterface.Button):

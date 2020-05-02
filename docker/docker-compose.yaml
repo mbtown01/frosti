@@ -31,9 +31,10 @@ services:
       args:
         HOSTTYPE: ${HOSTTYPE}
         HOSTTYPE_IMAGE: ${HOSTTYPE_IMAGE_RPT}
-        NODEJS_VERSIOx  N: ${NODEJS_VERSION}
+        NODEJS_VERSION: ${NODEJS_VERSION}
       context: ../
       dockerfile: ./docker/rpt/Dockerfile
+    image: mbtown01/rpt:latest
     container_name: rpt-daemon
     labels: [rpt]
     privileged: true
@@ -56,6 +57,7 @@ services:
         NODEJS_VERSION: ${NODEJS_VERSION}
       context: ../
       dockerfile: ./docker/rpt/Dockerfile
+    image: mbtown01/rpt:latest
     container_name: rpt-term
     labels: [rpt]
     privileged: true
@@ -78,6 +80,7 @@ services:
         NODEJS_VERSION: ${NODEJS_VERSION}
       context: ../
       dockerfile: ./docker/rpt/Dockerfile
+    image: mbtown01/rpt:latest
     container_name: rpt-daemon-debug
     labels: [rpt]
     privileged: true
@@ -103,6 +106,7 @@ services:
         NODEJS_VERSION: ${NODEJS_VERSION}
       context: ../
       dockerfile: ./docker/rpt/Dockerfile
+    image: mbtown01/rpt:latest
     container_name: rpt-term-debug
     labels: [rpt]
     privileged: true
