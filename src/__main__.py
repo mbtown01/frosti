@@ -3,6 +3,7 @@ from curses import wrapper
 from sys import exc_info
 from traceback import format_exception
 import argparse
+import RPi.GPIO as GPIO
 
 from src.logging import log, setupLogging
 from src.core import EventBus, ThermostatState
@@ -24,6 +25,9 @@ class RootDriver(ServiceProvider):
         parser.add_argument(
             '--hardware', choices=['term', 'v1', 'v2', 'auto'], default='term',
             help='Pick the underlying hardware supporting operations')
+        parser.add_argument(
+            '--diagnostics', default=False, action='store_true',
+            help='Run hardware diagnostics and exit')
         self.__args = parser.parse_args()
 
     def __detectHardware(self):
@@ -83,6 +87,7 @@ class RootDriver(ServiceProvider):
             from src.hardware.Bme280EnvironmentSensor \
                 import Bme280EnvironmentSensor as HardwareEnvironmentSensor
 
+            GPIO.setmode(GPIO.BCM)
             setupLogging()
             self.__setupCore()
 
@@ -90,6 +95,7 @@ class RootDriver(ServiceProvider):
                 self.__args.hardware = self.__detectHardware()
                 log.info(f"Starting RPT on hardware {self.__args.hardware}")
 
+            self.__args.hardware = 'v2'
             if self.__args.hardware == 'v1':
                 from src.hardware.HardwareUserInterface_v1 \
                     import HardwareUserInterface_v1 as HardwareUserInterface
@@ -111,8 +117,11 @@ class RootDriver(ServiceProvider):
                     f'Hardware option {self.__args.hardware} not supported')
 
             self.sensor = HardwareEnvironmentSensor()
+            relayManagementService = RelayManagementService(relays=relays)
             self.__installService(
-                RelayManagementService, RelayManagementService(relays=relays))
+                RelayManagementService, relayManagementService)
+            if self.__args.diagnostics:
+                relayManagementService.runDiagnostics()
 
             self.userInterface = HardwareUserInterface()
             self.userInterface.setServiceProvider(self)

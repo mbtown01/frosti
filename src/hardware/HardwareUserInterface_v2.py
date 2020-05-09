@@ -1,7 +1,8 @@
+from time import sleep
+
 # pylint: disable=import-error
 import RPi.GPIO as GPIO
 import board
-
 from busio import I2C
 from digitalio import Direction, Pull
 from adafruit_mcp230xx.mcp23017 import MCP23017
@@ -9,17 +10,14 @@ from adafruit_mcp230xx.mcp23017 import MCP23017
 
 from .HD44780Display import HD44780Display
 from .LtrbRasfRgbLed import LtrbRasfRgbLed
-from src.core import EventBus
-from src.core.generics import GenericUserInterface
+from src.core import EventBus, ServiceProvider
+from src.core.generics import GenericUserInterface, GenericRgbLed
 
 
 class HardwareUserInterface_v2(GenericUserInterface):
 
     def __init__(self):
-        GPIO.setmode(GPIO.BCM)
         GPIO.setup(17, GPIO.IN, GPIO.PUD_UP)
-        GPIO.add_event_detect(
-            17, GPIO.FALLING, callback=self.__mcp23017_callback)
 
         self.__i2c = I2C(board.SCL, board.SDA)
         self.__mcp = MCP23017(self.__i2c)
@@ -60,8 +58,20 @@ class HardwareUserInterface_v2(GenericUserInterface):
         # 2, 3, 4 is RIGHT B, R, G
         super().__init__(lcd=self.__lcd, rgbLeds=self.__rgbLeds)
 
+    def setServiceProvider(self, provider: ServiceProvider):
+        super().setServiceProvider(provider)
+
+        GPIO.add_event_detect(
+            17, GPIO.FALLING, callback=self.__mcp23017_callback)
+
+        for color in GenericRgbLed.Color:
+            for led in self.__rgbLeds:
+                led.setColor(color)
+            sleep(0.25)
+        for led in self.__rgbLeds:
+            led.setColor(GenericRgbLed.Color.BLACK)
+
     def __mcp23017_callback(self, port):
-        eventBus = self._getService(EventBus)
         int_flag = self.__mcp.int_flag
         self.__mcp.clear_ints()
 
@@ -70,5 +80,6 @@ class HardwareUserInterface_v2(GenericUserInterface):
             if button is not None:
                 pin = self.__mcp.get_pin(p)
                 if not pin.value:
+                    eventBus = self._getService(EventBus)
                     eventBus.fireEvent(
                         GenericUserInterface.ButtonPressedEvent(button))

@@ -1,3 +1,5 @@
+from time import sleep
+
 from src.core import ServiceConsumer, ThermostatState, ServiceProvider
 from src.core.generics import GenericRelay
 
@@ -30,6 +32,30 @@ class RelayManagementService(ServiceConsumer):
 
         for relay in self.__relayMap.values():
             relay.openRelay()
+
+    def runDiagnostics(self):
+        relays = [
+            self.__relayMap[ThermostatState.FAN],
+            self.__relayMap[ThermostatState.COOLING],
+            self.__relayMap[ThermostatState.HEATING]
+        ]
+
+        for _ in range(10):
+            for relay in relays:
+                relay.closeRelay()
+            sleep(0.25)
+            for relay in relays:
+                relay.openRelay()
+            sleep(0.25)
+
+        for a, b, c in [(0, 1, 2), (1, 2, 0), (2, 0, 1)]:
+            for ra in [False, True]:
+                relays[a].closeRelay() if ra else relays[a].openRelay()
+                for rb in [False, True]:
+                    relays[b].closeRelay() if rb else relays[b].openRelay()
+                    for rc in [False, True]:
+                        relays[c].closeRelay() if rc else relays[c].openRelay()
+                        sleep(0.25)
 
     def openRelay(self, state: ThermostatState):
         """ Open the relay associated with the provided state """

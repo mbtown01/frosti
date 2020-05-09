@@ -12,8 +12,6 @@ from src.core.events import ThermostatStateChangingEvent, \
 class HardwareUserInterface_v1(GenericUserInterface):
 
     def __init__(self):
-        GPIO.setmode(GPIO.BCM)
-
         self.__ignoreButtons = False
         self.__lcd = HD44780Display(0x27, 20, 4)
         self.__rgbLeds = []
