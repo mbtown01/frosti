@@ -5,7 +5,7 @@ from time import time
 from traceback import format_exception
 
 from .EventBusTimer import EventBusTimer
-from src.logging import log
+from src.logging import log, handleException
 from .Event import Event
 
 
@@ -104,7 +104,7 @@ class EventBus:
                     # log.debug(f"===> TIMER {timer}")
                     timer.invoke(self.__now)
                 except:
-                    self.__handleException("processing timers")
+                    handleException("processing timers")
             timeout = min(timeout, nextInvoke)
 
         # Only deliver events to registered subscribers
@@ -116,7 +116,7 @@ class EventBus:
                     # log.debug(f"===> HANDLER {handler}")
                     handler(event)
                 except:
-                    self.__handleException("processing event queue")
+                    handleException("processing event queue")
 
         return max(0.0, timeout)
 
@@ -140,12 +140,4 @@ class EventBus:
                 log.info("Keyboard interrupt received, shutting down")
                 break
             except:
-                self.__handleException("executing main event loop")
-
-    def __handleException(self, source: str):
-        exc_type, exc_value, exc_traceback = exc_info()
-        errors = format_exception(
-            exc_type, exc_value, exc_traceback)
-        log.error(f"Encountered exception while {source}:")
-        for error in errors:
-            log.error(f"{error.rstrip()}")
+                handleException("executing main event loop")

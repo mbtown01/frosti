@@ -1,7 +1,9 @@
 import logging
+from sys import exc_info
+from traceback import format_exception
+from queue import Queue
 
 from logging.handlers import QueueHandler, RotatingFileHandler
-from queue import Queue
 
 # install the root logger
 logging.basicConfig(
@@ -33,3 +35,12 @@ def setupLogging(queue: Queue=None):
     handler.setFormatter(logging.Formatter(
         '[%(asctime)s] %(module)s %(levelname)s - %(message)s'))
     logging.getLogger('').addHandler(handler)
+
+
+def handleException(origin: str):
+    exc_type, exc_value, exc_traceback = exc_info()
+    lines = format_exception(
+        exc_type, exc_value, exc_traceback)
+    log.warning(f"{origin} encountered exception:")
+    for line in lines:
+        log.warning(f"{line.rstrip()}")

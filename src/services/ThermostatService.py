@@ -1,4 +1,4 @@
-from time import localtime, sleep
+from time import localtime
 
 from .ConfigService import ConfigService
 from .RelayManagementService import RelayManagementService
@@ -139,10 +139,8 @@ class ThermostatService(ServiceConsumer):
 
             relayManagementService.openRelay(self.__state)
             if newState.shouldAlsoRunFan:
-                sleep(0.5)
                 log.debug(f"State from {self.__state} -> ThermostatState.FAN")
                 relayManagementService.closeRelay(ThermostatState.FAN)
-            sleep(0.5)
             log.debug(f"State from {self.__state} -> {newState}")
             relayManagementService.closeRelay(newState)
             self.__state = newState

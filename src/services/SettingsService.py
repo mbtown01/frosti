@@ -5,6 +5,12 @@ from src.core import Event, ServiceConsumer, ServiceProvider, EventBus
 from src.core.events import PowerPriceChangedEvent
 
 
+def checkDict(data: dict, name: str, keys: list):
+    for key in keys:
+        if key not in data:
+            raise RuntimeError(f"'{name}' does not contain '{key}'")
+
+
 class SettingsChangedEvent(Event):
     """ Fired when any property of SettingsService changes """
     def __init__(self):
@@ -14,8 +20,7 @@ class SettingsChangedEvent(Event):
 class PriceOverride:
     """ Set of overrides for a given price point """
     def __init__(self, config: dict):
-        if 'price' not in config:
-            raise RuntimeError("Override does not contain 'price'")
+        checkDict(config, 'PriceOverride', ['price'])
 
         self.price = float(config.get('price'))
         self.comfortMin = config.get('comfortMin')
@@ -44,12 +49,7 @@ class Program:
     def reset(self):
         """ Force any changed values back to their defaults """
 
-        if 'comfortMin' not in self.__defaults:
-            raise RuntimeError(
-                f"Parameter 'comfortMin' not in program '{self.name}'")
-        if 'comfortMax' not in self.__defaults:
-            raise RuntimeError(
-                f"Parameter 'comfortMax' not in program '{self.name}'")
+        checkDict(self.__defaults, 'program', ['comfortMin', 'comfortMax'])
         self.comfortMin = float(self.__defaults['comfortMin'])
         self.comfortMax = float(self.__defaults['comfortMax'])
 
@@ -66,28 +66,17 @@ class Schedule:
     def __init__(self, name: str, config: dict):
         self.name = name
 
-        if 'days' not in config:
-            raise RuntimeError(f"Schedule '{name}' does not contain 'days'")
+        checkName = f"Schedule '{name}''"
+        checkDict(config, checkName, ['days', 'times'])
         if 0 == len(config['days']):
             raise RuntimeError(f"Schedule '{name}' has no day entries")
-        self.days = config['days']
-
-        if 'times' not in config:
-            raise RuntimeError(f"Schedule '{name}' does not contain 'times'")
         if 0 == len(config['times']):
             raise RuntimeError(f"Schedule '{name}' has no time entries")
+        self.days = config['days']
 
         self.__times = []
         for t in config['times']:
-            if 'hour' not in t:
-                raise RuntimeError(
-                    f"Schedule '{name}' 'times' entry missing 'hour'")
-            if 'minute' not in t:
-                raise RuntimeError(
-                    f"Schedule '{name}' 'times' entry missing 'minute'")
-            if 'program' not in t:
-                raise RuntimeError(
-                    f"Schedule '{name}' 'times' entry missing 'program'")
+            checkDict(t, checkName, ['hour', 'minute', 'program'])
             self.__times.append(Schedule.ScheduleTime(
                 minutes=60 * t['hour'] + t['minute'],
                 program=t['program']))
@@ -138,8 +127,6 @@ class SettingsService(ServiceConsumer):
         if 'programs' not in data['thermostat']:
             raise RuntimeError("No program configuration found in thermostat")
         programs = data['thermostat']['programs']
-        if '_default' not in programs:
-            raise RuntimeError(f"No default program configured")
 
         self.__delta = config.resolve('thermostat', 'delta', 1.0)
         self.__mode = SettingsService.Mode.AUTO
@@ -149,6 +136,13 @@ class SettingsService(ServiceConsumer):
         self.__programs = {}
         for name in programs:
             self.__programs[name] = Program(name, programs[name])
+
+        defaults = data['thermostat'].get(
+            'defaults', {'comfortMin': 70, 'comfortMax': 78})
+        comfortMin = defaults.get('comfortMin', 70)
+        comfortMax = defaults.get('comfortMax', 78)
+        self.__programs['_default'] = Program(
+            'default', {'comfortMin': comfortMin, 'comfortMax': comfortMax})
         self.__currentProgram = self.__programs['_default']
 
         self.__schedules = {}
@@ -160,7 +154,7 @@ class SettingsService(ServiceConsumer):
                     if t.program not in self.__programs:
                         raise RuntimeError(
                             f"Schedule '{name}' refers to " +
-                            f"bad program '{t.program}'")
+                            f"program '{t.program}' that is not defined")
 
     def __repr__(self):
         return f"[{self.__mode}] heatAt: {self.comfortMin} " + \

@@ -11,10 +11,14 @@ thermostat:
     delta: 1.0
     fanRunout: 30
     backlightTimeout: 10
+    defaults: { comfortMin: 68, comfortMax: 75 }
+
     programs:
-        _default:
-            comfortMin: 68
-            comfortMax: 75
+        away:
+            comfortMin: 64
+            comfortMax: 78
+            priceOverrides:
+                - { price: 0.25, comfortMax: 82 }
         overnight:
             comfortMin: 68
             comfortMax: 72
@@ -28,11 +32,6 @@ thermostat:
             priceOverrides:
                 - { price: 0.50, comfortMax: 80 }
                 - { price: 1.00, comfortMax: 88 }
-        away:
-            comfortMin: 64
-            comfortMax: 78
-            priceOverrides:
-                - { price: 0.25, comfortMax: 82 }
     schedule:
         work week:
             days: [0, 1, 2, 3]
@@ -52,6 +51,7 @@ class Test_Settings(unittest.TestCase):
 
     def setup_method(self, method):
         self.serviceProvider = ServiceProvider()
+        # This is a TUESDAY
         testTime = strptime('01/01/19 08:01:00', '%m/%d/%y %H:%M:%S')
         self.eventBus = EventBus(now=mktime(testTime))
         self.serviceProvider.installService(EventBus, self.eventBus)

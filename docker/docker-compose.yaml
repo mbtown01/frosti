@@ -6,6 +6,7 @@ services:
     labels: [rpt]
     image: ${HOSTTYPE_IMAGE_POSTGRES}
     environment:
+      POSTGRES_USER: "rpt"
       POSTGRES_PASSWORD: "rpt"
       POSTGRES_DB: "rpt"
     volumes:

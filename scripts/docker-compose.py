@@ -25,7 +25,7 @@ ALL_ENV = {
         'HOSTTYPE_IMAGE_GRAFANA':
             'unibaktr/grafana:v5.4.2@sha256:7aa34a3729674298da67b8197e'
             '64d120225e34c5829b87a9f28dc179c66a9ff2',
-        'HOSTTYPE_IMAGE_POSTGRES': 'postgres:12.2-alpine',
+        'HOSTTYPE_IMAGE_POSTGRES': 'arm32v6/postgres:12.2-alpine',
         'NODEJS_VERSION': 'node-v11.15.0-linux-armv6l'
     }
 }

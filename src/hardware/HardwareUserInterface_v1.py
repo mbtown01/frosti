@@ -7,6 +7,7 @@ from src.core import ServiceProvider, EventBus
 from src.core.generics import GenericUserInterface
 from src.core.events import ThermostatStateChangingEvent, \
     ThermostatStateChangedEvent
+from src.logging import log
 
 
 class HardwareUserInterface_v1(GenericUserInterface):
@@ -59,3 +60,6 @@ class HardwareUserInterface_v1(GenericUserInterface):
             eventBus = self._getService(EventBus)
             button = self.__pinToButtonMap[channel]
             eventBus.fireEvent(GenericUserInterface.ButtonPressedEvent(button))
+        else:
+            log.debug("Ignoring buttons")
+
