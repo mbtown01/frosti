@@ -3,7 +3,7 @@ import smbus
 # pylint: enable=import-error
 
 from time import sleep
-from src.logging import log
+from src.logging import log, handleException
 from src.core.generics import GenericLcdDisplay
 
 
@@ -89,7 +89,7 @@ class HD44780Display(GenericLcdDisplay):
                 self.clear()
                 log.info("Re-connected to LCD, reset failuire count to zero")
         except:
-            log.error(f"LCD write_cmd failed, total={self.__failCount}")
+            handleException("LCD write process")
             self.__failCount += 1
 
     # clocks EN to latch command

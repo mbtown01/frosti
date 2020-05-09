@@ -1,10 +1,8 @@
 from queue import Queue
 from curses import wrapper
-from sys import exc_info
-from traceback import format_exception
 import argparse
 
-from src.logging import log, setupLogging
+from src.logging import log, setupLogging, handleException
 from src.core import EventBus, ThermostatState
 from src.core.generics import GenericEnvironmentSensor
 from src.services import ConfigService, SettingsService, \
@@ -130,12 +128,7 @@ class RootDriver(ServiceProvider):
             dataExporter = PostgresAdapterService()
             dataExporter.setServiceProvider(self)
         except:
-            exc_type, exc_value, exc_traceback = exc_info()
-            lines = format_exception(
-                exc_type, exc_value, exc_traceback)
-            log.warning(f"Postgres startup encountered exception:")
-            for line in lines:
-                log.warning(f"{line.rstrip()}")
+            handleException("Postgres startup")
 
         self.__installService(
             EnvironmentSamplingService,
