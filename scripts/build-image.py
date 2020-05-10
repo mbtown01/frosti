@@ -9,33 +9,9 @@ from io import StringIO
 
 class ImageBuilder:
 
-    def __init__(self):
-        parser = argparse.ArgumentParser(
-            description='Create a bootable Pi image')
-        parser.add_argument(
-            '--hostname', type=str, default=None,
-            help='Name of the host')
-        parser.add_argument(
-            '--image', type=str, required=True,
-            help='Path to input image file')
-        parser.add_argument(
-            '--user', type=str, default=None,
-            help='Name of the user to create')
-        parser.add_argument(
-            '--netroot', type=str, default=None,
-            help='Build image designed to PXIE mount from NFS location')
-        parser.add_argument(
-            '--debug', dest='debug', action='store_true',
-            help='Add debugging output')
-        parser.add_argument(
-            '--ssid', type=str, default=None,
-            help='SSID of a wifi network to add')
-        parser.add_argument(
-            '--passwd', type=str, default=None,
-            help='Password of a wifi network to add')
-        parser.set_defaults(debug=False)
-
-        self.args = parser.parse_args()
+    def __init__(self, args):
+        self.args = args
+        
         if self.args.debug:
             print(f"{self.args.user}")
             print(f"{self.args.hostname}")
@@ -70,11 +46,10 @@ class ImageBuilder:
         return rtn
 
     def mount(self, fstype, mountpoint):
-        rtn = self.shell(
-            [
-                'fdisk', '-b', '512', '-o', 'type,size,start', '-l',
-                '--bytes', self.args.image
-            ], 0)
+        rtn = self.shell([
+            'fdisk', '-b', '512', '-o', 'type,size,start', '-l',
+            '--bytes', self.args.image
+        ], 0)
 
         offset = -1
         for line in StringIO(rtn['stdout']).readlines():
@@ -83,16 +58,14 @@ class ImageBuilder:
                 size = match.group(1)
                 offset = 512*int(match.group(2))
         if -1 == offset:
-            raise Exception("Couldn't find file system {fs} in {image}".format(
-                fs=fstype, image=self.args.image))
+            raise Exception(
+                f"Couldn't find file system {fstype} in {self.argsimage}")
 
         self.shell(['mkdir', '-p', mountpoint], 0)
-        self.shell(
-            [
-                'mount', '-v', '-o',
-                'offset='+str(offset)+',sizelimit='+size,
-                self.args.image, mountpoint
-            ], 0)
+        self.shell([
+            'mount', '-v', '-o', f'offset={offset},sizelimit={size}',
+            self.args.image, mountpoint
+        ], 0)
 
     def execute(self):
         mount_root = '/tmp/build-root'
@@ -114,16 +87,11 @@ class ImageBuilder:
             # to /boot/config.txt?
 
             # Don't try to mount the SD card
-            self.shell(
-                [
-                    'cp', mount_root+'/etc/fstab',
-                    mount_root+'/etc/fstab.orig'
-                ], 0)
-            rtn = self.shell(
-                [
-                    'grep', '-v', '^PARTUUID',
-                    mount_root+'/etc/fstab.orig'
-                ], 0)
+            self.shell([
+                'cp', mount_root+'/etc/fstab', mount_root+'/etc/fstab.orig'
+            ], 0)
+            rtn = self.shell(                [
+                'grep', '-v', '^PARTUUID', mount_root+'/etc/fstab.orig'], 0)
             with open(mount_root+'/etc/fstab', "w") as outfile:
                 outfile.write(rtn['stdout'])
 
@@ -150,8 +118,7 @@ class ImageBuilder:
             self.shell(['mkdir', '-p', pi_home+"/.ssh"], 0)
             self.shell([
                 'bash', '-c',
-                f'cat {user_home}/id_rsa.pub >> ' +
-                f'{pi_home}/.ssh/authorized_keys'
+                f'cat {user_home}/id_rsa.pub >> {pi_home}/.ssh/authorized_keys'
             ], 0)
             self.shell(['chmod', '600', pi_home+"/.ssh/authorized_keys"], 0)
             self.shell(
@@ -171,23 +138,43 @@ class ImageBuilder:
                     '}\n'
                 )
 
-            # self.shell([
-            #     'bash', '-c',
-            #     f'wpa_passphrase {self.args.ssid} {self.args.passwd} | ' +
-            #     f'grep -v "#" >> ' +
-            #     f'{mount_root}/etc/wpa_supplicant/wpa_supplicant.conf'
-            # ], 0)
-
         # Enable ssh on the pi
         if self.args.hostname is not None:
-            self.shell(
-                [
-                    'bash', '-c',
-                    f'echo {self.args.hostname} > {mount_root}/etc/hostname'
-                ], 0)
+            self.shell([
+                'bash', '-c',
+                f'echo {self.args.hostname} > {mount_root}/etc/hostname'
+            ], 0)
 
         self.shell(['touch', mount_boot+'/ssh'], 0)
+        self.shell(['umount', mount_root, mount_boot], 0)
 
 
 if __name__ == "__main__":
-    ImageBuilder().execute()
+    parser = argparse.ArgumentParser(
+        description='Create a bootable Pi image')
+    parser.add_argument(
+        '--hostname', type=str, default=None,
+        help='Name of the host')
+    parser.add_argument(
+        '--image', type=str, required=True,
+        help='Path to input image file')
+    parser.add_argument(
+        '--user', type=str, default=None,
+        help='Name of the user to create')
+    parser.add_argument(
+        '--netroot', type=str, default=None,
+        help='Build image designed to PXIE mount from NFS location')
+    parser.add_argument(
+        '--debug', dest='debug', action='store_true',
+        help='Add debugging output')
+    parser.add_argument(
+        '--ssid', type=str, default=None,
+        help='SSID of a wifi network to add')
+    parser.add_argument(
+        '--passwd', type=str, default=None,
+        help='Password of a wifi network to add')
+    parser.set_defaults(debug=False)
+
+    args = parser.parse_args()
+
+    ImageBuilder(args).execute()

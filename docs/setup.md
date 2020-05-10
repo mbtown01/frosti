@@ -8,7 +8,7 @@ git clone https://github.com/mbtown01/rpt.git
 
 ## Docker
 
-We're using docker-compose to make the runtime and it's set of dependencies as portable as possible.  This includes not only python and the modules, but also 
+We're using docker-compose to make the runtime and it's set of dependencies as portable as possible.  This includes not only python and the modules, but also
 any libraries that need to be installed in support of python-land *plus* all
 the services like postgres and grafana that run in support of the thermostat.
 
@@ -34,7 +34,7 @@ make the first container orchestration to host the dev environment
 ./scripts/docker-compose.py build rpt
 ```
 
-For convenience, we've wrapped docker-compose so that the appropriate flags and environment are set before the real docker-compose is exec()'d. 
+For convenience, we've wrapped docker-compose so that the appropriate flags and environment are set before the real docker-compose is exec()'d.
 
 The process above is essentially building out your development environment
 with a base linux, python, and all the modules you'll need to
@@ -51,7 +51,7 @@ If the above worked, **congrats** -- you now have a local copy of the source
 code and a container setup to run it in.  You can tweak the code and re-run the
 command above to test your changes.
 
-> *Fun fact - * Tell Docker to only use one core on your laptop!  That will
+> *Fun fact -* Tell Docker to only use one core on your laptop!  That will
 save you a ton of battery!
 
 ## Docker Hub
@@ -152,6 +152,7 @@ summary, from your local repo
 cp etc/rpt.service /etc/systemd/system
 sudo systemctl enable rpt
 ```
+
 ### Random terminal
 
 To get a terminal in one of your composed containers (e.g. rpt)
