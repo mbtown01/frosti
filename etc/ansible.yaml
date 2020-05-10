@@ -122,10 +122,16 @@
     become: yes
     become_method: sudo
 
-- name: Install rpt service 
+- name: Setup rpt service 
   connection: local
   hosts: localhost
   tasks: 
+  - name: Set the timezone
+    timezone:
+      name: America/Chicago
+    become: yes
+    become_method: sudo
+  
   - name: Install the service configuration
     command: bash -c "cp /usr/local/rpt/etc/rpt.service /etc/systemd/system"
     args:
