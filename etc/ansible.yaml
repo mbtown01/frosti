@@ -12,11 +12,31 @@
     become: yes
     become_method: sudo
 
+- name: Setup i2c
+  connection: local
+  hosts: localhost
+  tasks: 
+  - name: Update /boot/config.txt
+    lineinfile:
+      path: /boot/config.txt
+      regexp: '^dtparam=i2c_arm'
+      line: 'dtparam=i2c_arm=on'
+    become: yes
+    become_method: sudo
+
+  - name: Update /etc/modules
+    lineinfile:
+      path: /etc/modules
+      regexp: '^i2c-dev'
+      line: 'i2c-dev'
+    become: yes
+    become_method: sudo
+
 - name: Configure the watchdog timer
   connection: local
   hosts: localhost
   tasks: 
-  - name: Update the boot config.txt
+  - name: Update /boot/config.txt
     lineinfile:
       path: /boot/config.txt
       regexp: '^dtparam=watchdog'
