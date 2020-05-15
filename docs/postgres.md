@@ -56,7 +56,6 @@ from (
         extract(epoch from time-lag(time) over (order by time)) as delta
     from thermostat_state
     ) as foo
-;
 ```
 
 Calculate the percentage of time we spend cooling over the past 24 hours
@@ -71,7 +70,6 @@ from (
     from thermostat_state
     where time > NOW() - INTERVAL '1 DAY'
     ) as foo
-;
 ```
 
 Calculate the percentage of time we spend cooling over the past 24 hours
@@ -89,5 +87,51 @@ from (
     ) as foo
 where
     lastCooling > 0
-;
+```
+
+```sql
+select
+    NOW() as time,
+    avg(delta*lastCooling)/60.0 as "average cycle time"
+from (
+    select
+        lag(cooling) over (order by time) as lastCooling,
+        extract(epoch from time-lag(time) over (order by time)) as delta
+    from thermostat_state
+    where time > NOW() - INTERVAL '1 DAY'
+    ) as foo
+where
+    lastCooling > 0
+```
+
+```sql
+select
+    measurement, bucket, count(bucket)
+from (
+    select
+        NOW() as time,
+        measurement,
+        round(delta*value/60)*1 as bucket
+    from (
+        select
+            'cooling' as measurement,
+            lag(cooling) over (order by time) as value,
+            extract(epoch from time-lag(time) over (order by time)) as delta
+        from thermostat_state
+        where time > NOW() - INTERVAL '1 DAY'
+        union
+        select
+            'heating' as measurement,
+            lag(heating) over (order by time) as value,
+            extract(epoch from time-lag(time) over (order by time)) as delta
+        from thermostat_state
+        where time > NOW() - INTERVAL '1 DAY'
+        ) as foo
+    where
+        value > 0
+) as bar
+group by
+    measurement, bucket
+order by
+    bucket
 ```
