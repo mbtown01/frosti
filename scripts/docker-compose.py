@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from os import environ, execve
+from os import environ, execve, path
 from sys import argv
 from subprocess import check_output
 
@@ -11,7 +11,7 @@ ALL_HOSTTYPES = {
     'armv6l': 'arm'
 }
 
-ALL_ENV = {
+ENV_BY_HOSTTYPE = {
     'x86_64': {
         'HOSTTYPE': 'x86_64',
         'HOSTTYPE_IMAGE_RPT': 'ubuntu:19.10',
@@ -30,13 +30,34 @@ ALL_ENV = {
     }
 }
 
+ENV_BY_OSNAME = {
+    'Darwin': {
+        'POSTGRES_DATA': '/private/var/lib/postgresql/data'
+    },
+    'Linux': {
+        'POSTGRES_DATA': '/var/lib/postgresql/data'
+    }
+}
+osName = check_output(['uname', '-s']).decode('UTF-8').rstrip()
+osEnv = ENV_BY_OSNAME.get(osName)
+if osEnv is None:
+    raise Exception(f"OS {osName} is not supported")
+
 uname = check_output(['uname', '-m']).decode('UTF-8').rstrip()
 hosttype = ALL_HOSTTYPES.get(uname)
 if hosttype is None:
     raise Exception(f"Host with uname {uname} is not supported")
 
+postgresData = ENV_BY_OSNAME[osName]['POSTGRES_DATA']
+if not path.isdir(postgresData):
+    raise Exception(
+        f"Directory {postgresData} must exist and be "
+        "writable by docker user")
+
 environment = environ.copy()
-for key, value in ALL_ENV[hosttype].items():
+for key, value in ENV_BY_HOSTTYPE[hosttype].items():
+    environment[key] = value
+for key, value in ENV_BY_OSNAME[osName].items():
     environment[key] = value
 
 timezone = check_output(

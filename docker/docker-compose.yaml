@@ -1,4 +1,5 @@
 version: "3.7"
+
 services:
 
   postgres:
@@ -9,15 +10,19 @@ services:
       POSTGRES_USER: "rpt"
       POSTGRES_PASSWORD: "rpt"
       POSTGRES_DB: "rpt"
+    ports:
+      - "5432:5432"
     volumes:
-      - ./postgres:/var/lib/postgresql:delegated
+      - ${POSTGRES_DATA}:/var/lib/postgresql/data:delegated
     
   grafana:
     container_name: rpt-grafana
     labels: [rpt]
     image: ${HOSTTYPE_IMAGE_GRAFANA}
     environment:
-      GF_PATHS_CONFIG: "/var/lib/grafana/grafana.ini"
+      GF_SECURITY_ADMIN_PASSWORD: "rpt"
+      GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION: 'true'
+      GF_AUTH.ANONYMOUS_ENABLED: 'true'
     ports:
       - "3000:3000"
     user: "0"

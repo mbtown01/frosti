@@ -5,7 +5,7 @@ from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy.sql import func
 
 from .SettingsService import SettingsService, SettingsChangedEvent
-from src.logging import log
+from src.logging import handleException
 from src.core import ServiceProvider, ServiceConsumer, EventBus, \
     ThermostatState
 from src.core.events import ThermostatStateChangedEvent, \
@@ -114,28 +114,28 @@ class PostgresAdapterService(ServiceConsumer):
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
 
-        self.__postgresUrl = 'postgresql://rpt:rpt@postgres/rpt'
-        if not database_exists(self.__postgresUrl):
-            create_database(self.__postgresUrl)
-        self.__engine = create_engine(self.__postgresUrl, echo=False)
-        Session = sessionmaker(bind=self.__engine)
-        self.__session = Session()
-        self.__connection = self.__engine.connect()
-
-        Base.metadata.create_all(self.__engine)
-
+        eventBus = self._getService(EventBus)
         try:
-            eventBus = self._getService(EventBus)
-            eventBus.installEventHandler(
-                SensorDataChangedEvent, self.__sensorDataChanged)
-            eventBus.installEventHandler(
-                ThermostatStateChangedEvent, self.__thermostatStateChanged)
-            eventBus.installEventHandler(
-                PowerPriceChangedEvent, self.__powerPriceChanged)
-            eventBus.installEventHandler(
-                SettingsChangedEvent, self.__processSettingsChanged)
-        except Exception:
-            log.warning('Unable to connect to local influx instance')
+            self.__postgresUrl = 'postgresql://rpt:rpt@postgres/rpt'
+            if not database_exists(self.__postgresUrl):
+                create_database(self.__postgresUrl)
+            self.__engine = create_engine(self.__postgresUrl, echo=False)
+            Session = sessionmaker(bind=self.__engine)
+            self.__session = Session()
+            self.__connection = self.__engine.connect()
+
+            Base.metadata.create_all(self.__engine)
+        except:
+            handleException("Connecting to postgres")
+
+        eventBus.installEventHandler(
+            SensorDataChangedEvent, self.__sensorDataChanged)
+        eventBus.installEventHandler(
+            ThermostatStateChangedEvent, self.__thermostatStateChanged)
+        eventBus.installEventHandler(
+            PowerPriceChangedEvent, self.__powerPriceChanged)
+        eventBus.installEventHandler(
+            SettingsChangedEvent, self.__processSettingsChanged)
 
     def __powerPriceChanged(self, event: PowerPriceChangedEvent):
         entity = OrmGriddyUpdate()

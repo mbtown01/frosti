@@ -131,7 +131,15 @@
       name: America/Chicago
     become: yes
     become_method: sudo
-  
+
+  - name: Create postgress data directory
+  - file:
+      path: /var/lib/postgresql/data
+      state: directory
+      mode: '0755'
+      owner: pi
+      group: pi
+
   - name: Install the service configuration
     command: bash -c "cp /usr/local/rpt/etc/rpt.service /etc/systemd/system"
     args:
@@ -145,4 +153,3 @@
       enabled: yes
     become: yes
     become_method: sudo
-
