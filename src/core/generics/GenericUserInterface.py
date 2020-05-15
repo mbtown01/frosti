@@ -17,7 +17,7 @@ class GenericUserInterface(ServiceConsumer):
         UP = 1
         DOWN = 2
         MODE = 3
-        WAKE = 4
+        NEXT = 4
 
     class ButtonPressedEvent(Event):
         def __init__(self, button):
@@ -102,19 +102,24 @@ class GenericUserInterface(ServiceConsumer):
         self.redraw()
 
     def __buttonPressedHandler(self, event: ButtonPressedEvent):
-        self.backlightReset()
-        eventBus = self._getService(EventBus)
+        if self.__lcd.backlightStatus:
+            eventBus = self._getService(EventBus)
+            self.backlightReset()
 
-        if event.button == GenericUserInterface.Button.UP:
-            eventBus.fireEvent(UserThermostatInteractionEvent(
-                UserThermostatInteractionEvent.COMFORT_RAISE))
-        elif event.button == GenericUserInterface.Button.DOWN:
-            eventBus.fireEvent(UserThermostatInteractionEvent(
-                UserThermostatInteractionEvent.COMFORT_LOWER))
-        elif event.button == GenericUserInterface.Button.MODE:
-            eventBus.fireEvent(UserThermostatInteractionEvent(
-                UserThermostatInteractionEvent.MODE_NEXT))
-        elif event.button == GenericUserInterface.Button.WAKE:
+            if event.button == GenericUserInterface.Button.UP:
+                eventBus.fireEvent(UserThermostatInteractionEvent(
+                    UserThermostatInteractionEvent.COMFORT_RAISE))
+            elif event.button == GenericUserInterface.Button.DOWN:
+                eventBus.fireEvent(UserThermostatInteractionEvent(
+                    UserThermostatInteractionEvent.COMFORT_LOWER))
+            elif event.button == GenericUserInterface.Button.MODE:
+                eventBus.fireEvent(UserThermostatInteractionEvent(
+                    UserThermostatInteractionEvent.MODE_NEXT))
+            elif event.button == GenericUserInterface.Button.NEXT:
+                self.__redrawAndRotate()
+                self.__redrawAndRotateInvoker.reset()
+        else:
+            self.backlightReset()
             self.__lcd.hardReset()
             self.__lcd.clear()
             self.redraw()

@@ -10,14 +10,14 @@ services:
       POSTGRES_PASSWORD: "rpt"
       POSTGRES_DB: "rpt"
     volumes:
-      - type: volume
-        source: postgres
-        target: /var/lib/postgresql
-
+      - ./postgres:/var/lib/postgresql:delegated
+    
   grafana:
     container_name: rpt-grafana
     labels: [rpt]
     image: ${HOSTTYPE_IMAGE_GRAFANA}
+    environment:
+      GF_PATHS_CONFIG: "/var/lib/grafana/grafana.ini"
     ports:
       - "3000:3000"
     user: "0"
@@ -124,5 +124,25 @@ services:
       '--host', '0.0.0.0', '--port', '3001', '--wait', '-m', 'src',
       '--hardware', 'term']
 
-volumes:
-  postgres:
+  rpt-dev:
+    build:
+      args:
+        HOSTTYPE: ${HOSTTYPE}
+        HOSTTYPE_IMAGE: ${HOSTTYPE_IMAGE_RPT}
+        NODEJS_VERSION: ${NODEJS_VERSION}
+      context: ../
+      dockerfile: ./docker/rpt/Dockerfile
+    image: mbtown01/rpt:latest
+    container_name: rpt-dev
+    labels: [rpt]
+    privileged: true
+    environment:
+      TZ: ${TZ}
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+      - grafana
+    volumes:
+      - ../:/usr/local/rpt
+    entrypoint: ['bash', '-c', 'while sleep 600; do /bin/false; done']

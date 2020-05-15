@@ -7,9 +7,7 @@ from .TerminalDisplay import TerminalDisplay
 from .TerminalRgbLed import TerminalRgbLed
 from .TerminalRedrawEvent import TerminalRedrawEvent
 
-from src.core.events import  \
-    PowerPriceChangedEvent, SensorDataChangedEvent, \
-    UserThermostatInteractionEvent
+from src.core.events import PowerPriceChangedEvent, SensorDataChangedEvent
 from src.core import EventBus, Event, ServiceProvider
 from src.core.generics import GenericEnvironmentSensor, GenericRgbLed, \
     GenericUserInterface
@@ -141,19 +139,21 @@ class TerminalUserInterface(GenericUserInterface):
             eventBus.fireEvent(PowerPriceChangedEvent(
                 price=self.__lastPrice + 0.25, nextUpdate=1))
         elif char == ord('1'):
-            super().backlightReset()
-            eventBus.fireEvent(UserThermostatInteractionEvent(
-                UserThermostatInteractionEvent.COMFORT_RAISE))
+            eventBus.fireEvent(
+                GenericUserInterface.ButtonPressedEvent(
+                    GenericUserInterface.Button.UP))
         elif char == ord('2'):
-            super().backlightReset()
-            eventBus.fireEvent(UserThermostatInteractionEvent(
-                UserThermostatInteractionEvent.COMFORT_LOWER))
+            eventBus.fireEvent(
+                GenericUserInterface.ButtonPressedEvent(
+                    GenericUserInterface.Button.DOWN))
         elif char == ord('3'):
-            super().backlightReset()
-            eventBus.fireEvent(UserThermostatInteractionEvent(
-                UserThermostatInteractionEvent.MODE_NEXT))
+            eventBus.fireEvent(
+                GenericUserInterface.ButtonPressedEvent(
+                    GenericUserInterface.Button.MODE))
         elif char == ord('4'):
-            super().backlightReset()
+            eventBus.fireEvent(
+                GenericUserInterface.ButtonPressedEvent(
+                    GenericUserInterface.Button.NEXT))
         elif char == curses.KEY_UP:
             self.__environmentSensor.temperature += 1
             eventBus.fireEvent(SensorDataChangedEvent(

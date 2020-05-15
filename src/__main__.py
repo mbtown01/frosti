@@ -1,7 +1,6 @@
 from queue import Queue
 from curses import wrapper
 import argparse
-import RPi.GPIO as GPIO
 
 from src.logging import log, setupLogging, handleException
 from src.core import EventBus, ThermostatState
@@ -84,6 +83,7 @@ class RootDriver(ServiceProvider):
                 import PanasonicAgqRelay as HardwareRelay
             from src.hardware.Bme280EnvironmentSensor \
                 import Bme280EnvironmentSensor as HardwareEnvironmentSensor
+            import RPi.GPIO as GPIO
 
             GPIO.setmode(GPIO.BCM)
             setupLogging()

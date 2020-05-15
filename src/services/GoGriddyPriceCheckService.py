@@ -1,6 +1,5 @@
 import requests
 import json
-from time import sleep
 from threading import Thread
 
 from .ConfigService import ConfigService
@@ -37,7 +36,12 @@ class GoGriddyPriceCheckService(ServiceConsumer):
             'memberID': config.resolve('gogriddy', 'memberId'),
             'settlement_point': config.resolve('gogriddy', 'settlementPoint')
         }
+        eventBus = self._getService(EventBus)
+        self.__startUpdatePriceHandler = \
+            eventBus.installTimer(
+                5.0, handler=self.__startUpdatePrice, oneShot=True)
 
+    def __startUpdatePrice(self):
         """ Kickoff a 2nd thread to get the actual power price """
         Thread(target=self.__updatePrice, name="GoGriddy updater").start()
 
@@ -45,24 +49,22 @@ class GoGriddyPriceCheckService(ServiceConsumer):
         """ Gets the current price info and fires a PowerPriceChangedEvent.
         Designed to be called on another thread to not block execution """
         eventBus = self._getService(EventBus)
-        sleep(5.0)
 
-        while True:
-            try:
-                result = requests.post(
-                    self.__apiUrl, data=json.dumps(self.__apiPostData))
-                data = json.loads(result.text)
-                event = PowerPriceChangedEvent(
-                    price=float(data["now"]["price_ckwh"]) / 100.0,
-                    nextUpdate=float(data['seconds_until_refresh'])
-                )
+        try:
+            result = requests.post(
+                self.__apiUrl, data=json.dumps(self.__apiPostData))
+            data = json.loads(result.text)
+            event = PowerPriceChangedEvent(
+                price=float(data["now"]["price_ckwh"]) / 100.0,
+                nextUpdate=float(data['seconds_until_refresh'])
+            )
 
-                log.info(
-                    f"Power price is now {event.price:.4f}/kW*h, next update "
-                    f"in {event.nextUpdate}s")
+            self.__startUpdatePriceHandler.reset(frequency=event.nextUpdate)
+            log.info(
+                f"Power price is now {event.price:.4f}/kW*h, next update "
+                f"in {event.nextUpdate}s")
 
-                eventBus.fireEvent(event)
-                sleep(event.nextUpdate)
-            except:
-                handleException("GoGriddy price checker")
-                sleep(30)
+            eventBus.fireEvent(event)
+        except:
+            handleException("GoGriddy price checker")
+            self.__startUpdatePriceHandler.reset(frequency=5)
