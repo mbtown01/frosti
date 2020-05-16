@@ -28,32 +28,20 @@ ENV_BY_HOSTTYPE = {
             '64d120225e34c5829b87a9f28dc179c66a9ff2',
         'HOSTTYPE_IMAGE_POSTGRES': 'arm32v6/postgres:12.2-alpine',
         'NODEJS_VERSION': 'node-v11.15.0-linux-armv6l',
-        'GRAFANA_VERSION': 'grafana_6.7.3_armhf.deb'
+        'GRAFANA_VERSION': 'grafana-rpi_6.7.3_armhf.deb'
     }
 }
-
-# Not currently using this but could in the future
-ENV_BY_OSNAME = {
-    'Darwin': {
-    },
-    'Linux': {
-    }
-}
-
-osName = check_output(['uname', '-s']).decode('UTF-8').rstrip()
-osEnv = ENV_BY_OSNAME.get(osName)
-if osEnv is None:
-    raise Exception(f"OS {osName} is not supported")
 
 uname = check_output(['uname', '-m']).decode('UTF-8').rstrip()
+if argv[1] == '--arch':
+    uname = argv[2]
+    argv = argv[3:]
 hosttype = ALL_HOSTTYPES.get(uname)
 if hosttype is None:
     raise Exception(f"Host with uname {uname} is not supported")
 
 environment = environ.copy()
 for key, value in ENV_BY_HOSTTYPE[hosttype].items():
-    environment[key] = value
-for key, value in ENV_BY_OSNAME[osName].items():
     environment[key] = value
 
 timezone = check_output(

@@ -34,7 +34,8 @@ make the first container orchestration to host the dev environment
 ./scripts/docker-compose.py build rpt
 ```
 
-For convenience, we've wrapped docker-compose so that the appropriate flags and environment are set before the real docker-compose is exec()'d.
+For convenience, we've wrapped docker-compose so that the appropriate flags and
+environment are set before the real docker-compose is exec()'d.
 
 The process above is essentially building out your development environment
 with a base linux, python, and all the modules you'll need to
@@ -133,6 +134,13 @@ In summary, when the base image coming from an arm-based container, docker
 seems to realize this and know that it needs emulation should you be
 building on an non-arm platform.  It then looks for /usr/bin/qemu-arm-static
 (which we inject in to the container).
+
+To make this even easier, you can use the docker-compose wrapper and build for
+arm from x86_64:
+
+```bash
+./scripts/docker-compose.py --arch arm build grafana
+```
 
 ## Setup watchdog timer
 
