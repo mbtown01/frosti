@@ -17,7 +17,8 @@ ENV_BY_HOSTTYPE = {
         'HOSTTYPE_IMAGE_RPT': 'ubuntu:19.10',
         'HOSTTYPE_IMAGE_GRAFANA': 'grafana/grafana:latest',
         'HOSTTYPE_IMAGE_POSTGRES': 'postgres:12.2',
-        'NODEJS_VERSION': 'node-v11.15.0-linux-x64'
+        'NODEJS_VERSION': 'node-v11.15.0-linux-x64',
+        'GRAFANA_VERSION': 'grafana-rpi_6.7.3_amd64.deb'
     },
     'arm': {
         'HOSTTYPE': 'arm',
@@ -26,16 +27,19 @@ ENV_BY_HOSTTYPE = {
             'unibaktr/grafana:v5.4.2@sha256:7aa34a3729674298da67b8197e'
             '64d120225e34c5829b87a9f28dc179c66a9ff2',
         'HOSTTYPE_IMAGE_POSTGRES': 'arm32v6/postgres:12.2-alpine',
-        'NODEJS_VERSION': 'node-v11.15.0-linux-armv6l'
+        'NODEJS_VERSION': 'node-v11.15.0-linux-armv6l',
+        'GRAFANA_VERSION': 'grafana-rpi_6.7.3_armhf.deb'
     }
 }
 
 ENV_BY_OSNAME = {
     'Darwin': {
-        'POSTGRES_DATA': '/private/var/lib/postgresql/data'
+        'POSTGRES_DATA': '/private/var/lib/postgresql/data',
+        'GRAFANA_DATA': '/private/var/lib/grafana'
     },
     'Linux': {
-        'POSTGRES_DATA': '/var/lib/postgresql/data'
+        'POSTGRES_DATA': '/var/lib/postgresql/data',
+        'GRAFANA_DATA': '/var/lib/grafana'
     }
 }
 osName = check_output(['uname', '-s']).decode('UTF-8').rstrip()
@@ -48,10 +52,16 @@ hosttype = ALL_HOSTTYPES.get(uname)
 if hosttype is None:
     raise Exception(f"Host with uname {uname} is not supported")
 
-postgresData = ENV_BY_OSNAME[osName]['POSTGRES_DATA']
-if not path.isdir(postgresData):
+checkDir = ENV_BY_OSNAME[osName]['POSTGRES_DATA']
+if not path.isdir(checkDir):
     raise Exception(
-        f"Directory {postgresData} must exist and be "
+        f"Directory {checkDir} must exist and be "
+        "writable by docker user")
+
+checkDir = ENV_BY_OSNAME[osName]['GRAFANA_DATA']
+if not path.isdir(checkDir):
+    raise Exception(
+        f"Directory {checkDir} must exist and be "
         "writable by docker user")
 
 environment = environ.copy()

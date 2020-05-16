@@ -16,20 +16,25 @@ services:
       - ${POSTGRES_DATA}:/var/lib/postgresql/data:delegated
     
   grafana:
+    build:
+      args:
+        HOSTTYPE_IMAGE: ${HOSTTYPE_IMAGE_RPT}
+        GRAFANA_VERSION: ${GRAFANA_VERSION}
+      context: ../
+      dockerfile: ./docker/grafana/Dockerfile
+    image: mbtowns/grafana:${HOSTTYPE}-latest
     container_name: rpt-grafana
     labels: [rpt]
-    image: ${HOSTTYPE_IMAGE_GRAFANA}
     environment:
-      GF_SECURITY_ADMIN_PASSWORD: "rpt"
-      GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION: 'true'
-      GF_AUTH.ANONYMOUS_ENABLED: 'true'
+      TZ: ${TZ}
     ports:
       - "3000:3000"
-    user: "0"
     depends_on:
       - postgres
     volumes:
-      - ./grafana:/var/lib/grafana:delegated
+      - ${GRAFANA_DATA}:/var/lib/grafana:delegated
+    entrypoint: ['/usr/sbin/grafana-server', 
+      '-config', '/var/lib/grafana/grafana.ini', 'web']
 
   rpt-daemon:
     build:
@@ -39,7 +44,7 @@ services:
         NODEJS_VERSION: ${NODEJS_VERSION}
       context: ../
       dockerfile: ./docker/rpt/Dockerfile
-    image: mbtown01/rpt:latest
+    image: mbtowns/rpt:${HOSTTYPE}-latest
     container_name: rpt-daemon
     labels: [rpt]
     privileged: true
@@ -62,7 +67,7 @@ services:
         NODEJS_VERSION: ${NODEJS_VERSION}
       context: ../
       dockerfile: ./docker/rpt/Dockerfile
-    image: mbtown01/rpt:latest
+    image: mbtowns/rpt:${HOSTTYPE}-latest
     container_name: rpt-term
     labels: [rpt]
     privileged: true
@@ -85,7 +90,7 @@ services:
         NODEJS_VERSION: ${NODEJS_VERSION}
       context: ../
       dockerfile: ./docker/rpt/Dockerfile
-    image: mbtown01/rpt:latest
+    image: mbtowns/rpt:${HOSTTYPE}-latest
     container_name: rpt-daemon-debug
     labels: [rpt]
     privileged: true
@@ -111,7 +116,7 @@ services:
         NODEJS_VERSION: ${NODEJS_VERSION}
       context: ../
       dockerfile: ./docker/rpt/Dockerfile
-    image: mbtown01/rpt:latest
+    image: mbtowns/rpt:${HOSTTYPE}-latest
     container_name: rpt-term-debug
     labels: [rpt]
     privileged: true
@@ -137,7 +142,7 @@ services:
         NODEJS_VERSION: ${NODEJS_VERSION}
       context: ../
       dockerfile: ./docker/rpt/Dockerfile
-    image: mbtown01/rpt:latest
+    image: mbtowns/rpt:${HOSTTYPE}-latest
     container_name: rpt-dev
     labels: [rpt]
     privileged: true
