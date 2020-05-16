@@ -93,7 +93,6 @@ class RootDriver(ServiceProvider):
                 self.__args.hardware = self.__detectHardware()
                 log.info(f"Starting RPT on hardware {self.__args.hardware}")
 
-            self.__args.hardware = 'v2'
             if self.__args.hardware == 'v1':
                 from src.hardware.HardwareUserInterface_v1 \
                     import HardwareUserInterface_v1 as HardwareUserInterface
