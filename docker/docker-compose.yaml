@@ -13,7 +13,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ${POSTGRES_DATA}:/var/lib/postgresql/data:delegated
+      - ./postgres:/var/lib/postgresql/data:delegated
     
   grafana:
     build:
@@ -32,9 +32,9 @@ services:
     depends_on:
       - postgres
     volumes:
-      - ${GRAFANA_DATA}:/var/lib/grafana:delegated
+      - ./grafana:/etc/grafana:delegated
     entrypoint: ['/usr/sbin/grafana-server', 
-      '-config', '/var/lib/grafana/grafana.ini', 'web']
+      '-config', '/etc/grafana/grafana.ini', 'web']
 
   rpt-daemon:
     build:

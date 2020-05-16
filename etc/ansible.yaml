@@ -132,26 +132,6 @@
     become: yes
     become_method: sudo
 
-  - name: Create postgress data directory
-    file:
-      path: /var/lib/postgresql/data
-      state: directory
-      mode: '0755'
-      owner: pi
-      group: pi
-    become: yes
-    become_method: sudo
-
-  - name: Create grafana data directory
-    file:
-      path: /var/lib/grafana
-      state: directory
-      mode: '0755'
-      owner: pi
-      group: pi
-    become: yes
-    become_method: sudo
-
   - name: Install the service configuration
     command: bash -c "cp /usr/local/rpt/etc/rpt.service /etc/systemd/system"
     args:

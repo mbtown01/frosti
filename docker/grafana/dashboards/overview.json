@@ -1,0 +1,1422 @@
+{
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": "-- Grafana --",
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "type": "dashboard"
+        }
+      ]
+    },
+    "editable": true,
+    "gnetId": null,
+    "graphTooltip": 1,
+    "id": 2,
+    "links": [],
+    "panels": [
+      {
+        "datasource": "PostgreSQL",
+        "gridPos": {
+          "h": 4,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        },
+        "id": 9,
+        "options": {
+          "displayMode": "lcd",
+          "fieldOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "defaults": {
+              "decimals": 1,
+              "mappings": [],
+              "max": 90,
+              "min": 60,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "dark-blue",
+                    "value": 0
+                  },
+                  {
+                    "color": "light-blue",
+                    "value": 60
+                  },
+                  {
+                    "color": "semi-dark-green",
+                    "value": 72
+                  },
+                  {
+                    "color": "#EF843C",
+                    "value": 80
+                  },
+                  {
+                    "color": "red",
+                    "value": 85
+                  }
+                ]
+              },
+              "unit": "fahrenheit"
+            },
+            "overrides": [],
+            "values": false
+          },
+          "orientation": "horizontal",
+          "showUnfilled": true
+        },
+        "pluginVersion": "6.7.2",
+        "targets": [
+          {
+            "format": "time_series",
+            "group": [],
+            "metricColumn": "none",
+            "rawQuery": false,
+            "rawSql": "SELECT\n  \"time\" AS \"time\",\n  comfort_max AS \"Cooling Target\"\nFROM thermostat_targets\nORDER BY 1",
+            "refId": "A",
+            "select": [
+              [
+                {
+                  "params": [
+                    "comfort_max"
+                  ],
+                  "type": "column"
+                },
+                {
+                  "params": [
+                    "Cooling Target"
+                  ],
+                  "type": "alias"
+                }
+              ]
+            ],
+            "table": "thermostat_targets",
+            "timeColumn": "\"time\"",
+            "timeColumnType": "timestamptz",
+            "where": []
+          },
+          {
+            "format": "time_series",
+            "group": [],
+            "metricColumn": "none",
+            "rawQuery": false,
+            "rawSql": "SELECT\n  \"time\" AS \"time\",\n  comfort_min AS \"Heating Target\"\nFROM thermostat_targets\nORDER BY 1",
+            "refId": "B",
+            "select": [
+              [
+                {
+                  "params": [
+                    "comfort_min"
+                  ],
+                  "type": "column"
+                },
+                {
+                  "params": [
+                    "Heating Target"
+                  ],
+                  "type": "alias"
+                }
+              ]
+            ],
+            "table": "thermostat_targets",
+            "timeColumn": "\"time\"",
+            "timeColumnType": "timestamptz",
+            "where": []
+          }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "",
+        "transparent": true,
+        "type": "bargauge"
+      },
+      {
+        "datasource": "PostgreSQL",
+        "description": "",
+        "gridPos": {
+          "h": 4,
+          "w": 4,
+          "x": 12,
+          "y": 0
+        },
+        "id": 11,
+        "options": {
+          "fieldOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "defaults": {
+              "decimals": 3,
+              "mappings": [],
+              "max": 9,
+              "min": -1,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "purple",
+                    "value": null
+                  },
+                  {
+                    "color": "green",
+                    "value": 0
+                  },
+                  {
+                    "color": "super-light-green",
+                    "value": 0.04
+                  },
+                  {
+                    "color": "light-yellow",
+                    "value": 0.1
+                  },
+                  {
+                    "color": "light-orange",
+                    "value": 0.25
+                  },
+                  {
+                    "color": "semi-dark-orange",
+                    "value": 0.5
+                  },
+                  {
+                    "color": "dark-red",
+                    "value": 1
+                  }
+                ]
+              },
+              "title": "Power Price",
+              "unit": "currencyUSD"
+            },
+            "overrides": [],
+            "values": false
+          },
+          "orientation": "auto",
+          "showThresholdLabels": false,
+          "showThresholdMarkers": true
+        },
+        "pluginVersion": "6.7.2",
+        "targets": [
+          {
+            "format": "time_series",
+            "group": [
+              {
+                "params": [
+                  "$__interval",
+                  "none"
+                ],
+                "type": "time"
+              }
+            ],
+            "metricColumn": "none",
+            "rawQuery": false,
+            "rawSql": "SELECT\n  $__timeGroupAlias(\"time\",$__interval),\n  avg(price) AS \"price\"\nFROM griddy_update\nGROUP BY 1\nORDER BY 1",
+            "refId": "A",
+            "select": [
+              [
+                {
+                  "params": [
+                    "price"
+                  ],
+                  "type": "column"
+                },
+                {
+                  "params": [
+                    "avg"
+                  ],
+                  "type": "aggregate"
+                },
+                {
+                  "params": [
+                    "price"
+                  ],
+                  "type": "alias"
+                }
+              ]
+            ],
+            "table": "griddy_update",
+            "timeColumn": "\"time\"",
+            "timeColumnType": "timestamptz",
+            "where": []
+          }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "",
+        "transparent": true,
+        "type": "gauge"
+      },
+      {
+        "datasource": "PostgreSQL",
+        "gridPos": {
+          "h": 4,
+          "w": 4,
+          "x": 16,
+          "y": 0
+        },
+        "id": 6,
+        "interval": "1m",
+        "options": {
+          "fieldOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "defaults": {
+              "decimals": 1,
+              "mappings": [],
+              "max": 95,
+              "min": 60,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "blue",
+                    "value": null
+                  },
+                  {
+                    "color": "green",
+                    "value": 72
+                  },
+                  {
+                    "color": "#EAB839",
+                    "value": 80
+                  },
+                  {
+                    "color": "red",
+                    "value": 85
+                  }
+                ]
+              },
+              "title": "Temperature",
+              "unit": "fahrenheit"
+            },
+            "overrides": [],
+            "values": false
+          },
+          "orientation": "auto",
+          "showThresholdLabels": false,
+          "showThresholdMarkers": true
+        },
+        "pluginVersion": "6.7.2",
+        "targets": [
+          {
+            "format": "time_series",
+            "group": [
+              {
+                "params": [
+                  "$__interval",
+                  "none"
+                ],
+                "type": "time"
+              }
+            ],
+            "metricColumn": "none",
+            "rawQuery": false,
+            "rawSql": "SELECT\n  $__timeGroupAlias(\"time\",$__interval),\n  avg(temperature) AS \"temperature\"\nFROM sensor_reading\nGROUP BY 1\nORDER BY 1",
+            "refId": "A",
+            "select": [
+              [
+                {
+                  "params": [
+                    "temperature"
+                  ],
+                  "type": "column"
+                },
+                {
+                  "params": [
+                    "avg"
+                  ],
+                  "type": "aggregate"
+                },
+                {
+                  "params": [
+                    "temperature"
+                  ],
+                  "type": "alias"
+                }
+              ]
+            ],
+            "table": "sensor_reading",
+            "timeColumn": "\"time\"",
+            "timeColumnType": "timestamp",
+            "where": []
+          }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "",
+        "transparent": true,
+        "type": "gauge"
+      },
+      {
+        "datasource": "PostgreSQL",
+        "gridPos": {
+          "h": 4,
+          "w": 4,
+          "x": 20,
+          "y": 0
+        },
+        "id": 7,
+        "interval": "1m",
+        "options": {
+          "fieldOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "defaults": {
+              "decimals": 1,
+              "mappings": [],
+              "max": 100,
+              "min": 20,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "yellow",
+                    "value": null
+                  },
+                  {
+                    "color": "green",
+                    "value": 30
+                  },
+                  {
+                    "color": "red",
+                    "value": 50
+                  }
+                ]
+              },
+              "title": "Humidity",
+              "unit": "percent"
+            },
+            "overrides": [],
+            "values": false
+          },
+          "orientation": "auto",
+          "showThresholdLabels": false,
+          "showThresholdMarkers": true
+        },
+        "pluginVersion": "6.7.2",
+        "targets": [
+          {
+            "format": "time_series",
+            "group": [
+              {
+                "params": [
+                  "$__interval",
+                  "none"
+                ],
+                "type": "time"
+              }
+            ],
+            "metricColumn": "none",
+            "rawQuery": false,
+            "rawSql": "SELECT\n  $__timeGroupAlias(\"time\",$__interval),\n  avg(humidity) AS \"humidity\"\nFROM sensor_reading\nGROUP BY 1\nORDER BY 1",
+            "refId": "A",
+            "select": [
+              [
+                {
+                  "params": [
+                    "humidity"
+                  ],
+                  "type": "column"
+                },
+                {
+                  "params": [
+                    "avg"
+                  ],
+                  "type": "aggregate"
+                },
+                {
+                  "params": [
+                    "humidity"
+                  ],
+                  "type": "alias"
+                }
+              ]
+            ],
+            "table": "sensor_reading",
+            "timeColumn": "\"time\"",
+            "timeColumnType": "timestamp",
+            "where": []
+          }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "",
+        "transparent": true,
+        "type": "gauge"
+      },
+      {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": "PostgreSQL",
+        "fill": 0,
+        "fillGradient": 0,
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 4
+        },
+        "hiddenSeries": false,
+        "id": 2,
+        "interval": "1m",
+        "legend": {
+          "avg": false,
+          "current": false,
+          "max": false,
+          "min": false,
+          "rightSide": false,
+          "show": true,
+          "total": false,
+          "values": false
+        },
+        "lines": true,
+        "linewidth": 1,
+        "links": [],
+        "nullPointMode": "null",
+        "options": {
+          "dataLinks": []
+        },
+        "percentage": false,
+        "pointradius": 5,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [
+          {
+            "alias": "humidity",
+            "linewidth": 1,
+            "yaxis": 2
+          },
+          {
+            "alias": "comfort_max",
+            "color": "rgb(107, 107, 107)",
+            "fillBelowTo": "comfort_min",
+            "zindex": -2
+          },
+          {
+            "alias": "comfort_min",
+            "color": "#F2495C"
+          },
+          {
+            "alias": "temperature",
+            "linewidth": 3
+          }
+        ],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets": [
+          {
+            "format": "time_series",
+            "group": [
+              {
+                "params": [
+                  "$__interval",
+                  "none"
+                ],
+                "type": "time"
+              }
+            ],
+            "metricColumn": "none",
+            "rawQuery": false,
+            "rawSql": "SELECT\n  $__timeGroupAlias(\"time\",$__interval),\n  avg(temperature) AS \"temperature\"\nFROM sensor_reading\nWHERE\n  $__timeFilter(\"time\")\nGROUP BY 1\nORDER BY 1",
+            "refId": "A",
+            "select": [
+              [
+                {
+                  "params": [
+                    "temperature"
+                  ],
+                  "type": "column"
+                },
+                {
+                  "params": [
+                    "avg"
+                  ],
+                  "type": "aggregate"
+                },
+                {
+                  "params": [
+                    "temperature"
+                  ],
+                  "type": "alias"
+                }
+              ]
+            ],
+            "table": "sensor_reading",
+            "timeColumn": "\"time\"",
+            "timeColumnType": "timestamp",
+            "where": [
+              {
+                "name": "$__timeFilter",
+                "params": [],
+                "type": "macro"
+              }
+            ]
+          },
+          {
+            "format": "time_series",
+            "group": [
+              {
+                "params": [
+                  "$__interval",
+                  "none"
+                ],
+                "type": "time"
+              }
+            ],
+            "metricColumn": "none",
+            "rawQuery": false,
+            "rawSql": "SELECT\n  $__timeGroupAlias(\"time\",$__interval),\n  avg(humidity) AS \"humidity\"\nFROM sensor_reading\nWHERE\n  $__timeFilter(\"time\")\nGROUP BY 1\nORDER BY 1",
+            "refId": "B",
+            "select": [
+              [
+                {
+                  "params": [
+                    "humidity"
+                  ],
+                  "type": "column"
+                },
+                {
+                  "params": [
+                    "avg"
+                  ],
+                  "type": "aggregate"
+                },
+                {
+                  "params": [
+                    "humidity"
+                  ],
+                  "type": "alias"
+                }
+              ]
+            ],
+            "table": "sensor_reading",
+            "timeColumn": "\"time\"",
+            "timeColumnType": "timestamp",
+            "where": [
+              {
+                "name": "$__timeFilter",
+                "params": [],
+                "type": "macro"
+              }
+            ]
+          },
+          {
+            "format": "time_series",
+            "group": [
+              {
+                "params": [
+                  "$__interval",
+                  "previous"
+                ],
+                "type": "time"
+              }
+            ],
+            "metricColumn": "none",
+            "rawQuery": false,
+            "rawSql": "SELECT\n  $__timeGroupAlias(\"time\",$__interval,previous),\n  avg(comfort_max) AS \"comfort_max\"\nFROM thermostat_targets\nWHERE\n  $__timeFilter(\"time\")\nGROUP BY 1\nORDER BY 1",
+            "refId": "C",
+            "select": [
+              [
+                {
+                  "params": [
+                    "comfort_max"
+                  ],
+                  "type": "column"
+                },
+                {
+                  "params": [
+                    "avg"
+                  ],
+                  "type": "aggregate"
+                },
+                {
+                  "params": [
+                    "comfort_max"
+                  ],
+                  "type": "alias"
+                }
+              ]
+            ],
+            "table": "thermostat_targets",
+            "timeColumn": "\"time\"",
+            "timeColumnType": "timestamptz",
+            "where": [
+              {
+                "name": "$__timeFilter",
+                "params": [],
+                "type": "macro"
+              }
+            ]
+          },
+          {
+            "format": "time_series",
+            "group": [
+              {
+                "params": [
+                  "$__interval",
+                  "previous"
+                ],
+                "type": "time"
+              }
+            ],
+            "metricColumn": "none",
+            "rawQuery": false,
+            "rawSql": "SELECT\n  $__timeGroupAlias(\"time\",$__interval,previous),\n  avg(comfort_min) AS \"comfort_min\"\nFROM thermostat_targets\nWHERE\n  $__timeFilter(\"time\")\nGROUP BY 1\nORDER BY 1",
+            "refId": "D",
+            "select": [
+              [
+                {
+                  "params": [
+                    "comfort_min"
+                  ],
+                  "type": "column"
+                },
+                {
+                  "params": [
+                    "avg"
+                  ],
+                  "type": "aggregate"
+                },
+                {
+                  "params": [
+                    "comfort_min"
+                  ],
+                  "type": "alias"
+                }
+              ]
+            ],
+            "table": "thermostat_targets",
+            "timeColumn": "\"time\"",
+            "timeColumnType": "timestamptz",
+            "where": [
+              {
+                "name": "$__timeFilter",
+                "params": [],
+                "type": "macro"
+              }
+            ]
+          }
+        ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "Temperature vs Targets",
+        "tooltip": {
+          "shared": true,
+          "sort": 0,
+          "value_type": "individual"
+        },
+        "transparent": true,
+        "type": "graph",
+        "xaxis": {
+          "buckets": null,
+          "mode": "time",
+          "name": null,
+          "show": true,
+          "values": []
+        },
+        "yaxes": [
+          {
+            "decimals": 1,
+            "format": "farenheit",
+            "label": "Temperature",
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+          },
+          {
+            "decimals": 1,
+            "format": "percent",
+            "label": "Humidity",
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+          }
+        ],
+        "yaxis": {
+          "align": false,
+          "alignLevel": null
+        }
+      },
+      {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": "PostgreSQL",
+        "fill": 3,
+        "fillGradient": 0,
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 12
+        },
+        "hiddenSeries": false,
+        "id": 13,
+        "interval": "5s",
+        "legend": {
+          "avg": false,
+          "current": false,
+          "max": false,
+          "min": false,
+          "show": true,
+          "total": false,
+          "values": false
+        },
+        "lines": true,
+        "linewidth": 1,
+        "nullPointMode": "null",
+        "options": {
+          "dataLinks": []
+        },
+        "percentage": false,
+        "pointradius": 2,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [
+          {
+            "alias": "cooling",
+            "color": "#5794F2"
+          },
+          {
+            "alias": "heating",
+            "color": "#F2495C"
+          },
+          {
+            "alias": "fan",
+            "color": "#73BF69"
+          }
+        ],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets": [
+          {
+            "format": "time_series",
+            "group": [
+              {
+                "params": [
+                  "$__interval",
+                  "previous"
+                ],
+                "type": "time"
+              }
+            ],
+            "metricColumn": "none",
+            "rawQuery": false,
+            "rawSql": "SELECT\n  $__timeGroupAlias(\"time\",$__interval,previous),\n  max(cooling) AS \"cooling\"\nFROM thermostat_state\nWHERE\n  $__timeFilter(\"time\")\nGROUP BY 1\nORDER BY 1",
+            "refId": "A",
+            "select": [
+              [
+                {
+                  "params": [
+                    "cooling"
+                  ],
+                  "type": "column"
+                },
+                {
+                  "params": [
+                    "max"
+                  ],
+                  "type": "aggregate"
+                },
+                {
+                  "params": [
+                    "cooling"
+                  ],
+                  "type": "alias"
+                }
+              ]
+            ],
+            "table": "thermostat_state",
+            "timeColumn": "\"time\"",
+            "timeColumnType": "timestamptz",
+            "where": [
+              {
+                "name": "$__timeFilter",
+                "params": [],
+                "type": "macro"
+              }
+            ]
+          },
+          {
+            "format": "time_series",
+            "group": [
+              {
+                "params": [
+                  "$__interval",
+                  "previous"
+                ],
+                "type": "time"
+              }
+            ],
+            "metricColumn": "none",
+            "rawQuery": false,
+            "rawSql": "SELECT\n  $__timeGroupAlias(\"time\",$__interval,previous),\n  max(heating) AS \"heating\"\nFROM thermostat_state\nWHERE\n  $__timeFilter(\"time\")\nGROUP BY 1\nORDER BY 1",
+            "refId": "B",
+            "select": [
+              [
+                {
+                  "params": [
+                    "heating"
+                  ],
+                  "type": "column"
+                },
+                {
+                  "params": [
+                    "max"
+                  ],
+                  "type": "aggregate"
+                },
+                {
+                  "params": [
+                    "heating"
+                  ],
+                  "type": "alias"
+                }
+              ]
+            ],
+            "table": "thermostat_state",
+            "timeColumn": "\"time\"",
+            "timeColumnType": "timestamptz",
+            "where": [
+              {
+                "name": "$__timeFilter",
+                "params": [],
+                "type": "macro"
+              }
+            ]
+          }
+        ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "Run History",
+        "tooltip": {
+          "shared": true,
+          "sort": 0,
+          "value_type": "individual"
+        },
+        "transparent": true,
+        "type": "graph",
+        "xaxis": {
+          "buckets": null,
+          "mode": "time",
+          "name": null,
+          "show": true,
+          "values": []
+        },
+        "yaxes": [
+          {
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": false
+          },
+          {
+            "decimals": 0,
+            "format": "short",
+            "label": "",
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": false
+          }
+        ],
+        "yaxis": {
+          "align": false,
+          "alignLevel": null
+        }
+      },
+      {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": "PostgreSQL",
+        "fill": 1,
+        "fillGradient": 0,
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 12
+        },
+        "hiddenSeries": false,
+        "id": 4,
+        "interval": "1m",
+        "legend": {
+          "avg": false,
+          "current": false,
+          "max": false,
+          "min": false,
+          "show": true,
+          "total": false,
+          "values": false
+        },
+        "lines": true,
+        "linewidth": 1,
+        "links": [],
+        "nullPointMode": "null",
+        "options": {
+          "dataLinks": []
+        },
+        "percentage": false,
+        "pointradius": 5,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets": [
+          {
+            "format": "time_series",
+            "group": [
+              {
+                "params": [
+                  "$__interval",
+                  "none"
+                ],
+                "type": "time"
+              }
+            ],
+            "metricColumn": "none",
+            "rawQuery": false,
+            "rawSql": "SELECT\n  $__timeGroupAlias(\"time\",$__interval),\n  avg(price) AS \"price\"\nFROM griddy_update\nWHERE\n  $__timeFilter(\"time\")\nGROUP BY 1\nORDER BY 1",
+            "refId": "A",
+            "select": [
+              [
+                {
+                  "params": [
+                    "price"
+                  ],
+                  "type": "column"
+                },
+                {
+                  "params": [
+                    "avg"
+                  ],
+                  "type": "aggregate"
+                },
+                {
+                  "params": [
+                    "price"
+                  ],
+                  "type": "alias"
+                }
+              ]
+            ],
+            "table": "griddy_update",
+            "timeColumn": "\"time\"",
+            "timeColumnType": "timestamptz",
+            "where": [
+              {
+                "name": "$__timeFilter",
+                "params": [],
+                "type": "macro"
+              }
+            ]
+          }
+        ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "Power Price",
+        "tooltip": {
+          "shared": true,
+          "sort": 0,
+          "value_type": "individual"
+        },
+        "transparent": true,
+        "type": "graph",
+        "xaxis": {
+          "buckets": null,
+          "mode": "time",
+          "name": null,
+          "show": true,
+          "values": []
+        },
+        "yaxes": [
+          {
+            "decimals": 4,
+            "format": "currencyUSD",
+            "label": "$/kW*hr",
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+          },
+          {
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+          }
+        ],
+        "yaxis": {
+          "align": false,
+          "alignLevel": null
+        }
+      },
+      {
+        "datasource": "PostgreSQL",
+        "gridPos": {
+          "h": 6,
+          "w": 12,
+          "x": 0,
+          "y": 20
+        },
+        "id": 15,
+        "options": {
+          "displayMode": "lcd",
+          "fieldOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "defaults": {
+              "decimals": 1,
+              "mappings": [],
+              "max": 60,
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "rgb(150, 149, 149)",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 0.0001
+                  },
+                  {
+                    "color": "#EAB839",
+                    "value": 5
+                  },
+                  {
+                    "color": "green",
+                    "value": 8
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 30
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "m"
+            },
+            "overrides": [],
+            "values": false
+          },
+          "orientation": "horizontal",
+          "showUnfilled": true
+        },
+        "pluginVersion": "6.7.2",
+        "targets": [
+          {
+            "format": "time_series",
+            "group": [],
+            "metricColumn": "none",
+            "rawQuery": true,
+            "rawSql": "select\n    NOW() as time,\n    avg(delta*lastCooling)/60.0 as \"average cycle time\"\nfrom (\n    select\n        lag(cooling) over (order by time) as lastCooling,\n        extract(epoch from time-lag(time) over (order by time)) as delta\n    from thermostat_state\n    where time > NOW() - INTERVAL '1 DAY'\n    ) as foo\nwhere\n    lastCooling > 0",
+            "refId": "A",
+            "select": [
+              [
+                {
+                  "params": [
+                    "cooling"
+                  ],
+                  "type": "column"
+                }
+              ]
+            ],
+            "table": "thermostat_state",
+            "timeColumn": "\"time\"",
+            "timeColumnType": "timestamptz",
+            "where": [
+              {
+                "name": "$__timeFilter",
+                "params": [],
+                "type": "macro"
+              }
+            ]
+          },
+          {
+            "format": "time_series",
+            "group": [],
+            "metricColumn": "none",
+            "rawQuery": true,
+            "rawSql": "select\n    NOW() as time,\n    min(delta*lastCooling)/60.0 \"minimum cycle time\"\nfrom (\n    select\n        lag(cooling) over (order by time) as lastCooling,\n        extract(epoch from time-lag(time) over (order by time)) as delta\n    from thermostat_state\n    where time > NOW() - INTERVAL '1 DAY'\n    ) as foo\nwhere\n    lastCooling > 0",
+            "refId": "B",
+            "select": [
+              [
+                {
+                  "params": [
+                    "cooling"
+                  ],
+                  "type": "column"
+                }
+              ]
+            ],
+            "table": "thermostat_state",
+            "timeColumn": "\"time\"",
+            "timeColumnType": "timestamptz",
+            "where": [
+              {
+                "name": "$__timeFilter",
+                "params": [],
+                "type": "macro"
+              }
+            ]
+          },
+          {
+            "format": "time_series",
+            "group": [],
+            "metricColumn": "none",
+            "rawQuery": true,
+            "rawSql": "select\n    NOW() as time,\n    max(delta*lastCooling)/60.0 \"maximum cycle time\"\nfrom (\n    select\n        lag(cooling) over (order by time) as lastCooling,\n        extract(epoch from time-lag(time) over (order by time)) as delta\n    from thermostat_state\n    where time > NOW() - INTERVAL '1 DAY'\n    ) as foo\nwhere\n    lastCooling > 0",
+            "refId": "C",
+            "select": [
+              [
+                {
+                  "params": [
+                    "cooling"
+                  ],
+                  "type": "column"
+                }
+              ]
+            ],
+            "table": "thermostat_state",
+            "timeColumn": "\"time\"",
+            "timeColumnType": "timestamptz",
+            "where": [
+              {
+                "name": "$__timeFilter",
+                "params": [],
+                "type": "macro"
+              }
+            ]
+          }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "",
+        "transparent": true,
+        "type": "bargauge"
+      },
+      {
+        "datasource": "PostgreSQL",
+        "gridPos": {
+          "h": 6,
+          "w": 12,
+          "x": 12,
+          "y": 20
+        },
+        "id": 16,
+        "options": {
+          "displayMode": "lcd",
+          "fieldOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "defaults": {
+              "decimals": 1,
+              "mappings": [],
+              "max": 60,
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "rgb(150, 149, 149)",
+                    "value": null
+                  },
+                  {
+                    "color": "#EAB839",
+                    "value": 0.001
+                  },
+                  {
+                    "color": "green",
+                    "value": 8
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 30
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "m"
+            },
+            "overrides": [],
+            "values": false
+          },
+          "orientation": "horizontal",
+          "showUnfilled": true
+        },
+        "pluginVersion": "6.7.2",
+        "targets": [
+          {
+            "format": "time_series",
+            "group": [],
+            "metricColumn": "none",
+            "rawQuery": true,
+            "rawSql": "select\n    NOW() as time,\n    avg(delta*lastCooling)/60.0 as \"average cycle time\"\nfrom (\n    select\n        lag(heating) over (order by time) as lastCooling,\n        extract(epoch from time-lag(time) over (order by time)) as delta\n    from thermostat_state\n    where time > NOW() - INTERVAL '1 DAY'\n    ) as foo\n",
+            "refId": "A",
+            "select": [
+              [
+                {
+                  "params": [
+                    "cooling"
+                  ],
+                  "type": "column"
+                }
+              ]
+            ],
+            "table": "thermostat_state",
+            "timeColumn": "\"time\"",
+            "timeColumnType": "timestamptz",
+            "where": [
+              {
+                "name": "$__timeFilter",
+                "params": [],
+                "type": "macro"
+              }
+            ]
+          },
+          {
+            "format": "time_series",
+            "group": [],
+            "metricColumn": "none",
+            "rawQuery": true,
+            "rawSql": "select\n    NOW() as time,\n    min(delta*lastCooling)/60.0 \"minimum cycle time\"\nfrom (\n    select\n        lag(heating) over (order by time) as lastCooling,\n        extract(epoch from time-lag(time) over (order by time)) as delta\n    from thermostat_state\n    where time > NOW() - INTERVAL '1 DAY'\n    ) as foo",
+            "refId": "B",
+            "select": [
+              [
+                {
+                  "params": [
+                    "cooling"
+                  ],
+                  "type": "column"
+                }
+              ]
+            ],
+            "table": "thermostat_state",
+            "timeColumn": "\"time\"",
+            "timeColumnType": "timestamptz",
+            "where": [
+              {
+                "name": "$__timeFilter",
+                "params": [],
+                "type": "macro"
+              }
+            ]
+          },
+          {
+            "format": "time_series",
+            "group": [],
+            "metricColumn": "none",
+            "rawQuery": true,
+            "rawSql": "select\n    NOW() as time,\n    max(delta*lastCooling)/60.0 \"maximum cycle time\"\nfrom (\n    select\n        lag(heating) over (order by time) as lastCooling,\n        extract(epoch from time-lag(time) over (order by time)) as delta\n    from thermostat_state\n    where time > NOW() - INTERVAL '1 DAY'\n    ) as foo\n",
+            "refId": "C",
+            "select": [
+              [
+                {
+                  "params": [
+                    "cooling"
+                  ],
+                  "type": "column"
+                }
+              ]
+            ],
+            "table": "thermostat_state",
+            "timeColumn": "\"time\"",
+            "timeColumnType": "timestamptz",
+            "where": [
+              {
+                "name": "$__timeFilter",
+                "params": [],
+                "type": "macro"
+              }
+            ]
+          }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "",
+        "transparent": true,
+        "type": "bargauge"
+      }
+    ],
+    "refresh": "30s",
+    "schemaVersion": 16,
+    "style": "dark",
+    "tags": [],
+    "templating": {
+      "list": []
+    },
+    "time": {
+      "from": "now-24h",
+      "to": "now"
+    },
+    "timepicker": {
+      "refresh_intervals": [
+        "5s",
+        "10s",
+        "30s",
+        "1m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "2h",
+        "1d"
+      ],
+      "time_options": [
+        "5m",
+        "15m",
+        "1h",
+        "6h",
+        "12h",
+        "24h",
+        "2d",
+        "7d",
+        "30d"
+      ]
+    },
+    "timezone": "",
+    "title": "Overview",
+    "uid": "sCHCMTbWz",
+    "version": 8
+  }
