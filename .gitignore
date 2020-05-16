@@ -5,7 +5,7 @@
 .DS_store
 nodeids
 
-
+docker/postgres
 
 # Temporary files
 kicad/*.000
@@ -19,16 +19,9 @@ kicad/*.tmp
 kicad/*-save.pro
 kicad/*-save.kicad_pcb
 kicad/fp-info-cache
-docker/grafana/sessions
-
-# Netlist files (exported from Eeschema)
 kicad/*.net
-
-# Autorouter files (exported from Pcbnew)
 kicad/*.dsn
 kicad/*.ses
-
-# Exported BOM files
 kicad/*.xml
 kicad/*.csv
 .history.swp

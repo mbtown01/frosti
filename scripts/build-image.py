@@ -11,7 +11,7 @@ class ImageBuilder:
 
     def __init__(self, args):
         self.args = args
-        
+
         if self.args.debug:
             print(f"{self.args.user}")
             print(f"{self.args.hostname}")
@@ -90,7 +90,7 @@ class ImageBuilder:
             self.shell([
                 'cp', mount_root+'/etc/fstab', mount_root+'/etc/fstab.orig'
             ], 0)
-            rtn = self.shell(                [
+            rtn = self.shell([
                 'grep', '-v', '^PARTUUID', mount_root+'/etc/fstab.orig'], 0)
             with open(mount_root+'/etc/fstab', "w") as outfile:
                 outfile.write(rtn['stdout'])

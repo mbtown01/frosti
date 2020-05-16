@@ -36,7 +36,7 @@ class HardwareUserInterface_v1(GenericUserInterface):
         self.__subscribeToButton(21, GenericUserInterface.Button.UP)
         self.__subscribeToButton(20, GenericUserInterface.Button.DOWN)
         self.__subscribeToButton(16, GenericUserInterface.Button.MODE)
-        self.__subscribeToButton(12, GenericUserInterface.Button.WAKE)
+        self.__subscribeToButton(12, GenericUserInterface.Button.NEXT)
 
     def __thermostatStateChanging(self, event: ThermostatStateChangingEvent):
         self.__ignoreButtons = True

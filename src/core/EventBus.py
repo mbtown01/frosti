@@ -1,8 +1,7 @@
 from queue import Queue
 from threading import Event as ThreadingEvent
-from sys import exc_info, maxsize as MAX_INT
+from sys import maxsize as MAX_INT
 from time import time
-from traceback import format_exception
 
 from .EventBusTimer import EventBusTimer
 from src.logging import log, handleException

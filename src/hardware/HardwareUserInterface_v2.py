@@ -22,7 +22,7 @@ class HardwareUserInterface_v2(GenericUserInterface):
         self.__i2c = I2C(board.SCL, board.SDA)
         self.__mcp = MCP23017(self.__i2c)
         self.__buttonMap = {
-            6: GenericUserInterface.Button.WAKE,
+            6: GenericUserInterface.Button.NEXT,
             5: GenericUserInterface.Button.MODE,
             10: GenericUserInterface.Button.UP,
             11: GenericUserInterface.Button.DOWN,

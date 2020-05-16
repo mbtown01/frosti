@@ -50,6 +50,7 @@ class GenericLcdDisplay:
         self.__rows = list()
         self.__width = width
         self.__height = height
+        self.__backlightStatus = False
 
         for _ in range(height):
             self.__rows.append(GenericLcdDisplay.Row(width))
@@ -77,8 +78,15 @@ class GenericLcdDisplay:
         for row in self.__rows:
             row.clear()
 
-    def setBacklight(self, enabled: bool):
+    @property
+    def backlightStatus(self):
+        return self.__backlightStatus
+
+    def hardReset(self):
         pass
+
+    def setBacklight(self, enabled: bool):
+        self.__backlightStatus = enabled
 
     def update(self, row: int, col: int, text: str):
         """ Add a pending change to the display """

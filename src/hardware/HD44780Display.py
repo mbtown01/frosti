@@ -130,6 +130,8 @@ class HD44780Display(GenericLcdDisplay):
 
     def setBacklight(self, enabled: bool):
         """ If enabled, turns on the backlight, otherwise turns it off """
+        super().setBacklight(enabled)
+
         if enabled:
             self.__backlightState = self.LCD_BACKLIGHT
             self.__write_cmd(self.LCD_BACKLIGHT)
