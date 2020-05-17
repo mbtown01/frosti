@@ -1,11 +1,5 @@
-ARG HOSTTYPE_IMAGE
-FROM ${HOSTTYPE_IMAGE}
+FROM ubuntu:20.04
 LABEL maintainer="Mike Townsley mike@madllama.net"
-
-COPY docker/qemu-arm-static /usr/bin/qemu-arm-static
-
-ARG HOSTTYPE
-ARG NODEJS_VERSION
 
 # upgrade base packages
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
@@ -24,20 +18,5 @@ RUN python3 -m pip install pip && \
         adafruit-circuitpython-mcp230xx \
         flask requests ptvsd psycopg2-binary \
         sqlalchemy sqlalchemy-utils smbus PyYAML pykwalify
-
-# run anything pi-specific
-RUN if [ ${HOSTTYPE:-none} = 'arm' ]; then \
-        apt-get install -y python-rpi.gpio; \
-        python3 -m pip install RPi.GPIO; \
-    fi
-
-# # https://github.com/nodejs/help/wiki/Installation
-# RUN set -x && cd /tmp && curl --output distro.tar.gz \
-#         https://nodejs.org/download/release/latest-v11.x/${NODEJS_VERSION}.tar.gz && \
-#     mkdir /usr/local/lib/nodejs && \
-#     tar xfvz distro.tar.gz -C /usr/local/lib/nodejs && \
-#     echo "export PATH=/usr/local/lib/nodejs/${NODEJS_VERSION}/bin:$PATH" > /etc/profile.d/nodejs.sh
-
-# RUN . /etc/profile && npm install -g @angular/cli
 
 WORKDIR /usr/local/rpt

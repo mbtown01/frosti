@@ -13,12 +13,12 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./postgres:/var/lib/postgresql/data:delegated
+      - postgres-data:/var/lib/postgresql/data
     
   grafana:
     build:
       args:
-        HOSTTYPE_IMAGE: ${HOSTTYPE_IMAGE_RPT}
+        HOSTTYPE_IMAGE: ${HOSTTYPE_IMAGE}
         GRAFANA_VERSION: ${GRAFANA_VERSION}
       context: ../
       dockerfile: ./docker/grafana/Dockerfile
@@ -32,7 +32,7 @@ services:
     depends_on:
       - postgres
     volumes:
-      - ./grafana:/etc/grafana:delegated
+      - grafana-data:/etc/grafana
     entrypoint: ['/usr/sbin/grafana-server', 
       '-config', '/etc/grafana/grafana.ini', 'web']
 
@@ -40,7 +40,7 @@ services:
     build:
       args:
         HOSTTYPE: ${HOSTTYPE}
-        HOSTTYPE_IMAGE: ${HOSTTYPE_IMAGE_RPT}
+        HOSTTYPE_IMAGE: ${HOSTTYPE_IMAGE}
         NODEJS_VERSION: ${NODEJS_VERSION}
       context: ../
       dockerfile: ./docker/rpt/Dockerfile
@@ -63,7 +63,7 @@ services:
     build:
       args:
         HOSTTYPE: ${HOSTTYPE}
-        HOSTTYPE_IMAGE: ${HOSTTYPE_IMAGE_RPT}
+        HOSTTYPE_IMAGE: ${HOSTTYPE_IMAGE}
         NODEJS_VERSION: ${NODEJS_VERSION}
       context: ../
       dockerfile: ./docker/rpt/Dockerfile
@@ -86,7 +86,7 @@ services:
     build:
       args:
         HOSTTYPE: ${HOSTTYPE}
-        HOSTTYPE_IMAGE: ${HOSTTYPE_IMAGE_RPT}
+        HOSTTYPE_IMAGE: ${HOSTTYPE_IMAGE}
         NODEJS_VERSION: ${NODEJS_VERSION}
       context: ../
       dockerfile: ./docker/rpt/Dockerfile
@@ -112,7 +112,7 @@ services:
     build:
       args:
         HOSTTYPE: ${HOSTTYPE}
-        HOSTTYPE_IMAGE: ${HOSTTYPE_IMAGE_RPT}
+        HOSTTYPE_IMAGE: ${HOSTTYPE_IMAGE}
         NODEJS_VERSION: ${NODEJS_VERSION}
       context: ../
       dockerfile: ./docker/rpt/Dockerfile
@@ -138,7 +138,7 @@ services:
     build:
       args:
         HOSTTYPE: ${HOSTTYPE}
-        HOSTTYPE_IMAGE: ${HOSTTYPE_IMAGE_RPT}
+        HOSTTYPE_IMAGE: ${HOSTTYPE_IMAGE}
         NODEJS_VERSION: ${NODEJS_VERSION}
       context: ../
       dockerfile: ./docker/rpt/Dockerfile
@@ -148,6 +148,7 @@ services:
     privileged: true
     environment:
       TZ: ${TZ}
+      LC_LOCAL: C
     ports:
       - "5000:5000"
     depends_on:
@@ -156,3 +157,9 @@ services:
     volumes:
       - ../:/usr/local/rpt
     entrypoint: ['bash', '-c', 'while sleep 600; do /bin/false; done']
+
+volumes:
+  postgres-data:
+    external: true
+  grafana-data:
+    external: true

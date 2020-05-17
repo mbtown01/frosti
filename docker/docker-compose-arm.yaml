@@ -1,0 +1,89 @@
+version: "3.7"
+
+services:
+
+  postgres:
+    container_name: rpt-postgres
+    labels: [rpt]
+    image: arm32v6/postgres:12.2-alpine
+    environment:
+      POSTGRES_USER: "rpt"
+      POSTGRES_PASSWORD: "rpt"
+      POSTGRES_DB: "rpt"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    
+  grafana:
+    image: mbtowns/grafana:arm-latest
+    container_name: rpt-grafana
+    labels: [rpt]
+    environment:
+      TZ: ${TZ}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    volumes:
+      - grafana-data:/etc/grafana
+    entrypoint: ['/usr/sbin/grafana-server', 
+      '-config', '/etc/grafana/grafana.ini', 'web']
+
+  rpt-daemon:
+    image: mbtowns/rpt:arm-latest
+    container_name: rpt-daemon
+    labels: [rpt]
+    privileged: true
+    environment:
+      TZ: ${TZ}
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+      - grafana
+    volumes:
+      - ../:/usr/local/rpt
+    entrypoint: ['python3', '-m', 'src', '--hardware', 'auto']
+
+  rpt-dev:
+    image: mbtowns/rpt:arm-latest
+    container_name: rpt-dev
+    labels: [rpt]
+    privileged: true
+    environment:
+      TZ: ${TZ}
+      LC_LOCAL: C
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+      - grafana
+    volumes:
+      - ../:/usr/local/rpt
+    entrypoint: ['bash', '-c', 'while sleep 600; do /bin/false; done']
+
+  rpt-debug:
+    image: mbtowns/rpt:arm-latest
+    container_name: rpt-debug
+    labels: [rpt]
+    privileged: true
+    environment:
+      TZ: ${TZ}
+    ports:
+      - "5000:5000"
+      - "3001:3001"
+    depends_on:
+      - postgres
+      - grafana
+    volumes:
+      - ../:/usr/local/rpt
+    entrypoint: ['python3', '-m', 'ptvsd',
+      '--host', '0.0.0.0', '--port', '3001', '--wait', '-m', 'src',
+      '--hardware', 'auto']    
+
+volumes:
+  postgres-data:
+    external: true
+  grafana-data:
+    external: true

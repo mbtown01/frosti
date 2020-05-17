@@ -1,20 +1,16 @@
-ARG HOSTTYPE_IMAGE
-FROM ${HOSTTYPE_IMAGE}
+FROM balenalib/rpi-raspbian:buster-20200408
 LABEL maintainer="Mike Townsley mike@madllama.net"
 
-COPY docker/qemu-arm-static /usr/bin/qemu-arm-static
-
-ARG GRAFANA_VERSION
+COPY qemu-arm-static /usr/bin/qemu-arm-static
 
 # upgrade base packages
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y adduser libfontconfig1 wget
 
+ARG GRAFANA_VERSION=grafana-rpi_6.7.3_armhf.deb
 RUN cd /tmp && \
     wget https://dl.grafana.com/oss/release/${GRAFANA_VERSION} && \
     dpkg -i ${GRAFANA_VERSION}
-
-# RUN . /etc/profile && npm install -g @angular/cli
 
 WORKDIR /usr/share/grafana

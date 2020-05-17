@@ -6,34 +6,19 @@ The scenario is that you have a thermostat in production and want to grab some
 data from it to use locally. First, get a terminal in the postgres container:
 
 ```bash
-docker exec -ti rpt-postgres bash
+docker exec -ti rpt-daemon bash
 ```
 
-From there, grab the data from the running thermostat and dump it locally:
+From there, grab the data from the running thermostat you're interested in and
+place it in the local docker-compose postgres instance 'postgres':
 
 ```bash
 pg_dump \
     --host ${YOUR_THERMOSTAT_HOST} \
-    --username rpt -a rpt \
-    --table "thermostat_state" \
-    --table "thermostat_targets" \
-    --table "sensor_reading" \
-    --table "griddy_update"> /tmp/dump.dat
-```
-
-If you have data locally, you may need to blow it away because it could
-conflict with what's coming in.  If so, purge the local tables first:
-
-```bash
-for i in thermostat_state thermostat_targets sensor_reading griddy_update; do
-    psql --command "delete from ${i}" rpt rpt
-done
-```
-
-We have what we need now, let's put the data into the local db instance:
-
-```bash
-psql --file /tmp/dump.dat rpt rpt
+    --username rpt rpt --clean  > /tmp/dump.dat
+psql \
+    --host postgres \
+    --file /tmp/dump.dat rpt rpt
 ```
 
 ## Fun queries

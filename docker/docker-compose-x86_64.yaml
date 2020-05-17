@@ -1,0 +1,54 @@
+version: "3.7"
+
+services:
+
+  postgres:
+    container_name: rpt-postgres
+    labels: [rpt]
+    image: postgres:12.2
+    environment:
+      POSTGRES_USER: "rpt"
+      POSTGRES_PASSWORD: "rpt"
+      POSTGRES_DB: "rpt"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    
+  grafana:
+    image: mbtowns/grafana:x86_64-latest
+    container_name: rpt-grafana
+    labels: [rpt]
+    environment:
+      TZ: ${TZ}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    volumes:
+      - grafana-data:/etc/grafana
+    entrypoint: ['/usr/sbin/grafana-server', 
+      '-config', '/etc/grafana/grafana.ini', 'web']
+
+  rpt-dev:
+    image: mbtowns/rpt:x86_64-latest
+    container_name: rpt-dev
+    labels: [rpt]
+    privileged: true
+    environment:
+      TZ: ${TZ}
+      LC_LOCAL: C
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+      - grafana
+    volumes:
+      - ../:/usr/local/rpt
+    entrypoint: ['bash', '-c', 'while sleep 600; do /bin/false; done']
+
+volumes:
+  postgres-data:
+    external: true
+  grafana-data:
+    external: true
