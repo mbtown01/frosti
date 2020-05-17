@@ -34,14 +34,18 @@ ENV_BY_HOSTTYPE = {
 
 uname = check_output(['uname', '-m']).decode('UTF-8').rstrip()
 if argv[1] == '--arch':
-    uname = argv[2]
+    hosttype = argv[2]
     argv = argv[3:]
-hosttype = ALL_HOSTTYPES.get(uname)
-if hosttype is None:
-    raise Exception(f"Host with uname {uname} is not supported")
+    print(argv)
+else:
+    argv = argv[1:]
+    hosttype = ALL_HOSTTYPES.get(uname)
+    if hosttype is None:
+        raise Exception(f"Host with uname {uname} is not supported")
 
 environment = environ.copy()
 for key, value in ENV_BY_HOSTTYPE[hosttype].items():
+    print(f"{key}={value}")
     environment[key] = value
 
 timezone = check_output(
@@ -51,5 +55,6 @@ environment['TZ'] = \
 
 arguments = [
     '/usr/local/bin/docker-compose',
-    '--file', 'docker/docker-compose.yaml'] + argv[1:]
+    '--file', 'docker/docker-compose.yaml'] + argv
+print(arguments)
 execve(arguments[0], arguments, environment)
