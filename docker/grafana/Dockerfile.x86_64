@@ -1,6 +1,8 @@
 FROM ubuntu:20.04
 LABEL maintainer="Mike Townsley mike@madllama.net"
 
+COPY grafana/ /etc/grafana/
+
 # upgrade base packages
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 RUN apt-get update && apt-get upgrade -y

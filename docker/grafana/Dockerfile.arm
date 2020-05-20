@@ -2,6 +2,7 @@ FROM balenalib/rpi-raspbian:buster-20200408
 LABEL maintainer="Mike Townsley mike@madllama.net"
 
 COPY qemu-arm-static /usr/bin/qemu-arm-static
+COPY grafana/ /etc/grafana/
 
 # upgrade base packages
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections

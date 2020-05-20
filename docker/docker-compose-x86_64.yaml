@@ -19,14 +19,12 @@ services:
     image: mbtowns/grafana:x86_64-latest
     container_name: rpt-grafana
     labels: [rpt]
-    environment:
-      TZ: ${TZ}
     ports:
       - "3000:3000"
     depends_on:
       - postgres
     volumes:
-      - grafana-data:/etc/grafana
+      - grafana-data:/usr/local/grafana
     entrypoint: ['/usr/sbin/grafana-server', 
       '-config', '/etc/grafana/grafana.ini', 'web']
 
@@ -36,7 +34,6 @@ services:
     labels: [rpt]
     privileged: true
     environment:
-      TZ: ${TZ}
       LC_LOCAL: C
     ports:
       - "5000:5000"

@@ -83,7 +83,6 @@ from (
         lag(cooling) over (order by time) as lastCooling,
         extract(epoch from time-lag(time) over (order by time)) as delta
     from thermostat_state
-    where time > NOW() - INTERVAL '1 DAY'
     ) as foo
 where
     lastCooling > 0
