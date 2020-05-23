@@ -1,5 +1,17 @@
 version: "3.7"
 
+x-rpt-defaults:
+  &rpt-defaults
+  labels: [rpt]
+  privileged: true
+  ports:
+    - "5000:5000"
+  environment:
+    LC_ALL: C
+  depends_on:
+    - postgres
+    - grafana
+
 services:
 
   postgres:
@@ -17,6 +29,9 @@ services:
     
   grafana:
     image: mbtowns/grafana:x86_64-latest
+    build:
+      context: grafana/
+      dockerfile: ./Dockerfile.x86_64
     container_name: rpt-grafana
     labels: [rpt]
     ports:
@@ -25,21 +40,26 @@ services:
       - postgres
     volumes:
       - grafana-data:/usr/local/grafana
-    entrypoint: ['/usr/sbin/grafana-server', 
-      '-config', '/etc/grafana/grafana.ini', 'web']
+      - ./grafana/plugins:/etc/grafana/plugins
+
+  rpt-daemon:
+    <<: *rpt-defaults
+    image: mbtowns/rpt:x86_64-latest
+    build:
+      context: rpt/
+      dockerfile: ./Dockerfile.x86_64
+    container_name: rpt-daemon
+    entrypoint: ['python3', '-m', 'src', '--hardware', 'term']
 
   rpt-dev:
-    image: mbtowns/rpt:x86_64-latest
+    <<: *rpt-defaults
+    image: mbtowns/rpt-dev:x86_64-latest
+    build:
+      context: rpt/
+      dockerfile: ./Dockerfile.x86_64
+      args:
+        RPT_DEV: 'true'
     container_name: rpt-dev
-    labels: [rpt]
-    privileged: true
-    environment:
-      LC_LOCAL: C
-    ports:
-      - "5000:5000"
-    depends_on:
-      - postgres
-      - grafana
     volumes:
       - ../:/usr/local/rpt
     entrypoint: ['bash', '-c', 'while sleep 600; do /bin/false; done']

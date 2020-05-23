@@ -5,7 +5,6 @@
 .DS_store
 nodeids
 
-docker/postgres
 
 # Temporary files
 kicad/*.000

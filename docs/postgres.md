@@ -61,17 +61,69 @@ Calculate the percentage of time we spend cooling over the past 24 hours
 
 ```sql
 select
-    NOW() as time,
-    avg(delta*lastCooling) average
+    min(foo.time) as time, avg(foo.delta)/60.0 as "average cycle time"
 from (
     select
+        time,
         lag(cooling) over (order by time) as lastCooling,
+        lag(heating) over (order by time) as lastHeating,
         extract(epoch from time-lag(time) over (order by time)) as delta
     from thermostat_state
-    where time > NOW() - INTERVAL '1 DAY'
     ) as foo
 where
-    lastCooling > 0
+  foo.time BETWEEN '2020-05-20T15:26:45.498Z' AND '2020-05-20T18:26:45.498Z'
+  and lastCooling + lastHeating > 0
+group by
+  floor(extract(epoch from foo.time)/60)*60
+```
+
+Old query grouping by minute that AVERAGES when we really want LAST_VALUE
+
+```sql
+SELECT
+  floor(extract(epoch from "time")/60)*60 AS "time",
+  max(comfort_max) AS "comfort_max"
+FROM thermostat_targets
+WHERE
+  "time" BETWEEN '2020-05-19T18:53:14.694Z' AND '2020-05-20T18:53:14.694Z'
+GROUP BY 1
+ORDER BY 1
+```
+
+New query
+
+```sql
+select
+    floor(extract(epoch from bar.time)/60)*60 AS "time",
+    max(bar.comfort_max) AS "comfort_max"
+from (
+    select
+        time,
+        last_value(comfort_max)
+        over (
+            partition by floor(extract(epoch from time)/60)*60
+            order by time
+            range between unbounded preceding and unbounded following
+        ) comfort_max
+    from
+        thermostat_targets
+    union
+    select
+        '2020-05-20T08:20:33.914Z' as time,
+        last_value(comfort_max)
+        over (
+            order by time
+            range between unbounded preceding and unbounded following
+        ) comfort_max
+    from
+        thermostat_targets
+    WHERE
+        "time" < '2020-05-20T08:20:33.914Z'
+) bar
+WHERE
+    "time" BETWEEN '2020-05-20T08:20:33.914Z' AND '2020-05-20T20:20:33.914Z'
+GROUP BY 1
+ORDER BY 1
 ```
 
 ```sql

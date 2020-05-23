@@ -15,18 +15,3 @@ datasources:
     jsonData:
       sslmode: "disable" # disable/require/verify-ca/verify-full
       postgresVersion: 1200 # 903=9.3, 904=9.4, 905=9.5, 906=9.6, 1000=10
-
-
-    #   [{"id":4,
-    #   "orgId":2,
-    #   "name":"PostgreSQL",
-    #   "type":"postgres",
-    #   "typeLogoUrl":"public/app/plugins/datasource/postgres/img/postgresql_logo.svg",
-    #   "access":"proxy",
-    #   "url":"postgres",
-    #   "password":"",
-    #   "user":"rpt",
-    #   "database":"rpt",
-    #   "basicAuth":false,
-    #   "isDefault":false,"
-    #   jsonData":{"postgresVersion":1200,"sslmode":"disable"},"readOnly":false}]
