@@ -39,8 +39,8 @@ services:
     depends_on:
       - postgres
     volumes:
-      - grafana-data:/usr/local/grafana
-      - ./grafana/plugins:/etc/grafana/plugins
+      - grafana-data:/var/lib/grafana
+      - ./grafana:/etc/grafana
 
   rpt-daemon:
     <<: *rpt-defaults

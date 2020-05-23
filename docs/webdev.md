@@ -1,13 +1,15 @@
 # Getting started
 
-Checkout [https://jscomplete.com/learn/1rd-reactful/](https://jscomplete.com/learn/1rd-reactful/)
-for a getting started guide for setting up a new project.
+## Useful links
 
-[https://jscomplete.com/learn/1rd-reactful](https://jscomplete.com/learn/1rd-reactful)
-for getting started w/ your first react project
-
-[https://grafana.com/tutorials/build-a-panel-plugin/#1](https://grafana.com/tutorials/build-a-panel-plugin/#1)
-Intro to grafana plugins
+* [Getting started guide for setting up a new project.
+](https://jscomplete.com/learn/1rd-reactful/)
+* [Getting started w/ your first react project
+](https://jscomplete.com/learn/1rd-reactful)
+* [Intro to grafana plugin development
+](https://grafana.com/tutorials/build-a-panel-plugin/#1)
+* [Numbers game from the React course on Pluralsight
+](https://jscomplete.com/playground/rgs3.9)
 
 ## Setting up the initial plugin
 
@@ -43,3 +45,8 @@ yarn install
 # This was a much more reasonable 3 minutes
 yarn dev
 ```
+
+## Dev time
+
+You do *not* want to run `yarn dev` every time you change your code. Use
+`yarn watch` to wait for changes and to dynamically transpile your code

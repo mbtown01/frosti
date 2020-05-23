@@ -12,9 +12,10 @@ RUN cd /tmp && \
     dpkg -i ${GRAFANA_VERSION} && \
     rm -rf /etc/grafana/provisioning
 
-COPY grafana.ini /etc/grafana/
-COPY provisioning /etc/grafana/provisioning
-COPY dashboards /etc/grafana/dashboards
+# COPY grafana.ini /etc/grafana/
+# COPY provisioning /etc/grafana/provisioning
+# COPY dashboards /etc/grafana/dashboards
+# COPY . /etc/grafana
 
 WORKDIR /usr/share/grafana
 
