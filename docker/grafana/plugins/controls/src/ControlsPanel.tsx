@@ -1,25 +1,25 @@
-import { useState } from 'react';
-import React from 'react';
+import { useState } from "react";
+import React from "react";
 
-import { PanelProps } from '@grafana/data';
-import { SimpleOptions } from 'types';
-import { css, cx } from 'emotion';
-import { stylesFactory } from '@grafana/ui';
-import { Button } from '@grafana/ui';
+import { PanelProps } from "@grafana/data";
+import { ControlsPanelOptions } from "types";
+import { css, cx } from "emotion";
+import { stylesFactory } from "@grafana/ui";
+import { Button } from "@grafana/ui";
 //import { stylesFactory, useTheme } from '@grafana/ui';
 
-interface Props extends PanelProps<SimpleOptions> {}
+interface Props extends PanelProps<ControlsPanelOptions> {}
 
-const URL_BASE: string = 'http://localhost:5000';
+const URL_BASE = "http://localhost:5000";
 
 const useThermostatState = () => {
-  const [mode, setMode] = useState('NONE');
-  const [state, setState] = useState('NONE');
-  const [comfortMin, setComfortMin] = useState('99');
-  const [comfortMax, setComfortMax] = useState('49');
+  const [mode, setMode] = useState("NONE");
+  const [state, setState] = useState("NONE");
+  const [comfortMin, setComfortMin] = useState("99");
+  const [comfortMax, setComfortMax] = useState("49");
 
   const udpateThermostatState = async () => {
-    let response = await fetch(`${URL_BASE}/api/status`, { method: 'GET' });
+    let response = await fetch(`${URL_BASE}/api/status`, { method: "GET" });
     let jsonData = await response.json();
     setState(jsonData.state);
     setMode(jsonData.mode);
@@ -30,7 +30,12 @@ const useThermostatState = () => {
   return { mode, state, comfortMin, comfortMax, udpateThermostatState };
 };
 
-export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) => {
+export const ControlsPanel: React.FC<Props> = ({
+  options,
+  data,
+  width,
+  height
+}) => {
   //const theme = useTheme();
   const styles = getStyles();
 
@@ -40,10 +45,15 @@ export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) =
   //     console.debug(data.series[0].fields[1].values.get(length-1));
   // }
 
-  const { mode, state, comfortMin, comfortMax, udpateThermostatState } = useThermostatState();
+  const {
+    mode,
+    state,
+    comfortMin,
+    comfortMax,
+    udpateThermostatState
+  } = useThermostatState();
 
-  if ('NONE' == mode) {
-    console.debug('reloading based on mode');
+  if ("NONE" === mode) {
     udpateThermostatState();
   }
 
@@ -52,17 +62,17 @@ export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) =
   };
 
   const onUpButtonClicked = async () => {
-    await fetch(`${URL_BASE}/api/action/raiseComfort`, { method: 'POST' });
+    await fetch(`${URL_BASE}/api/action/raiseComfort`, { method: "POST" });
     udpateThermostatState();
   };
 
   const onDownButtonClicked = async () => {
-    await fetch(`${URL_BASE}/api/action/lowerComfort`, { method: 'POST' });
+    await fetch(`${URL_BASE}/api/action/lowerComfort`, { method: "POST" });
     udpateThermostatState();
   };
 
   const onModeButtonClicked = async () => {
-    await fetch(`${URL_BASE}/api/action/nextMode`, { method: 'POST' });
+    await fetch(`${URL_BASE}/api/action/nextMode`, { method: "POST" });
     udpateThermostatState();
   };
 
@@ -79,13 +89,17 @@ export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) =
     `
   );
 
-  let stateColor: string = '';
-  if (state == 'COOLING') stateColor = '#0000FF';
-  else if (state == 'HEATING') stateColor = '#FF0000';
-  else if (state == 'FAN') stateColor = '#00FF00';
+  let stateColor = "";
+  if (state === "COOLING") {
+    stateColor = "#0000FF";
+  } else if (state === "HEATING") {
+    stateColor = "#FF0000";
+  } else if (state === "FAN") {
+    stateColor = "#00FF00";
+  }
 
   const stateElementClass =
-    stateColor != ''
+    stateColor !== ""
       ? cx(
           styles.wrapper,
           css`
@@ -159,6 +173,6 @@ const getStyles = stylesFactory(() => {
   return {
     wrapper: css`
       position: relative;
-    `,
+    `
   };
 });
