@@ -50,3 +50,12 @@ yarn dev
 
 You do *not* want to run `yarn dev` every time you change your code. Use
 `yarn watch` to wait for changes and to dynamically transpile your code
+
+## Optimizations
+
+For the rpt-dev container, we're using a bind-mounted volume to house the
+source code.  By default, docker wants a consistent filesystem between the
+host and the container which artificially adds overhead we don't need.  To
+improve performance, be sure to [configure volumes as 'delegated'](
+    https://docs.docker.com/docker-for-mac/osxfs-caching/#performance-implications-of-host-container-file-system-consistency)
+in your docker-config.yaml or at the docker command line.

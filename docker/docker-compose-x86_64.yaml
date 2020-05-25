@@ -25,7 +25,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data:delegated
     
   grafana:
     image: mbtowns/grafana:x86_64-latest
@@ -39,8 +39,8 @@ services:
     depends_on:
       - postgres
     volumes:
-      - grafana-data:/var/lib/grafana
-      - ./grafana:/etc/grafana
+      - grafana-data:/var/lib/grafana:delegated
+      - ./grafana:/etc/grafana:delegated
 
   rpt-daemon:
     <<: *rpt-defaults

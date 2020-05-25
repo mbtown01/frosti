@@ -1,4 +1,5 @@
 from flask import Flask, render_template, send_from_directory
+from flask_cors import CORS
 from threading import Thread
 import json
 
@@ -41,6 +42,8 @@ class ApiDataBrokerService(ServiceConsumer):
             '/api/action/lowerComfort', 'api_next_lower_comfort',
             self.api_action_lower_comfort, methods=['POST'])
 
+        self.__cors = CORS(self.__app)
+
         self.__flaskThread = Thread(
             target=self.__app.run,
             name='Flask Driver',
@@ -80,6 +83,8 @@ class ApiDataBrokerService(ServiceConsumer):
         return 'rpt-0.1'
 
     def api_status(self):
+        settings = self._getService(SettingsService)
+
         response = {
             'version': self.api_version(),
             'sensors': {
@@ -87,7 +92,10 @@ class ApiDataBrokerService(ServiceConsumer):
                 'pressure': f"{self.__lastPressure:.1f}",
                 'humidity': f"{self.__lastHumidity:.1f}",
             },
+            'comfortMin': settings.comfortMin,
+            'comfortMax': settings.comfortMax,
             'state': str(self.__lastState).replace('ThermostatState.', ''),
+            'mode': str(settings.mode).replace('Mode.', ''),
         }
         return json.dumps(response, indent=4)
 

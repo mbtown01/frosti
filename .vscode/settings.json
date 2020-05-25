@@ -16,6 +16,11 @@
     },
     // "docker.host":"ssh://pi@raspberrypi",
     "editor.rulers": [79],
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    // "[javascript]": {
+    //     "editor.defaultFormatter": "esbenp.prettier-vscode"
+    // }
+
     // For the MacBook, this is /usr/local/bin/python3
     // For the Linux, this is /usr/bin/python3
     "python.pythonPath": "/usr/bin/python3",

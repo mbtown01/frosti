@@ -10,7 +10,7 @@ RUN apt-get install -y \
 # install all the requied modules
 RUN python3 -m pip install pip && \
     python3 -m pip install \
-        flask requests psycopg2-binary \
+        flask flask-cors requests psycopg2-binary \
         sqlalchemy sqlalchemy-utils PyYAML pykwalify
 
 ARG RPT_DEV=false
@@ -38,7 +38,7 @@ fi
 RUN if [ ${RPT_DEV} = 'true' ]; then \
     curl -sL https://deb.nodesource.com/setup_12.x | bash - && \
     apt-get remove cmdtest && apt-get install -y nodejs; \
-    npm install -g yarn; \
+    npm install -g yarn prettier; \
     npm install -g --unsafe-perm=true --allow-root @grafana/toolkit; \
 fi
 
