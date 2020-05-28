@@ -135,6 +135,7 @@ class SettingsService(ServiceConsumer):
         self.__mode = SettingsService.Mode.AUTO
         self.__lastOverridePrice = None
         self.__isInPriceOverride = False
+        self.__windowPrices = []
 
         self.__programs = {}
         for name in programs:
@@ -225,8 +226,22 @@ class SettingsService(ServiceConsumer):
         applies the new settings.  Returs True if new settings were applied,
         False otherwise """
         eventBus = self._getService(EventBus)
+
+        # Here we're simply assuming that price average resets every 15
+        # minutes.  In production we'll get an update roughly every 5
+        # minutes and the average of the three is the correct price to
+        # use when looking up an override value
+        window = int(eventBus.now/900)*900
+        windowThird = int((eventBus.now-window)/300)
+        if windowThird == 0:
+            self.__windowPrices = []
+
+        self.__windowPrices.append(event.price)
+        priceAverage = sum(self.__windowPrices)/len(self.__windowPrices)
+
+        eventBus = self._getService(EventBus)
         for override in self.__currentProgram.priceOverrides:
-            if event.price >= override.price:
+            if priceAverage >= override.price:
                 if self.__lastOverridePrice == override.price:
                     return
 
