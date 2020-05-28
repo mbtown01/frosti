@@ -13,12 +13,14 @@ def checkDict(data: dict, name: str, keys: list):
 
 class SettingsChangedEvent(Event):
     """ Fired when any property of SettingsService changes """
+
     def __init__(self):
         super().__init__('SettingsChangedEvent')
 
 
 class PriceOverride:
     """ Set of overrides for a given price point """
+
     def __init__(self, config: dict):
         checkDict(config, 'PriceOverride', ['price'])
 
@@ -30,6 +32,7 @@ class PriceOverride:
 class Program:
     """ Captures all the settings as part of a single program.  Programs
     are used to drive different settings at different times of the day """
+
     def __init__(self, name: str, config: dict):
         self.name = name
         self.__defaults = config.copy()
@@ -110,7 +113,7 @@ class SettingsService(ServiceConsumer):
         HEAT = 3
         FAN = 4
 
-    def __init__(self, data: dict=None):
+    def __init__(self, data: dict = None):
         self.__data = data
 
     def setServiceProvider(self, provider: ServiceProvider):
@@ -210,7 +213,7 @@ class SettingsService(ServiceConsumer):
                 pName = schedule.getProgram(hour, minute)
                 if pName not in self.__programs:
                     raise RuntimeError(
-                        f"Schedule refers to non-existant program 'program'")
+                        f"Schedule refers to non-existant program '{pName}")
                 newProgram = self.__programs[pName]
                 if self.__currentProgram.name != newProgram.name:
                     self.__currentProgram = self.__programs[pName]
