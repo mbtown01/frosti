@@ -218,7 +218,8 @@ class SettingsService(ServiceConsumer):
                         f"Schedule refers to non-existant program '{pName}")
                 newProgram = self.__programs[pName]
                 if self.__currentProgram.name != newProgram.name:
-                    self.__currentProgram = self.__programs[pName]
+                    newProgram.reset()
+                    self.__currentProgram = newProgram
                     eventBus.fireEvent(SettingsChangedEvent())
 
     def __powerPriceChanged(self, event: PowerPriceChangedEvent):

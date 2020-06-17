@@ -141,6 +141,28 @@ class Test_Settings(unittest.TestCase):
         self.assertEqual(self.settings.comfortMin, 68.0)
         self.assertEqual(self.settings.comfortMax, 72.0)
 
+    def test_change_current_program(self):
+        self.settings.timeChanged(4, 0, 30)
+        self.eventBus.fireEvent(PowerPriceChangedEvent(9.0, 300))
+        self.eventBus.processEvents(300)
+        self.assertEqual(self.settings.comfortMin, 68.0)
+        self.assertEqual(self.settings.comfortMax, 88.0)
+
+        self.settings.comfortMax = 68.0
+        self.eventBus.processEvents(300)
+        self.assertEqual(self.settings.currentProgram.name, 'overnight')
+        self.assertEqual(self.settings.comfortMax, 68.0)
+
+        self.settings.timeChanged(5, 12, 30)
+        self.eventBus.processEvents(3600)
+        self.assertEqual(self.settings.currentProgram.name, 'home')
+        self.assertEqual(self.settings.comfortMax, 76.0)
+
+        self.settings.timeChanged(3, 0, 30)
+        self.eventBus.processEvents(3600)
+        self.assertEqual(self.settings.currentProgram.name, 'overnight')
+        self.assertEqual(self.settings.comfortMax, 72.0)
+
     def test_bad1(self):
         badYamlData = """
 thermostat:

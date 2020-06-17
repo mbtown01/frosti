@@ -15,12 +15,13 @@
         "kicad": true
     },
     // "docker.host":"ssh://pi@raspberrypi",
-    "editor.rulers": [79],
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.rulers": [
+        79
+    ],
+    // "editor.defaultFormatter": "esbenp.prettier-vscode",
     // "[javascript]": {
     //     "editor.defaultFormatter": "esbenp.prettier-vscode"
     // }
-
     // For the MacBook, this is /usr/local/bin/python3
     // For the Linux, this is /usr/bin/python3
     "python.pythonPath": "/usr/bin/python3",
@@ -50,12 +51,10 @@
     "python.testing.nosetestsEnabled": false,
     "python.testing.unittestEnabled": true,
     "python.testing.autoTestDiscoverOnSaveEnabled": false,
-    
     // https://marketplace.visualstudio.com/items?itemName=rduldulao.py-coverage-view
     "python.coveragepy.file": ".coverage",
     // If you want to NOT see highlights on coverage, set the 4th value below to 0
     "python.coverageView.highlight": "rgba(255,55,55,0)",
     "python.coverageView.highlightMode": "uncovered",
     "python.linting.flake8Enabled": true,
-
 }

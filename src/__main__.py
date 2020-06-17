@@ -7,7 +7,7 @@ from src.core import EventBus, ThermostatState
 from src.core.generics import GenericEnvironmentSensor
 from src.services import ConfigService, SettingsService, \
     SettingsChangedEvent, ApiDataBrokerService, GoGriddyPriceCheckService, \
-    PostgresAdapterService, ThermostatService, EnvironmentSamplingService, \
+    OrmStateManagementService, ThermostatService, EnvironmentSamplingService, \
     RelayManagementService
 from src.core import ServiceProvider, ServiceConsumer
 
@@ -133,7 +133,7 @@ class RootDriver(ServiceProvider):
                 log.warning("Unable to reach GoGriddy")
 
         try:
-            dataExporter = PostgresAdapterService()
+            dataExporter = OrmStateManagementService()
             dataExporter.setServiceProvider(self)
         except:
             handleException("Postgres startup")
