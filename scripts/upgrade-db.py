@@ -5,7 +5,7 @@ import argparse
 
 from src.services import OrmStateManagementService
 from src.core import ServiceProvider, EventBus
-from src.logging import handleException
+from src.logging import handleException, setupLogging
 
 
 class DatabaseUpgrader(ServiceProvider):
@@ -80,10 +80,10 @@ class DatabaseUpgrader(ServiceProvider):
             f"FROM rpt_old.sensor_reading")
         result = session.connection().execute(query)
 
-        session.commit()
-
         if finalize:
             session.connection().execute('DROP SCHEMA rpt_old CASCADE')
+
+        session.commit()
 
 
 if __name__ == '__main__':
@@ -94,11 +94,10 @@ if __name__ == '__main__':
         help='Drop the backup schema when complete')
     args = parser.parse_args()
 
+    setupLogging()
+
     try:
         upgrader = DatabaseUpgrader()
         upgrader.exec(args.finalize)
-        exit(0)
     except:
         handleException("Failed upgrading")
-
-    exit(1)

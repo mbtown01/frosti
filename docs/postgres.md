@@ -21,6 +21,18 @@ psql \
     --file /tmp/dump.dat rpt rpt
 ```
 
+## Upgrading schemas
+
+When a non-trivial change to the postgres schema happens, I've created an
+'upgrade-db.py' script to facilitate things outside the normal execution 
+path of the thermostat logic.  It simply moves the existing schema over to
+another name and does internal SELECT INTO statements to massage the data
+and populate the new schema. 
+
+```bash
+PYTHONPATH=. ./scripts/upgrade-db.py --finalize
+```
+
 ## Fun queries
 
 Process the thermostat state log and show event durations
