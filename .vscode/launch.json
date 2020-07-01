@@ -12,7 +12,10 @@
             "module": "src",
             "console": "integratedTerminal",
             "stopOnEntry": false,
-            "args": ["--hardware", "term"],
+            "args": [
+                "--hardware",
+                "term"
+            ],
         },
         {
             "name": "Python: Local Hardware v2",
@@ -22,7 +25,19 @@
             "module": "src",
             "console": "integratedTerminal",
             "stopOnEntry": false,
-            "args": ["--hardware", "auto"],
+            "args": [
+                "--hardware",
+                "auto"
+            ],
+        },
+        {
+            "name": "Python: Database upgrade",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "scripts/upgrade-db.py",
+            "console": "integratedTerminal",
+            "stopOnEntry": false,
         },
         {
             "name": "Python: Local RPT Launcher",
@@ -32,7 +47,10 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "stopOnEntry": false,
-            "args": ["--debug", "--dev"],
+            "args": [
+                "--debug",
+                "--dev"
+            ],
         },
         {
             "name": "Python: Local Attach",

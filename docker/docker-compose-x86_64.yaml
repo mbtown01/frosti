@@ -61,7 +61,7 @@ services:
         RPT_DEV: 'true'
     container_name: rpt-dev
     volumes:
-      - ../:/usr/local/rpt
+      - ../:/usr/local/rpt:delegated
     entrypoint: ['bash', '-c', 'while sleep 600; do /bin/false; done']
 
 volumes:

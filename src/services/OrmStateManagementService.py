@@ -15,6 +15,8 @@ from src.core.orm import OrmSensorReading, OrmThermostatState, \
     Base
 from src.logging import log
 
+DB_URL_RPT = 'postgresql://rpt:rpt@postgres/rpt'
+
 
 class OrmStateManagementService(ServiceConsumer):
     MODE_CODES = {
@@ -25,42 +27,36 @@ class OrmStateManagementService(ServiceConsumer):
         SettingsService.Mode.AUTO: 0x07
     }
 
+    def __init__(self):
+        self.__engine = create_engine(DB_URL_RPT, echo=False)
+        self.__session = sessionmaker(bind=self.__engine)()
+        self.__connection = self.__engine.connect()
+
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
 
+        Base.metadata.create_all(self.__engine)
+
+        thermostatEntries = list(
+            self.__session.query(OrmThermostat).filter_by(name='DEFAULT'))
+        if len(thermostatEntries) != 1:
+            self.__initializeThermostat()
+        else:
+            self.__thermostat = thermostatEntries[0]
+
         eventBus = self._getService(EventBus)
-        try:
-            self.__postgresUrl = 'postgresql://rpt:rpt@postgres/rpt'
-            if not database_exists(self.__postgresUrl):
-                create_database(self.__postgresUrl)
-            self.__engine = create_engine(self.__postgresUrl, echo=False)
-            Session = sessionmaker(bind=self.__engine)
-            self.__session = Session()
-            self.__connection = self.__engine.connect()
+        eventBus.installEventHandler(
+            SensorDataChangedEvent, self.__sensorDataChanged)
+        eventBus.installEventHandler(
+            ThermostatStateChangedEvent, self.__thermostatStateChanged)
+        eventBus.installEventHandler(
+            PowerPriceChangedEvent, self.__powerPriceChanged)
+        eventBus.installEventHandler(
+            SettingsChangedEvent, self.__processSettingsChanged)
 
-            Base.metadata.create_all(self.__engine)
-            self.__upgrade()
-
-            thermostatEntries = list(
-                self.__session.query(OrmThermostat).filter_by(name='DEFAULT'))
-            if len(thermostatEntries) != 1:
-                self.__initializeThermostat()
-            else:
-                self.__thermostat = thermostatEntries[0]
-
-            eventBus.installEventHandler(
-                SensorDataChangedEvent, self.__sensorDataChanged)
-            eventBus.installEventHandler(
-                ThermostatStateChangedEvent, self.__thermostatStateChanged)
-            eventBus.installEventHandler(
-                PowerPriceChangedEvent, self.__powerPriceChanged)
-            eventBus.installEventHandler(
-                SettingsChangedEvent, self.__processSettingsChanged)
-        except:
-            handleException("Connecting to postgres")
-
-    def __upgrade(self):
-        pass
+    @property
+    def session(self):
+        return self.__session
 
     def __initializeThermostat(self):
         try:
@@ -94,7 +90,6 @@ class OrmStateManagementService(ServiceConsumer):
             thermostat.backlight_timeout = int(
                 thermostatData.get('backlight_timeout', '5'))
             self.__session.add(thermostat)
-            self.__session.commit()
             self.__thermostat = thermostat
 
             self.__thermostat.griddy_config = None
@@ -108,8 +103,9 @@ class OrmStateManagementService(ServiceConsumer):
                 entity.settlement_point = \
                     griddyConfigData['settlementPoint']
                 self.__session.add(entity)
-                self.__session.commit()
                 self.__thermostat.griddy_config = entity
+
+            self.__session.commit()
         except:
             handleException("Setup griddy data integration")
 

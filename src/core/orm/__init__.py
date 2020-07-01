@@ -170,3 +170,15 @@ class OrmThermostatTargets(Base):
 
     # Relationships
     thermostat = relationship("OrmThermostat", back_populates="targets")
+
+
+class OrmVersionInfo(Base):
+    __tablename__ = 'version_info'
+
+    # Primary Key
+    major = Column(Integer, primary_key=True)
+    minor = Column(Integer, primary_key=True)
+
+    ''' Time of last upgrade '''
+    time = Column(
+        DateTime(timezone=True), nullable=False, default=func.now())
