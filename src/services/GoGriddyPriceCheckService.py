@@ -7,6 +7,8 @@ from src.core import ServiceConsumer, ServiceProvider, EventBus
 from src.core.events import PowerPriceChangedEvent
 from src.logging import log, handleException
 
+API_URL = 'https://app.gogriddy.com/api/v1/insights/getnow'
+
 # GoGriddy billing is actually based on 15-minute RTSPP intervals indicated
 # here
 # http://www.ercot.com/content/cdr/html/20190915_real_time_spp
@@ -30,7 +32,6 @@ class GoGriddyPriceCheckService(ServiceConsumer):
         super().setServiceProvider(provider)
 
         config = self._getService(ConfigService)
-        self.__apiUrl = config.resolve('gogriddy', 'apiUrl')
         self.__apiPostData = {
             'meterID': config.resolve('gogriddy', 'meterId'),
             'memberID': config.resolve('gogriddy', 'memberId'),
@@ -52,7 +53,7 @@ class GoGriddyPriceCheckService(ServiceConsumer):
 
         try:
             result = requests.post(
-                self.__apiUrl, data=json.dumps(self.__apiPostData))
+                API_URL, data=json.dumps(self.__apiPostData))
             data = json.loads(result.text)
             event = PowerPriceChangedEvent(
                 price=float(data["now"]["price_ckwh"]) / 100.0,

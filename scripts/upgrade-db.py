@@ -3,9 +3,12 @@
 from sqlalchemy import text
 import argparse
 
-from src.services import OrmStateManagementService
+from src.services import OrmStateManagementService, SettingsService, \
+    ConfigService
 from src.core import ServiceProvider, EventBus
 from src.logging import handleException, setupLogging
+from src.core.orm import OrmSchedule, OrmProgram, OrmScheduleDay, \
+    OrmScheduleTime, OrmPriceOverride
 
 
 class DatabaseUpgrader(ServiceProvider):
@@ -13,8 +16,10 @@ class DatabaseUpgrader(ServiceProvider):
     def __init__(self):
         super().__init__()
 
-        self.__eventBus = EventBus()
-        self.installService(EventBus, self.__eventBus)
+        self.installService(EventBus, EventBus())
+        self.installService(ConfigService, ConfigService())
+        settingsService = SettingsService()
+        settingsService.setServiceProvider(self)
 
     def exec(self, finalize: bool):
         ormStateManagementService = OrmStateManagementService()
@@ -36,54 +41,82 @@ class DatabaseUpgrader(ServiceProvider):
         # This establishes the new schema in 'public'
         ormStateManagementService.setServiceProvider(self)
 
-        query = text("SELECT uid FROM thermostat")
-        result = session.connection().execute(query)
-        uidList = list(row[0] for row in result.fetchall())
-        if len(uidList) != 1:
-            raise RuntimeError("Encountered thermostat uid list != 1 entry")
-        thermostatUid = uidList[0]
-
         query = text(
             "INSERT INTO version_info (time, major, minor) "
             "VALUES (now(), 1, 1)")
         result = session.connection().execute(query)
 
         query = text(
-            f"INSERT INTO thermostat_state("
-            f"    thermostat_uid, time, fan, cooling, heating) "
-            f"SELECT "
-            f"    {thermostatUid}, time, fan, cooling, heating "
-            f"FROM rpt_old.thermostat_state")
+            "INSERT INTO thermostat_state("
+            "    time, fan, cooling, heating) "
+            "SELECT "
+            "    time, fan, cooling, heating "
+            "FROM rpt_old.thermostat_state")
         result = session.connection().execute(query)
 
         query = text(
-            f"INSERT INTO thermostat_targets("
-            f"    thermostat_uid, time, mode, comfort_min, comfort_max) "
-            f"SELECT "
-            f"    {thermostatUid}, time, mode, comfort_min, comfort_max "
-            f"FROM rpt_old.thermostat_targets")
+            "INSERT INTO thermostat_targets("
+            "    time, mode, comfort_min, comfort_max) "
+            "SELECT "
+            "    time, mode, comfort_min, comfort_max "
+            "FROM rpt_old.thermostat_targets")
         result = session.connection().execute(query)
 
         query = text(
-            f"INSERT INTO griddy_update("
-            f"    thermostat_uid, time, price) "
-            f"SELECT "
-            f"    {thermostatUid}, time, price "
-            f"FROM rpt_old.griddy_update")
+            "INSERT INTO griddy_update("
+            "    time, price) "
+            "SELECT "
+            "    time, price "
+            "FROM rpt_old.griddy_update")
         result = session.connection().execute(query)
 
         query = text(
-            f"INSERT INTO sensor_reading("
-            f"    thermostat_uid, time, temperature, pressure, humidity) "
-            f"SELECT "
-            f"    {thermostatUid}, time, temperature, pressure, humidity "
-            f"FROM rpt_old.sensor_reading")
+            "INSERT INTO sensor_reading("
+            "    time, temperature, pressure, humidity) "
+            "SELECT "
+            "    time, temperature, pressure, humidity "
+            "FROM rpt_old.sensor_reading")
         result = session.connection().execute(query)
+
+        configService = self.getService(ConfigService)
+        thermostatData = configService.getData().get('thermostat', dict())
+        programData = thermostatData.get('programs', dict())
+        for name, pData in programData.items():
+            program = OrmProgram()
+            program.name = name
+            program.comfort_min = pData.get('comfortMin', 68)
+            program.comfort_max = pData.get('comfortMax', 78)
+            session.add(program)
+            for oData in pData.get('priceOverrides', list()):
+                priceOverride = OrmPriceOverride()
+                priceOverride.program_name = name
+                priceOverride.price = oData['price']
+                priceOverride.comfort_min = oData.get('comfortMin', 68)
+                priceOverride.comfort_max = oData.get('comfortMax', 78)
+                session.add(priceOverride)
+
+        scheduleData = thermostatData.get('schedule', dict())
+        for name, sData in scheduleData.items():
+            schedule = OrmSchedule()
+            schedule.name = name
+            session.add(schedule)
+            for day in sData.get('days', list()):
+                scheduleDay = OrmScheduleDay()
+                scheduleDay.schedule_name = name
+                scheduleDay.day = day
+                session.add(scheduleDay)
+            for tData in sData.get('times', list()):
+                scheduleTime = OrmScheduleTime()
+                scheduleTime.schedule_name = name
+                scheduleTime.program_name = tData['program']
+                scheduleTime.hour = tData['hour']
+                scheduleTime.minute = tData['minute']
+                session.add(scheduleTime)
+
+        session.commit()
 
         if finalize:
             session.connection().execute('DROP SCHEMA rpt_old CASCADE')
-
-        session.commit()
 
 
 if __name__ == '__main__':

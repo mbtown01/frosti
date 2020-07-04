@@ -6,91 +6,99 @@ hide circle
 ' avoid problems with angled crows feet
 skinparam linetype ortho
 
-entity "OrmThermostat" as thermostat {
-  *uid : integer <<generated>>
-  --
-  *name : text
+
+frame "Programming" {
+  entity "OrmProgram" as program {
+    *name: string
+    --
+    comfort_min: float
+    comfort_max: float
+  }
+
+  entity "OrmPriceOverride" as price_overrides {
+    *program_name: string <<FK>>
+    *price: float
+    --
+    comfort_min: float
+    comfort_max: float
+  }
+  program ||..o{ price_overrides
+
+  entity "OrmSchedule" as schedule {
+    *name: string
+  }
+
+  entity "OrmScheduleDay" as schedule_day {
+    *day: integer
+    --
+    schedule_name: string <<FK>>
+  }
+  schedule ||..o{ schedule_day
+
+  entity "OrmScheduleTime" as schedule_time {
+    *schedule_name: string <<FK>>
+    *hour: integer
+    *minute: integer
+    --
+    program_name: string <<FK>>
+  }
+  schedule ||..o{ schedule_time
+  program ||..o{ schedule_time
 }
 
-entity "OrmGriddyConfig" as griddyConfig {
-  *uid : integer <<generated>>
-  --
-  *meter_id : string
-  *thermostat_uid : integer <<FK>>
-  --
+frame "State Capture" {
+
+  entity "OrmThermostatTargets" as thermostat_targets {
+    *time: datetime
+    --
+    mode: integer
+    comfort_min: float
+    comfort_max: float
+  }
+
+  entity "OrmSensorReading" as sensor_reading {
+    *time: datetime
+    --
+    temperature: float
+    pressure: float
+    humidity: float
+  }
+
+  entity "OrmThermostatState" as thermostat_state {
+    *time: datetime
+    --
+    fan: boolean
+    cooling: boolean
+    heating: boolean
+  }
+
+  entity "OrmGriddyUpdate" as griddy_update {
+    *time: datetime
+    --
+    price: float
+  }
 }
-thermostat ||..o| griddyConfig
 
-entity "OrmGriddyUpdate" as griddyUpdate {
-  *griddy_config_uid: integer <<FK>>
-  *time: datetime
-  --
-  price: float
+frame "Configuration" {
+
+  entity "OrmThermostat" as thermostat {
+    *name : string
+    --
+    delta: double
+    fan_runout: integer
+    backlight_timeout: integer
+    --
+    meter_id : string
+    member_id: string
+    settlement_point: string
+  }
+
+  entity "OrmVersion" as version_info {
+    *major: integer
+    *minor: integer
+    --
+    time: datetime
+  }
 }
-griddyConfig ||..o{ griddyUpdate
-
-entity "OrmProgram" as program {
-  *uid : integer <<generated>>
-  --
-  *name: string
-  *thermostat_uid : integer <<FK>>
-  --
-  comfort_min: float
-  comfort_max: float
-}
-thermostat ||..o{ program
-
-entity "OrmPriceOverride" as priceOverrides {
-  *thermostat_uid : integer <<FK>>
-  *program_uid: integer <<FK>>
-  --
-  comfort_min: float
-  comfort_max: float
-}
-thermostat ||..o{ priceOverrides
-
-entity "OrmSchedule" as schedule {
-  *thermostat_uid : integer <<FK>>
-  *day: integer
-  *hour: integer
-  *minute: integer
-  --
-  *program_name: string <<FK>>
-}
-thermostat ||..o{ schedule
-program ||..o{ schedule
-
-
-entity "OrmSensorReading" as sensorReading {
-  *thermostat_uid : integer <<FK>>
-  *time: datetime
-  --
-  temperature: float
-  pressure: float
-  humidity: float
-}
-thermostat ||..o{ sensorReading
-
-entity "OrmThermostatState" as thermostatState {
-  *thermostat_uid : integer <<FK>>
-  *time: datetime
-  --
-  fan: integer
-  cooling: integer
-  heating: integer
-}
-thermostat ||..o{ thermostatState
-
-
-entity "OrmThermostatTargets" as thermostatTargets {
-  *thermostat_uid : integer <<FK>>
-  *time: datetime
-  --
-  mode: integer
-  comfort_min: float
-  comfort_max: float
-}
-thermostat ||..o{ thermostatTargets
-
 
 @enduml
