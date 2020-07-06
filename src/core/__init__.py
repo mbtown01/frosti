@@ -13,3 +13,4 @@ from .Event import Event
 from .EventBus import EventBus
 from .EventBusTimer import EventBusTimer
 from .ThermostatState import ThermostatState
+from .ThermostatMode import ThermostatMode

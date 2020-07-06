@@ -2,14 +2,14 @@ from queue import Queue
 from curses import wrapper
 import argparse
 
-from src.logging import log, setupLogging, handleException
-from src.core import EventBus, ThermostatState
+from src.logging import log, setupLogging
+from src.core import EventBus, ThermostatState, ServiceProvider, \
+    ServiceConsumer
 from src.core.generics import GenericEnvironmentSensor
-from src.services import ConfigService, SettingsService, \
-    SettingsChangedEvent, ApiDataBrokerService, GoGriddyPriceCheckService, \
-    OrmStateManagementService, ThermostatService, EnvironmentSamplingService, \
-    RelayManagementService
-from src.core import ServiceProvider, ServiceConsumer
+from src.services import ConfigService, ApiDataBrokerService, \
+    GoGriddyPriceCheckService, OrmManagementService, ThermostatService, \
+    EnvironmentSamplingService, RelayManagementService, OrmStateCaptureService
+from src.core.events import SettingsChangedEvent
 
 
 class RootDriver(ServiceProvider):
@@ -50,17 +50,23 @@ class RootDriver(ServiceProvider):
         self.__config = ConfigService()
         self.installService(ConfigService, self.__config)
 
-        self.__settings = SettingsService()
-        self.__settings.setServiceProvider(self)
-        self.installService(SettingsService, self.__settings)
+        ormManagementService = OrmManagementService()
+        ormManagementService.setServiceProvider(self)
+        self.installService(
+            OrmManagementService, ormManagementService)
 
-        self.__thermostat = ThermostatService()
-        self.__thermostat.setServiceProvider(self)
-        self.installService(ThermostatService, self.__thermostat)
+        thermostatService = ThermostatService()
+        thermostatService.setServiceProvider(self)
+        self.installService(ThermostatService, thermostatService)
+
+        ormStateCaptureService = OrmStateCaptureService()
+        ormStateCaptureService.setServiceProvider(self)
+        self.installService(
+            OrmStateCaptureService, ormStateCaptureService)
 
         # Put all the event handlers together
-        self.__apiDataBroker = ApiDataBrokerService()
-        self.__apiDataBroker.setServiceProvider(self)
+        apiDataBrokerService = ApiDataBrokerService()
+        apiDataBrokerService.setServiceProvider(self)
 
     def __start(self, stdscr):
         if stdscr is not None:
@@ -131,12 +137,6 @@ class RootDriver(ServiceProvider):
                 priceChecker.setServiceProvider(self)
             except ConnectionError:
                 log.warning("Unable to reach GoGriddy")
-
-        try:
-            dataExporter = OrmStateManagementService()
-            dataExporter.setServiceProvider(self)
-        except:
-            handleException("Postgres startup")
 
         self.__installService(
             EnvironmentSamplingService,

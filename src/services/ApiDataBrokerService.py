@@ -3,7 +3,7 @@ from flask_cors import CORS
 from threading import Thread
 import json
 
-from .SettingsService import SettingsService
+from .ThermostatService import ThermostatService
 from src.core import ServiceProvider, ServiceConsumer, EventBus, \
     ThermostatState
 from src.core.events import \
@@ -83,7 +83,7 @@ class ApiDataBrokerService(ServiceConsumer):
         return 'rpt-0.1'
 
     def api_status(self):
-        settings = self._getService(SettingsService)
+        thermostatService = self._getService(ThermostatService)
 
         response = {
             'version': self.api_version(),
@@ -92,21 +92,21 @@ class ApiDataBrokerService(ServiceConsumer):
                 'pressure': f"{self.__lastPressure:.1f}",
                 'humidity': f"{self.__lastHumidity:.1f}",
             },
-            'comfortMin': settings.comfortMin,
-            'comfortMax': settings.comfortMax,
-            'state': str(self.__lastState).replace('ThermostatState.', ''),
-            'mode': str(settings.mode).replace('Mode.', ''),
+            'comfortMin': thermostatService.comfortMin,
+            'comfortMax': thermostatService.comfortMax,
+            'state': str(self.__lastState),
+            'mode': str(thermostatService.mode)
         }
         return json.dumps(response, indent=4)
 
     def api_settings(self):
-        settings = self._getService(SettingsService)
+        thermostatService = self._getService(ThermostatService)
 
         response = {
             'version': self.api_version(),
-            'comfortMin': settings.comfortMin,
-            'comfortMax': settings.comfortMax,
-            'mode': str(settings.mode).replace('Mode.', ''),
+            'comfortMin': thermostatService.comfortMin,
+            'comfortMax': thermostatService.comfortMax,
+            'mode': str(thermostatService.mode),
         }
         return json.dumps(response, indent=4)
 

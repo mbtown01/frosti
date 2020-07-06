@@ -2,10 +2,10 @@
 # successfully import logic from src
 
 from .ConfigService import ConfigService
-from .SettingsService import SettingsChangedEvent, SettingsService
-from .OrmStateManagementService import OrmStateManagementService
+from .OrmManagementService import OrmManagementService
 from .ApiDataBrokerService import ApiDataBrokerService
 from .GoGriddyPriceCheckService import GoGriddyPriceCheckService
 from .ThermostatService import ThermostatService
 from .EnvironmentSamplingService import EnvironmentSamplingService
 from .RelayManagementService import RelayManagementService
+from .OrmStateCaptureService import OrmStateCaptureService

@@ -3,8 +3,7 @@
 from sqlalchemy import text
 import argparse
 
-from src.services import OrmStateManagementService, SettingsService, \
-    ConfigService
+from src.services import OrmManagementService, ConfigService
 from src.core import ServiceProvider, EventBus
 from src.logging import handleException, setupLogging
 from src.core.orm import OrmSchedule, OrmProgram, OrmScheduleDay, \
@@ -18,12 +17,10 @@ class DatabaseUpgrader(ServiceProvider):
 
         self.installService(EventBus, EventBus())
         self.installService(ConfigService, ConfigService())
-        settingsService = SettingsService()
-        settingsService.setServiceProvider(self)
 
     def exec(self, finalize: bool):
-        ormStateManagementService = OrmStateManagementService()
-        session = ormStateManagementService.session
+        ormManagementService = OrmManagementService()
+        session = ormManagementService.session
 
         # Take the existing schema and rename it to rpt_old, but keep
         # all the data so we can move it over
@@ -39,7 +36,7 @@ class DatabaseUpgrader(ServiceProvider):
         session.commit()
 
         # This establishes the new schema in 'public'
-        ormStateManagementService.setServiceProvider(self)
+        ormManagementService.setServiceProvider(self)
 
         query = text(
             "INSERT INTO version_info (time, major, minor) "

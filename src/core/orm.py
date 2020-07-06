@@ -64,8 +64,10 @@ class OrmProgram(Base):
     comfort_max = Column(Float)
 
     # Relationships
-    price_overrides = relationship("OrmPriceOverride")
-    times = relationship("OrmScheduleTime")
+    ''' All price overrides for this program '''
+    overrides = relationship("OrmPriceOverride", back_populates="program")
+    ''' All times this program runs '''
+    times = relationship("OrmScheduleTime", back_populates="program")
 
 
 class OrmPriceOverride(Base):
@@ -76,14 +78,23 @@ class OrmPriceOverride(Base):
     # Primary Key
     ''' Current price '''
     price = Column(Float, primary_key=True)
+    ''' associated program '''
+    program_name = Column(
+        String, ForeignKey('program.name'), nullable=False, primary_key=True)
+
+    # Columns
+    ''' Minimum temperature before heat is engaged '''
+    comfort_min = Column(Float)
+    ''' Maximum temperature before air conditioning is engaged '''
+    comfort_max = Column(Float)
 
     # Relationships
-    ''' associated program '''
-    program_name = Column(String, ForeignKey('program.name'), nullable=False)
+    ''' associated program record '''
+    program = relationship("OrmProgram", back_populates="overrides")
 
 
 class OrmSchedule(Base):
-    ''' A user-named schedule describing which program runs when (e.g. 
+    ''' A user-named schedule describing which program runs when (e.g.
     'weekdays', 'weekend').  Serves as a place holder to own both the
     ScheduleDays and ScheduleTimes '''
     __tablename__ = 'schedule'
@@ -92,8 +103,10 @@ class OrmSchedule(Base):
     name = Column(String, primary_key=True)
 
     # Relationships
-    days = relationship("OrmScheduleDay")
-    times = relationship("OrmScheduleTime")
+    ''' All days this schedule runs in '''
+    days = relationship("OrmScheduleDay", back_populates="schedule")
+    ''' All times this schedule runs each day '''
+    times = relationship("OrmScheduleTime", back_populates="schedule")
 
 
 class OrmScheduleDay(Base):
@@ -106,9 +119,13 @@ class OrmScheduleDay(Base):
     ''' Integer day [0-6] == [Monday...Sunday] '''
     day = Column(Integer, primary_key=True)
 
-    # Relationships
+    # Columns
     ''' associated schedule '''
     schedule_name = Column(String, ForeignKey('schedule.name'), nullable=False)
+
+    # Relationships
+    ''' associated schedule record '''
+    schedule = relationship("OrmSchedule", back_populates="days")
 
 
 class OrmScheduleTime(Base):
@@ -124,9 +141,16 @@ class OrmScheduleTime(Base):
     ''' Integer minute [0-59] for the program to start in this schedule '''
     minute = Column(Integer, primary_key=True)
 
-    # Relationships
-    ''' associated program '''
+    # Columns
+    ''' associated program name '''
     program_name = Column(String, ForeignKey('program.name'), nullable=False)
+
+    # Relationships
+    ''' associated program record '''
+    program = relationship("OrmProgram", back_populates="times")
+    ''' associated schedule record '''
+    schedule = relationship("OrmSchedule", back_populates="times")
+
 
 # endregion
 

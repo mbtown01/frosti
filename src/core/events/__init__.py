@@ -12,3 +12,4 @@ from .ThermostatStateChangedEvent import ThermostatStateChangedEvent
 from .PowerPriceChangedEvent import PowerPriceChangedEvent
 from .SensorDataChangedEvent import SensorDataChangedEvent
 from .UserThermostatInteractionEvent import UserThermostatInteractionEvent
+from .SettingsChangedEvent import SettingsChangedEvent

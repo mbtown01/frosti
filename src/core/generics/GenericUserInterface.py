@@ -3,12 +3,11 @@ from enum import Enum
 from .GenericLcdDisplay import GenericLcdDisplay
 from .GenericRgbLed import GenericRgbLed
 from src.logging import log
-from src.services import SettingsService, SettingsChangedEvent
 from src.core import ServiceConsumer, ServiceProvider, EventBus, Event
-from src.services import ConfigService, ThermostatService
+from src.services import ThermostatService, OrmManagementService
 from src.core.events import ThermostatStateChangedEvent, \
     SensorDataChangedEvent, PowerPriceChangedEvent, \
-    UserThermostatInteractionEvent
+    UserThermostatInteractionEvent, SettingsChangedEvent
 
 
 class GenericUserInterface(ServiceConsumer):
@@ -29,7 +28,7 @@ class GenericUserInterface(ServiceConsumer):
 
     def __init__(self,
                  lcd: GenericLcdDisplay,
-                 rgbLeds: list=[]):
+                 rgbLeds: list = []):
         self.__lcd = lcd
         self.__rgbLeds = rgbLeds
         self.__lcd.setBacklight(True)
@@ -49,9 +48,9 @@ class GenericUserInterface(ServiceConsumer):
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
 
-        config = self._getService(ConfigService)
-        self.__backlightTimeoutDuration = \
-            config.value('thermostat').value('backlightTimeout', 10)
+        ormManagementService = self._getService(OrmManagementService)
+        thermostatConfig = ormManagementService.thermostat
+        self.__backlightTimeoutDuration = thermostatConfig.backlight_timeout
 
         eventBus = self._getService(EventBus)
         self.__backlightTimeoutInvoker = eventBus.installTimer(
@@ -125,8 +124,8 @@ class GenericUserInterface(ServiceConsumer):
             self.redraw()
 
     def __settingsChanged(self, event: SettingsChangedEvent):
-        settings = self._getService(SettingsService)
-        if settings.isInPriceOverride:
+        thermostatService = self._getService(ThermostatService)
+        if thermostatService.isInPriceOverride:
             self.__ledColorList = [
                 GenericRgbLed.Color.BLUE,
                 GenericRgbLed.Color.CYAN,
@@ -141,10 +140,10 @@ class GenericUserInterface(ServiceConsumer):
             for rgbLed in self.__rgbLeds:
                 rgbLed.setColor(GenericRgbLed.Color.BLACK)
 
-        heat = settings.comfortMin
-        cool = settings.comfortMax
-        name = settings.currentProgram.name
-        mode = str(settings.mode).replace('Mode.', '')
+        heat = thermostatService.comfortMin
+        cool = thermostatService.comfortMax
+        name = thermostatService.currentProgramName
+        mode = thermostatService.mode
         log.debug(f"[{name}] mode={mode} {heat:<3.0f}/{cool:>3.0f}")
 
         self.__rowTwoEntries[0] = f'Target:      {heat:<3.0f}/{cool:>3.0f}'
@@ -154,8 +153,7 @@ class GenericUserInterface(ServiceConsumer):
         self.redraw()
 
     def __stateChanged(self, event: ThermostatStateChangedEvent):
-        state = str(event.state).replace('ThermostatState.', '')
-        self.__rowTwoEntries[1] = f'State: {state:>13s}'
+        self.__rowTwoEntries[1] = f'State: {event.state:>13s}'
         self.__rowTwoOffset = 1
         self.__redrawAndRotateInvoker.reset()
         self.redraw()
@@ -172,10 +170,10 @@ class GenericUserInterface(ServiceConsumer):
             len(self.__rowTwoEntries)
 
     def redraw(self):
-        settings = self._getService(SettingsService)
+        thermostatService = self._getService(ThermostatService)
 
         now = self.__lastTemperature
-        mode = str(settings.mode).replace('Mode.', '')
+        mode = thermostatService.mode
         self.__lcd.update(0, 0, f'Now: {now:<5.1f}    {mode:>6s}')
         self.__lcd.update(1, 0, self.__rowTwoEntries[self.__rowTwoOffset])
         self.__lcd.update(3, 0, r'UP  DOWN  MODE  NEXT')

@@ -1,7 +1,7 @@
 from src.core import ServiceConsumer, ServiceProvider, EventBus
 from src.core.generics import GenericEnvironmentSensor
-from src.core.events import SensorDataChangedEvent
-from src.services import ConfigService, SettingsChangedEvent
+from src.core.events import SensorDataChangedEvent, SettingsChangedEvent
+from src.services import ConfigService
 
 
 class EnvironmentSamplingService(ServiceConsumer):

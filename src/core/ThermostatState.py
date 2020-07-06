@@ -12,6 +12,9 @@ class ThermostatState(Enum):
     HEATING = 2
     FAN = 3
 
+    def __str__(self):
+        return super().__str__().replace('ThermostatState.', '')
+
     @property
     def shouldAlsoRunFan(self):
         """ Returns true if this state implies the use of the fan """

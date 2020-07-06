@@ -5,10 +5,8 @@ from time import sleep, strptime, mktime
 
 from src.services import ApiDataBrokerService
 from src.core import EventBus, ServiceProvider
-from src.services import ConfigService
-from src.services import SettingsService
+from src.services import ConfigService, ThermostatService, OrmManagementService
 from src.core.events import SensorDataChangedEvent
-
 
 yamlData = """
 thermostat:
@@ -31,9 +29,17 @@ class Test_ApiDataBroker(unittest.TestCase):
         self.serviceProvider.installService(EventBus, self.eventBus)
         self.config = ConfigService(yamlData=yamlData)
         self.serviceProvider.installService(ConfigService, self.config)
-        self.settings = SettingsService()
-        self.settings.setServiceProvider(self.serviceProvider)
-        self.serviceProvider.installService(SettingsService, self.settings)
+        self.ormManagementService = OrmManagementService(isTestInstance=True)
+        self.ormManagementService.setServiceProvider(self.serviceProvider)
+        self.ormManagementService.importFromYaml(yamlData)
+        self.serviceProvider.installService(
+            OrmManagementService, self.ormManagementService)
+        self.thermostat = ThermostatService()
+        self.thermostat.setServiceProvider(self.serviceProvider)
+        self.serviceProvider.installService(
+            ThermostatService, self.thermostat)
+        self.thermostat.comfortMin = 68.0
+        self.thermostat.comfortMax = 75.0
 
         apiDataBroker = ApiDataBrokerService()
         apiDataBroker.setServiceProvider(self.serviceProvider)
