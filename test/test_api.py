@@ -1,22 +1,19 @@
 import unittest
 import requests
 import json
+import yaml
 from time import sleep, strptime, mktime
 
 from src.services import ApiDataBrokerService
 from src.core import EventBus, ServiceProvider
-from src.services import ConfigService, ThermostatService, OrmManagementService
+from src.services import ThermostatService, OrmManagementService
 from src.core.events import SensorDataChangedEvent
 
-yamlData = """
-thermostat:
-    delta: 1.0
-    fanRunout: 30
-    backlightTimeout: 10
-    programs:
-        _default:
-            comfortMin: 68
-            comfortMax: 75
+yamlText = """
+config:
+    thermostat.delta: 1.0
+    thermostat.fanRunoutDuration: 30
+    ui.backlightTimeout: 10
 """
 
 
@@ -27,11 +24,9 @@ class Test_ApiDataBroker(unittest.TestCase):
         testTime = strptime('01/01/19 08:01:00', '%m/%d/%y %H:%M:%S')
         self.eventBus = EventBus(now=mktime(testTime))
         self.serviceProvider.installService(EventBus, self.eventBus)
-        self.config = ConfigService(yamlData=yamlData)
-        self.serviceProvider.installService(ConfigService, self.config)
         self.ormManagementService = OrmManagementService(isTestInstance=True)
         self.ormManagementService.setServiceProvider(self.serviceProvider)
-        self.ormManagementService.importFromYaml(yamlData)
+        self.ormManagementService.importFromDict(yaml.load(yamlText))
         self.serviceProvider.installService(
             OrmManagementService, self.ormManagementService)
         self.thermostat = ThermostatService()

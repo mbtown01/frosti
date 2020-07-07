@@ -1,43 +1,48 @@
 import unittest
+import yaml
 from time import mktime, strptime
 
 from src.core import EventBus, ServiceProvider
 from src.core.events import PowerPriceChangedEvent
-from src.services import ConfigService, OrmManagementService, ThermostatService
+from src.services import OrmManagementService, ThermostatService
 
-yamlData = """
-thermostat:
-    programs:
-        away:
-            comfortMin: 64
-            comfortMax: 78
-            priceOverrides:
-                - { price: 0.25, comfortMax: 82 }
-        overnight:
-            comfortMin: 68
-            comfortMax: 72
-            priceOverrides:
-                - { price: 0.25, comfortMax: 76 }
-                - { price: 0.50, comfortMax: 78 }
-                - { price: 1.00, comfortMax: 88 }
-        home:
-            comfortMin: 70
-            comfortMax: 76
-            priceOverrides:
-                - { price: 0.50, comfortMax: 80 }
-                - { price: 1.00, comfortMax: 88 }
-    schedule:
-        work week:
-            days: [0, 1, 2, 3, 4]
-            times:
-                - { hour: 8, minute: 0, program: away }
-                - { hour: 17, minute: 0, program: home }
-                - { hour: 20, minute: 0, program: overnight }
-        weekend:
-            days: [5, 6]
-            times:
-                - { hour: 8, minute: 0, program: home }
-                - { hour: 20, minute: 0, program: overnight }
+yamlText = """
+config:
+  thermostat.delta: 1.0
+  thermostat.fanRunoutDuration: 30
+  ui.backlightTimeout: 10
+
+programs:
+    away:
+        comfortMin: 64
+        comfortMax: 78
+        priceOverrides:
+            - { price: 0.25, comfortMax: 82 }
+    overnight:
+        comfortMin: 68
+        comfortMax: 72
+        priceOverrides:
+            - { price: 0.25, comfortMax: 76 }
+            - { price: 0.50, comfortMax: 78 }
+            - { price: 1.00, comfortMax: 88 }
+    home:
+        comfortMin: 70
+        comfortMax: 76
+        priceOverrides:
+            - { price: 0.50, comfortMax: 80 }
+            - { price: 1.00, comfortMax: 88 }
+schedule:
+    work week:
+        days: [0, 1, 2, 3, 4]
+        times:
+            - { hour: 8, minute: 0, program: away }
+            - { hour: 17, minute: 0, program: home }
+            - { hour: 20, minute: 0, program: overnight }
+    weekend:
+        days: [5, 6]
+        times:
+            - { hour: 8, minute: 0, program: home }
+            - { hour: 20, minute: 0, program: overnight }
 """
 
 
@@ -47,11 +52,9 @@ class Test_Settings(unittest.TestCase):
         self.serviceProvider = ServiceProvider()
         self.eventBus = EventBus()
         self.serviceProvider.installService(EventBus, self.eventBus)
-        self.config = ConfigService(yamlData=yamlData)
-        self.serviceProvider.installService(ConfigService, self.config)
         self.ormManagementService = OrmManagementService(isTestInstance=True)
         self.ormManagementService.setServiceProvider(self.serviceProvider)
-        self.ormManagementService.importFromYaml(yamlData)
+        self.ormManagementService.importFromDict(yaml.load(yamlText))
         self.serviceProvider.installService(
             OrmManagementService, self.ormManagementService)
         self.thermostat = ThermostatService()

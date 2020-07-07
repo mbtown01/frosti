@@ -10,7 +10,7 @@ from src.core.events import ThermostatStateChangedEvent, \
     SensorDataChangedEvent, UserThermostatInteractionEvent, \
     ThermostatStateChangingEvent, PowerPriceChangedEvent, \
     SettingsChangedEvent
-from src.core.orm import OrmScheduleDay, OrmScheduleTime, OrmPriceOverride
+from src.core.orm import OrmScheduleDay, OrmPriceOverride
 
 
 class ThermostatService(ServiceConsumer):
@@ -31,9 +31,10 @@ class ThermostatService(ServiceConsumer):
         super().setServiceProvider(provider)
 
         ormManagementService = self._getService(OrmManagementService)
-        thermostatConfig = ormManagementService.thermostat
-        self.__delta = thermostatConfig.delta
-        self.__fanRunoutDuration = thermostatConfig.fan_runout
+        self.__delta = ormManagementService.getConfigFloat(
+            'thermostat.delta')
+        self.__fanRunoutDuration = ormManagementService.getConfigInt(
+            'thermostat.fanRunoutDuration')
 
         eventBus = self._getService(EventBus)
         self.__checkScheduleInvoker = eventBus.installTimer(

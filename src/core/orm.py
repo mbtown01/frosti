@@ -21,28 +21,16 @@ class OrmVersionInfo(Base):
         DateTime(timezone=True), nullable=False, default=func.now())
 
 
-class OrmThermostat(Base):
-    ''' Basic thermostat for the entire system, designed as a single row '''
-    __tablename__ = 'thermostat'
+class OrmConfig(Base):
+    ''' Key value configuration data storage '''
+    __tablename__ = 'config'
 
     # Primary Key
-    ''' Name for this thermostat '''
+    ''' Name of the configuration value '''
     name = Column(String, primary_key=True)
 
     # Columns
-    ''' Total fluxuation around set point allowed before action '''
-    delta = Column(Float)
-    ''' Seconds to run the fan after heat/cool has ended '''
-    fan_runout = Column(Integer)
-    ''' Seconds to run the backlight on the LCD after last user input '''
-    backlight_timeout = Column(Integer)
-
-    ''' Centerpoint meter uid '''
-    meter_id = Column(String)
-    ''' Griddy member uid '''
-    member_id = Column(String)
-    ''' ERCOT settlement point '''
-    settlement_point = Column(String)
+    value = Column(String, nullable=False)
 
 # endregion
 

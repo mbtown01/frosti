@@ -1,41 +1,43 @@
 import unittest
+import yaml
 from time import mktime, strptime
 
 from src.core import EventBus, ServiceConsumer, ServiceProvider, \
     ThermostatState, ThermostatMode
-from src.services import ThermostatService, ConfigService, \
-    RelayManagementService, OrmManagementService
+from src.services import ThermostatService, RelayManagementService, \
+    OrmManagementService
 from src.core.events import ThermostatStateChangedEvent, SensorDataChangedEvent
 
 
-yamlData = """
-thermostat:
-    programs:
-        _default:
-            comfortMin: 32
-            comfortMax: 212
-        home:
-            comfortMin: 70
-            comfortMax: 76
-            priceOverrides:
-                - { price: 0.50, comfortMax: 80 }
-                - { price: 1.00, comfortMax: 88 }
-        away:
-            comfortMin: 68
-            comfortMax: 75
-            priceOverrides:
-                - { price: 0.25, comfortMax: 82 }
-    schedule:
-        work week:
-            days: [0, 1, 2, 3, 4]
-            times:
-                - { hour: 8, minute: 0, program: away }
-                - { hour: 17, minute: 0, program: home }
-        weekend:
-            days: [5, 6]
-            times:
-                - { hour: 8, minute: 0, program: home }
-                - { hour: 20, minute: 0, program: away }
+yamlText = """
+config:
+    thermostat.delta: 1.0
+    thermostat.fanRunoutDuration: 30
+    ui.backlightTimeout: 10
+
+programs:
+    home:
+        comfortMin: 70
+        comfortMax: 76
+        priceOverrides:
+            - { price: 0.50, comfortMax: 80 }
+            - { price: 1.00, comfortMax: 88 }
+    away:
+        comfortMin: 68
+        comfortMax: 75
+        priceOverrides:
+            - { price: 0.25, comfortMax: 82 }
+schedule:
+    work week:
+        days: [0, 1, 2, 3, 4]
+        times:
+            - { hour: 8, minute: 0, program: away }
+            - { hour: 17, minute: 0, program: home }
+    weekend:
+        days: [5, 6]
+        times:
+            - { hour: 8, minute: 0, program: home }
+            - { hour: 20, minute: 0, program: away }
 """
 
 
@@ -69,15 +71,13 @@ class Test_Thermostat(unittest.TestCase):
         testTime = strptime('01/01/19 08:01:00', '%m/%d/%y %H:%M:%S')
         self.eventBus = EventBus(now=mktime(testTime))
         self.serviceProvider.installService(EventBus, self.eventBus)
-        self.config = ConfigService(yamlData=yamlData)
-        self.serviceProvider.installService(ConfigService, self.config)
         self.relayManagement = RelayManagementService()
         self.relayManagement.setServiceProvider(self.serviceProvider)
         self.serviceProvider.installService(
             RelayManagementService, self.relayManagement)
         self.ormManagementService = OrmManagementService(isTestInstance=True)
         self.ormManagementService.setServiceProvider(self.serviceProvider)
-        self.ormManagementService.importFromYaml(yamlData)
+        self.ormManagementService.importFromDict(yaml.load(yamlText))
         self.serviceProvider.installService(
             OrmManagementService, self.ormManagementService)
         self.thermostat = ThermostatService()

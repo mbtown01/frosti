@@ -3,18 +3,6 @@ import unittest
 from src.core.generics import GenericLcdDisplay
 
 
-yamlData = """
-thermostat:
-    delta: 1.0
-    fanRunout: 30
-    backlightTimeout: 10
-    programs:
-        _default:
-            comfortMin: 68
-            comfortMax: 75
-"""
-
-
 class Test_GenericLcdDisplay(unittest.TestCase):
 
     def setup_method(self, method):

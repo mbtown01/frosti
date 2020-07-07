@@ -2,7 +2,7 @@ import requests
 import json
 from threading import Thread
 
-from .ConfigService import ConfigService
+from .OrmManagementService import OrmManagementService
 from src.core import ServiceConsumer, ServiceProvider, EventBus
 from src.core.events import PowerPriceChangedEvent
 from src.logging import log, handleException
@@ -28,18 +28,30 @@ class GoGriddyPriceCheckService(ServiceConsumer):
     """ ServiceConsumer thread that monitors power prices and fires an event
     if there is a change """
 
+    def __init__(self):
+        self.__retries = 0
+
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
 
-        config = self._getService(ConfigService)
-        self.__apiPostData = {
-            'meterID': config.resolve('gogriddy', 'meterId'),
-            'memberID': config.resolve('gogriddy', 'memberId'),
-            'settlement_point': config.resolve('gogriddy', 'settlementPoint')
-        }
-        eventBus = self._getService(EventBus)
-        self.__startUpdatePriceHandler = \
-            eventBus.installTimer(
+        ormManagementService = self._getService(OrmManagementService)
+        self.__apiPostData = dict()
+        self.__apiPostData['meterID'] = \
+            ormManagementService.getConfigString('gogriddy.meterId', '')
+        self.__apiPostData['memberID'] = \
+            ormManagementService.getConfigString('gogriddy.memberId', '')
+        self.__apiPostData['settlement_point'] = \
+            ormManagementService.getConfigString(
+                'gogriddy.settlementPoint', '')
+
+        # Only start the price check service if a member id has been
+        # configured
+        if \
+                self.__apiPostData['meterID'] != '' and \
+                self.__apiPostData['memberID'] != '' and \
+                self.__apiPostData['settlement_point'] != '':
+            eventBus = self._getService(EventBus)
+            self.__startUpdatePriceHandler = eventBus.installTimer(
                 5.0, handler=self.__startUpdatePrice, oneShot=True)
 
     def __startUpdatePrice(self):
@@ -66,6 +78,10 @@ class GoGriddyPriceCheckService(ServiceConsumer):
                 f"in {event.nextUpdate}s")
 
             eventBus.fireEvent(event)
+            self.__retries = 0
         except:
-            handleException("GoGriddy price checker")
-            self.__startUpdatePriceHandler.reset(frequency=5)
+            self.__retries += 1
+            handleException(
+                f"GoGriddy price checker, tries={self.__retries}")
+            if self.__retries < 5:
+                self.__startUpdatePriceHandler.reset(frequency=5)

@@ -1,12 +1,14 @@
 from queue import Queue
 from curses import wrapper
+from os import path
+import yaml
 import argparse
 
-from src.logging import log, setupLogging
+from src.logging import log, setupLogging, handleException
 from src.core import EventBus, ThermostatState, ServiceProvider, \
     ServiceConsumer
 from src.core.generics import GenericEnvironmentSensor
-from src.services import ConfigService, ApiDataBrokerService, \
+from src.services import ApiDataBrokerService, \
     GoGriddyPriceCheckService, OrmManagementService, ThermostatService, \
     EnvironmentSamplingService, RelayManagementService, OrmStateCaptureService
 from src.core.events import SettingsChangedEvent
@@ -43,15 +45,31 @@ class RootDriver(ServiceProvider):
             instance.setServiceProvider(self)
         self.installService(type, instance)
 
+    def __getYamlConfigData(self):
+        localPath = path.realpath(__file__)
+
+        searchOrder = (
+            path.expanduser('~/.thermostat.yaml'),
+            '/etc/thermostat.yaml',
+            path.abspath(
+                path.dirname(localPath) + '/../etc/thermostat.yaml')
+        )
+
+        for fileName in searchOrder:
+            if path.exists(fileName):
+                log.info(f"Configuration coming from {fileName}")
+                with open(fileName) as configFile:
+                    return yaml.load(configFile, Loader=yaml.FullLoader)
+
+        raise RuntimeError("Couldn't not find a thermostat.yaml config file")
+
     def __setupCore(self):
         self.__eventBus = EventBus()
         self.installService(EventBus, self.__eventBus)
 
-        self.__config = ConfigService()
-        self.installService(ConfigService, self.__config)
-
         ormManagementService = OrmManagementService()
         ormManagementService.setServiceProvider(self)
+        ormManagementService.importFromDict(self.__getYamlConfigData())
         self.installService(
             OrmManagementService, ormManagementService)
 
@@ -129,14 +147,13 @@ class RootDriver(ServiceProvider):
             self.userInterface = HardwareUserInterface()
             self.userInterface.setServiceProvider(self)
 
-        # Setup the power price handler after the other event handlers have
+        # Setup the power price handler after the other services have
         # been created so they get the first power events
-        if self.__config.value('gogriddy', 'enabled'):
-            try:
-                priceChecker = GoGriddyPriceCheckService()
-                priceChecker.setServiceProvider(self)
-            except ConnectionError:
-                log.warning("Unable to reach GoGriddy")
+        try:
+            priceChecker = GoGriddyPriceCheckService()
+            priceChecker.setServiceProvider(self)
+        except ConnectionError:
+            log.warning("Unable to reach GoGriddy")
 
         self.__installService(
             EnvironmentSamplingService,
@@ -156,5 +173,8 @@ class RootDriver(ServiceProvider):
 if __name__ == '__main__':
     log.info('Starting thermostat main thread')
 
-    rootDriver = RootDriver()
-    rootDriver.start()
+    try:
+        rootDriver = RootDriver()
+        rootDriver.start()
+    except:
+        handleException("Main entry point")

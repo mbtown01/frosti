@@ -49,8 +49,8 @@ class GenericUserInterface(ServiceConsumer):
         super().setServiceProvider(provider)
 
         ormManagementService = self._getService(OrmManagementService)
-        thermostatConfig = ormManagementService.thermostat
-        self.__backlightTimeoutDuration = thermostatConfig.backlight_timeout
+        self.__backlightTimeoutDuration = \
+            ormManagementService.getConfigInt('ui.backlightTimeout')
 
         eventBus = self._getService(EventBus)
         self.__backlightTimeoutInvoker = eventBus.installTimer(

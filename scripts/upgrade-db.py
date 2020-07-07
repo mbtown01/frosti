@@ -3,11 +3,9 @@
 from sqlalchemy import text
 import argparse
 
-from src.services import OrmManagementService, ConfigService
+from src.services import OrmManagementService
 from src.core import ServiceProvider, EventBus
 from src.logging import handleException, setupLogging
-from src.core.orm import OrmSchedule, OrmProgram, OrmScheduleDay, \
-    OrmScheduleTime, OrmPriceOverride
 
 
 class DatabaseUpgrader(ServiceProvider):
@@ -16,7 +14,6 @@ class DatabaseUpgrader(ServiceProvider):
         super().__init__()
 
         self.installService(EventBus, EventBus())
-        self.installService(ConfigService, ConfigService())
 
     def exec(self, finalize: bool):
         ormManagementService = OrmManagementService()
@@ -74,41 +71,6 @@ class DatabaseUpgrader(ServiceProvider):
             "    time, temperature, pressure, humidity "
             "FROM rpt_old.sensor_reading")
         result = session.connection().execute(query)
-
-        configService = self.getService(ConfigService)
-        thermostatData = configService.getData().get('thermostat', dict())
-        programData = thermostatData.get('programs', dict())
-        for name, pData in programData.items():
-            program = OrmProgram()
-            program.name = name
-            program.comfort_min = pData.get('comfortMin', 68)
-            program.comfort_max = pData.get('comfortMax', 78)
-            session.add(program)
-            for oData in pData.get('priceOverrides', list()):
-                priceOverride = OrmPriceOverride()
-                priceOverride.program_name = name
-                priceOverride.price = oData['price']
-                priceOverride.comfort_min = oData.get('comfortMin', 68)
-                priceOverride.comfort_max = oData.get('comfortMax', 78)
-                session.add(priceOverride)
-
-        scheduleData = thermostatData.get('schedule', dict())
-        for name, sData in scheduleData.items():
-            schedule = OrmSchedule()
-            schedule.name = name
-            session.add(schedule)
-            for day in sData.get('days', list()):
-                scheduleDay = OrmScheduleDay()
-                scheduleDay.schedule_name = name
-                scheduleDay.day = day
-                session.add(scheduleDay)
-            for tData in sData.get('times', list()):
-                scheduleTime = OrmScheduleTime()
-                scheduleTime.schedule_name = name
-                scheduleTime.program_name = tData['program']
-                scheduleTime.hour = tData['hour']
-                scheduleTime.minute = tData['minute']
-                session.add(scheduleTime)
 
         session.commit()
 

@@ -6,7 +6,6 @@ hide circle
 ' avoid problems with angled crows feet
 skinparam linetype ortho
 
-
 frame "Programming" {
   entity "OrmProgram" as program {
     *name: string
@@ -47,7 +46,6 @@ frame "Programming" {
 }
 
 frame "State Capture" {
-
   entity "OrmThermostatTargets" as thermostat_targets {
     *time: datetime
     --
@@ -80,24 +78,10 @@ frame "State Capture" {
 }
 
 frame "Configuration" {
-
-  entity "OrmThermostat" as thermostat {
-    *name : string
+  entity "OrmConfig" as config {
+    *name: string
     --
-    delta: double
-    fan_runout: integer
-    backlight_timeout: integer
-    --
-    meter_id : string
-    member_id: string
-    settlement_point: string
-  }
-
-  entity "OrmVersion" as version_info {
-    *major: integer
-    *minor: integer
-    --
-    time: datetime
+    value: string
   }
 }
 

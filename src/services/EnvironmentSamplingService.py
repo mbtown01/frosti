@@ -1,7 +1,6 @@
 from src.core import ServiceConsumer, ServiceProvider, EventBus
 from src.core.generics import GenericEnvironmentSensor
 from src.core.events import SensorDataChangedEvent, SettingsChangedEvent
-from src.services import ConfigService
 
 
 class EnvironmentSamplingService(ServiceConsumer):
@@ -13,10 +12,6 @@ class EnvironmentSamplingService(ServiceConsumer):
 
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
-
-        config = self._getService(ConfigService)
-        self.__delta = \
-            config.value('thermostat').value('sampling_freq', 5.0)
 
         eventBus = self._getService(EventBus)
         eventBus.installEventHandler(
