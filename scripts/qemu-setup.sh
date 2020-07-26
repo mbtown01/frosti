@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# apt-get update && apt-get install -y --no-install-recommends qemu-user-static binfmt-support
+apt-get update && apt-get install -y --no-install-recommends qemu-user-static binfmt-support
 update-binfmts --enable qemu-arm
 update-binfmts --display qemu-arm
  
