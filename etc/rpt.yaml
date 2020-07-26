@@ -1,0 +1,53 @@
+config:
+  # Temperature delta (degF) above comfortMax where COOL kicks in AND delta 
+  # below comfortMin where HEAT kicks in
+  thermostat.delta: 1.0
+  # Amount of time (seconds) to continue running the fan after a HEAT or
+  # COOL cycle has ended
+  thermostat.fanRunoutDuration: 15
+  
+  # For the three environment sensors (temperature, pressure, humidity), 
+  # apply translate and scale so that for any sensor reading 'x', the actual
+  # reading is scale*x + translate
+  environment.temperature.translate: 0.0
+  environment.temperature.scale: 1.0
+  environment.humidity.translate: 0.0
+  environment.humidity.scale: 1.0
+  environment.pressure.translate: 0.0
+  environment.pressure.scale: 1.0
+
+  # How long (seconds) to leave the backlight on before timing out
+  ui.backlightTimeout: 10
+
+  # Default gogriddy membership info that should be removed in a final release
+  # but is required to call the Griddy web API
+  gogriddy.meterId: "1008901023809085840100"
+  gogriddy.memberId: "32795"
+  gogriddy.settlementPoint: "LZ_HOUSTON"
+  
+programs:
+  overnight: { comfortMin: 68, comfortMax: 88 }
+  home:
+    comfortMin: 70
+    comfortMax: 83
+    priceOverrides:
+      - { price: 0.10, comfortMax: 85 }
+      - { price: 0.20, comfortMax: 88 }
+      - { price: 0.40, comfortMax: 99 }
+  away:
+    comfortMin: 64
+    comfortMax: 86
+    priceOverrides:
+      - { price: 0.25, comfortMax: 99 }
+
+schedule:
+  work week:
+    days: [0, 1, 2, 3, 4]
+    times:
+      - { hour: 8, minute: 0, program: home }
+      - { hour: 20, minute: 0, program: overnight }
+  weekend:
+    days: [5, 6]
+    times:
+      - { hour: 8, minute: 0, program: home }
+      - { hour: 20, minute: 0, program: overnight }

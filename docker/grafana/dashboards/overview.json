@@ -20,39 +20,31 @@
   "panels": [
     {
       "datasource": "PostgreSQL",
+      "description": "",
       "fieldConfig": {
         "defaults": {
           "custom": {},
           "decimals": 1,
           "mappings": [],
-          "max": 90,
-          "min": 60,
+          "noValue": "NONE",
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "blue",
                 "value": null
               },
               {
-                "color": "dark-blue",
-                "value": 0
+                "color": "green",
+                "value": 70
               },
               {
-                "color": "light-blue",
-                "value": 60
-              },
-              {
-                "color": "semi-dark-green",
-                "value": 72
-              },
-              {
-                "color": "#EF843C",
+                "color": "yellow",
                 "value": 80
               },
               {
                 "color": "red",
-                "value": 85
+                "value": 90
               }
             ]
           },
@@ -62,21 +54,22 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 12,
+        "w": 5,
         "x": 0,
         "y": 0
       },
-      "id": 9,
+      "id": 19,
       "options": {
-        "displayMode": "lcd",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
         "orientation": "horizontal",
         "reduceOptions": {
           "calcs": [
-            "lastNotNull"
+            "last"
           ],
           "values": false
-        },
-        "showUnfilled": true
+        }
       },
       "pluginVersion": "7.0.0",
       "targets": [
@@ -84,64 +77,36 @@
           "format": "time_series",
           "group": [],
           "metricColumn": "none",
-          "rawQuery": false,
-          "rawSql": "SELECT\n  \"time\" AS \"time\",\n  comfort_max AS \"Cooling Target\"\nFROM thermostat_targets\nORDER BY 1",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  time AS \"time\",\n  temperature\nFROM sensor_reading\nORDER BY 1 DESC\nLIMIT 1",
           "refId": "A",
           "select": [
             [
               {
                 "params": [
-                  "comfort_max"
+                  "price"
                 ],
                 "type": "column"
-              },
-              {
-                "params": [
-                  "Cooling Target"
-                ],
-                "type": "alias"
               }
             ]
           ],
-          "table": "thermostat_targets",
+          "table": "griddy_update",
           "timeColumn": "\"time\"",
-          "timeColumnType": "timestamptz",
-          "where": []
-        },
-        {
-          "format": "time_series",
-          "group": [],
-          "metricColumn": "none",
-          "rawQuery": false,
-          "rawSql": "SELECT\n  \"time\" AS \"time\",\n  comfort_min AS \"Heating Target\"\nFROM thermostat_targets\nORDER BY 1",
-          "refId": "B",
-          "select": [
-            [
-              {
-                "params": [
-                  "comfort_min"
-                ],
-                "type": "column"
-              },
-              {
-                "params": [
-                  "Heating Target"
-                ],
-                "type": "alias"
-              }
-            ]
-          ],
-          "table": "thermostat_targets",
-          "timeColumn": "\"time\"",
-          "timeColumnType": "timestamptz",
-          "where": []
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
         }
       ],
       "timeFrom": null,
       "timeShift": null,
-      "title": "",
+      "title": "Currently",
       "transparent": true,
-      "type": "bargauge"
+      "type": "stat"
     },
     {
       "datasource": "PostgreSQL",
@@ -150,7 +115,6 @@
         "defaults": {
           "custom": {},
           "decimals": 3,
-          "displayName": "Power Price",
           "mappings": [],
           "max": 9,
           "min": -1,
@@ -194,7 +158,7 @@
       "gridPos": {
         "h": 4,
         "w": 4,
-        "x": 12,
+        "x": 5,
         "y": 0
       },
       "id": 11,
@@ -224,7 +188,7 @@
           ],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT\n  $__timeGroupAlias(\"time\",$__interval),\n  avg(price) AS \"price\"\nFROM griddy_update\nWHERE time > now() - interval '1 hour'\nGROUP BY 1\nORDER BY 1",
+          "rawSql": "SELECT\n  time as \"time\",\n  price AS \"price\"\nFROM griddy_update\nORDER BY 1 DESC\nLIMIT 1",
           "refId": "A",
           "select": [
             [
@@ -256,7 +220,7 @@
       ],
       "timeFrom": null,
       "timeShift": null,
-      "title": "",
+      "title": "Power Price",
       "transparent": true,
       "type": "gauge"
     },
@@ -266,112 +230,6 @@
         "defaults": {
           "custom": {},
           "decimals": 1,
-          "displayName": "Temperature",
-          "mappings": [],
-          "max": 95,
-          "min": 60,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "blue",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 72
-              },
-              {
-                "color": "#EAB839",
-                "value": 80
-              },
-              {
-                "color": "red",
-                "value": 85
-              }
-            ]
-          },
-          "unit": "fahrenheit"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 16,
-        "y": 0
-      },
-      "id": 6,
-      "interval": "1m",
-      "options": {
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "values": false
-        },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true
-      },
-      "pluginVersion": "7.0.0",
-      "targets": [
-        {
-          "format": "time_series",
-          "group": [
-            {
-              "params": [
-                "$__interval",
-                "none"
-              ],
-              "type": "time"
-            }
-          ],
-          "metricColumn": "none",
-          "rawQuery": true,
-          "rawSql": "SELECT\n  $__timeGroupAlias(\"time\",$__interval),\n  avg(temperature) AS \"temperature\"\nFROM sensor_reading\nWHERE time > now() - interval '1 hour'\nGROUP BY 1\nORDER BY 1",
-          "refId": "A",
-          "select": [
-            [
-              {
-                "params": [
-                  "temperature"
-                ],
-                "type": "column"
-              },
-              {
-                "params": [
-                  "avg"
-                ],
-                "type": "aggregate"
-              },
-              {
-                "params": [
-                  "temperature"
-                ],
-                "type": "alias"
-              }
-            ]
-          ],
-          "table": "sensor_reading",
-          "timeColumn": "\"time\"",
-          "timeColumnType": "timestamp",
-          "where": []
-        }
-      ],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "",
-      "transparent": true,
-      "type": "gauge"
-    },
-    {
-      "datasource": "PostgreSQL",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {},
-          "decimals": 1,
-          "displayName": "Humidity",
           "mappings": [],
           "max": 100,
           "min": 20,
@@ -399,7 +257,7 @@
       "gridPos": {
         "h": 4,
         "w": 4,
-        "x": 20,
+        "x": 9,
         "y": 0
       },
       "id": 7,
@@ -430,7 +288,7 @@
           ],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT\n  $__timeGroupAlias(\"time\",$__interval),\n  avg(humidity) AS \"humidity\"\nFROM sensor_reading\nWHERE time > now() - interval '1 hour'\nGROUP BY 1\nORDER BY 1",
+          "rawSql": "SELECT\n  time as \"time\",\n  humidity AS \"humidity\"\nFROM sensor_reading\nORDER BY 1 DESC\nLIMIT 1",
           "refId": "A",
           "select": [
             [
@@ -462,9 +320,134 @@
       ],
       "timeFrom": null,
       "timeShift": null,
-      "title": "",
+      "title": "Humidity",
       "transparent": true,
       "type": "gauge"
+    },
+    {
+      "datasource": "PostgreSQL",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "decimals": 1,
+          "mappings": [],
+          "max": 90,
+          "min": 60,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "dark-blue",
+                "value": 0
+              },
+              {
+                "color": "light-blue",
+                "value": 60
+              },
+              {
+                "color": "semi-dark-green",
+                "value": 72
+              },
+              {
+                "color": "#EF843C",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
+            ]
+          },
+          "unit": "fahrenheit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 11,
+        "x": 13,
+        "y": 0
+      },
+      "id": 9,
+      "options": {
+        "displayMode": "lcd",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "showUnfilled": true
+      },
+      "pluginVersion": "7.0.0",
+      "targets": [
+        {
+          "format": "time_series",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  time AS \"time\",\n  comfort_max AS \"Cooling Target\"\nFROM thermostat_targets\nORDER BY 1 DESC\nLIMIT 1",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "comfort_max"
+                ],
+                "type": "column"
+              },
+              {
+                "params": [
+                  "Cooling Target"
+                ],
+                "type": "alias"
+              }
+            ]
+          ],
+          "table": "thermostat_targets",
+          "timeColumn": "\"time\"",
+          "timeColumnType": "timestamptz",
+          "where": []
+        },
+        {
+          "format": "time_series",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  time AS \"time\",\n  comfort_min AS \"Heating Target\"\nFROM thermostat_targets\nORDER BY 1 DESC\nLIMIT 1",
+          "refId": "B",
+          "select": [
+            [
+              {
+                "params": [
+                  "comfort_min"
+                ],
+                "type": "column"
+              },
+              {
+                "params": [
+                  "Heating Target"
+                ],
+                "type": "alias"
+              }
+            ]
+          ],
+          "table": "thermostat_targets",
+          "timeColumn": "\"time\"",
+          "timeColumnType": "timestamptz",
+          "where": []
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "",
+      "transparent": true,
+      "type": "bargauge"
     },
     {
       "aliasColors": {},
@@ -1125,6 +1108,33 @@
       }
     },
     {
+      "datasource": null,
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 0,
+        "y": 20
+      },
+      "id": 17,
+      "options": {
+        "color": "red",
+        "seriesCountSize": "sm",
+        "showSeriesCount": false,
+        "text": "Default value of text input option"
+      },
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "",
+      "type": "madllama-net-rpt-control-panel"
+    },
+    {
       "datasource": "PostgreSQL",
       "fieldConfig": {
         "defaults": {
@@ -1167,9 +1177,9 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 5,
-        "w": 24,
-        "x": 0,
+        "h": 7,
+        "w": 18,
+        "x": 6,
         "y": 20
       },
       "id": 15,
@@ -1278,7 +1288,7 @@
       "type": "bargauge"
     }
   ],
-  "refresh": "30s",
+  "refresh": "5m",
   "schemaVersion": 25,
   "style": "dark",
   "tags": [],
@@ -1286,7 +1296,7 @@
     "list": []
   },
   "time": {
-    "from": "now-12h",
+    "from": "now-7d",
     "to": "now"
   },
   "timepicker": {
@@ -1317,5 +1327,5 @@
   "timezone": "",
   "title": "Overview",
   "uid": "sCHCMTbWz",
-  "version": 1
+  "version": 2
 }

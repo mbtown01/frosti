@@ -171,7 +171,8 @@ class TerminalUserInterface(GenericUserInterface):
             self.__logWin.resize(y, x)
 
     def __keyPressListener(self):
-        """ Marshalls an incoming threaded keypress to the main event loop """
+        """ Callback happens on another thread, but firing an event is thread
+        safe, so we use that to indicate the button was pressed """
         eventBus = self._getService(EventBus)
         char = None
         while char != ord('q'):

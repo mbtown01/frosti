@@ -1,3 +1,4 @@
+from .OrmManagementService import OrmManagementService
 from src.core import ServiceConsumer, ServiceProvider, EventBus
 from src.core.generics import GenericEnvironmentSensor
 from src.core.events import SensorDataChangedEvent, SettingsChangedEvent
@@ -13,12 +14,41 @@ class EnvironmentSamplingService(ServiceConsumer):
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
 
+        ormManagementService = self._getService(OrmManagementService)
+        self.__temperatureScale = ormManagementService.getConfigFloat(
+            'environment.temperature.scale')
+        self.__temperatureTranslate = ormManagementService.getConfigFloat(
+            'environment.temperature.translate')
+        self.__pressureScale = ormManagementService.getConfigFloat(
+            'environment.pressure.scale')
+        self.__pressureTranslate = ormManagementService.getConfigFloat(
+            'environment.pressure.translate')
+        self.__humidityScale = ormManagementService.getConfigFloat(
+            'environment.humidity.scale')
+        self.__humidityTranslate = ormManagementService.getConfigFloat(
+            'environment.humidity.translate')
+
         eventBus = self._getService(EventBus)
         eventBus.installEventHandler(
             SettingsChangedEvent, self.__settingsChanged)
         self.__sampleSensorsInvoker = eventBus.installTimer(
             frequency=5.0, handler=self.__sampleSensors)
         self.__sampleSensors()
+
+    @property
+    def temperature(self):
+        return self.__sensor.temperature * self.__temperatureScale + \
+            self.__temperatureTranslate
+
+    @property
+    def pressure(self):
+        return self.__sensor.pressure * self.__pressureScale + \
+            self.__pressureTranslate
+
+    @property
+    def humidity(self):
+        return self.__sensor.humidity * self.__humidityScale + \
+            self.__humidityTranslate
 
     def __settingsChanged(self, event: SettingsChangedEvent):
         """ If any settings have changed, wait the full time before getting
@@ -29,7 +59,7 @@ class EnvironmentSamplingService(ServiceConsumer):
     def __sampleSensors(self):
         eventBus = self._getService(EventBus)
         eventBus.fireEvent(SensorDataChangedEvent(
-            temperature=self.__sensor.temperature,
-            pressure=self.__sensor.pressure,
-            humidity=self.__sensor.humidity
+            temperature=self.temperature,
+            pressure=self.pressure,
+            humidity=self.humidity,
         ))

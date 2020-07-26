@@ -54,12 +54,11 @@ class HardwareUserInterface_v1(GenericUserInterface):
             pin, GPIO.RISING, callback=self.__buttonCallback, bouncetime=200)
 
     def __buttonCallback(self, channel):
-        """ Callback happens on another thread, so this method is marshaling
-        ButtonPressedEvent instances to the main thread to handle """
+        """ Callback happens on another thread, but firing an event is thread
+        safe, so we use that to indicate the button was pressed """
         if not self.__ignoreButtons:
             eventBus = self._getService(EventBus)
             button = self.__pinToButtonMap[channel]
             eventBus.fireEvent(GenericUserInterface.ButtonPressedEvent(button))
         else:
             log.debug("Ignoring buttons")
-

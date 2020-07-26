@@ -13,9 +13,15 @@ From there, grab the data from the running thermostat you're interested in and
 place it in the local docker-compose postgres instance 'postgres':
 
 ```bash
-pg_dump \
-    --host ${YOUR_THERMOSTAT_HOST} \
-    --username rpt rpt --clean  > /tmp/dump.dat
+# Extract info from a specific thermostat
+pg_dump --host pi-rpt-h1.local.madllama.net \
+    --username rpt rpt \
+    --create --schema=public --clean  > /tmp/dump.dat
+# Drop the existing schema if it exists
+psql \
+    --host postgres \
+    --command='drop schema public cascade' rpt rpt
+# Import the data AND SCHEMA
 psql \
     --host postgres \
     --file /tmp/dump.dat rpt rpt

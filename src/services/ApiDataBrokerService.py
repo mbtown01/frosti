@@ -1,9 +1,10 @@
-from flask import Flask, render_template, send_from_directory
+from flask import Flask, render_template, send_from_directory, request
 from flask_cors import CORS
 from threading import Thread
 import json
 
 from .ThermostatService import ThermostatService
+from src.logging import log, handleException
 from src.core import ServiceProvider, ServiceConsumer, EventBus, \
     ThermostatState
 from src.core.events import \
@@ -45,9 +46,8 @@ class ApiDataBrokerService(ServiceConsumer):
         self.__cors = CORS(self.__app)
 
         self.__flaskThread = Thread(
-            target=self.__app.run,
-            name='Flask Driver',
-            args=("0.0.0.0", 5000))
+            target=self.__flaskEntryPoint,
+            name='Flask Driver')
         self.__flaskThread.daemon = True
         self.__flaskThread.start()
 
@@ -65,6 +65,41 @@ class ApiDataBrokerService(ServiceConsumer):
         eventBus.installEventHandler(
             ThermostatStateChangedEvent, self.__processThermostatStateChanged)
 
+    def __flaskEntryPoint(self):
+        try:
+            self.__app.run("0.0.0.0", 5000)
+            log.error("Somehow we exited the Flask thread")
+        except:
+            handleException("starting flask")
+
+    def __getStatus(self):
+        thermostatService = self._getService(ThermostatService)
+
+        response = {
+            'version': self.api_version(),
+            'sensors': {
+                'temperature': f"{self.__lastTemperature}",
+                'pressure': f"{self.__lastPressure}",
+                'humidity': f"{self.__lastHumidity}",
+            },
+            'comfortMin': thermostatService.comfortMin,
+            'comfortMax': thermostatService.comfortMax,
+            'state': str(thermostatService.state),
+            'mode': str(thermostatService.mode)
+        }
+        return json.dumps(response, indent=4)
+
+    def __getSettings(self):
+        thermostatService = self._getService(ThermostatService)
+
+        response = {
+            'version': self.api_version(),
+            'comfortMin': thermostatService.comfortMin,
+            'comfortMax': thermostatService.comfortMax,
+            'mode': str(thermostatService.mode),
+        }
+        return json.dumps(response, indent=4)
+
     def serve_root(self):
         return render_template(
             'index.html',
@@ -72,6 +107,11 @@ class ApiDataBrokerService(ServiceConsumer):
             pressure=f'{self.__lastPressure}',
             humidity=f'{self.__lastHumidity}',
         )
+
+    def __changeComfortMax(self, offset: int = 1.0):
+        thermostatService = self._getService(ThermostatService)
+        thermostatService.comfortMax += offset
+        return self.__getStatus()
 
     def serve_css(self):
         return render_template('main.css')
@@ -83,50 +123,29 @@ class ApiDataBrokerService(ServiceConsumer):
         return 'rpt-0.1'
 
     def api_status(self):
-        thermostatService = self._getService(ThermostatService)
-
-        response = {
-            'version': self.api_version(),
-            'sensors': {
-                'temperature': f"{self.__lastTemperature:.1f}",
-                'pressure': f"{self.__lastPressure:.1f}",
-                'humidity': f"{self.__lastHumidity:.1f}",
-            },
-            'comfortMin': thermostatService.comfortMin,
-            'comfortMax': thermostatService.comfortMax,
-            'state': str(self.__lastState),
-            'mode': str(thermostatService.mode)
-        }
-        return json.dumps(response, indent=4)
+        eventBus = self._getService(EventBus)
+        return eventBus.safeInvoke(self.__getStatus)
 
     def api_settings(self):
-        thermostatService = self._getService(ThermostatService)
-
-        response = {
-            'version': self.api_version(),
-            'comfortMin': thermostatService.comfortMin,
-            'comfortMax': thermostatService.comfortMax,
-            'mode': str(thermostatService.mode),
-        }
-        return json.dumps(response, indent=4)
+        eventBus = self._getService(EventBus)
+        return eventBus.safeInvoke(self.__getSettings)
 
     def api_action_next_mode(self):
         eventBus = self._getService(EventBus)
         eventBus.fireEvent(UserThermostatInteractionEvent(
             UserThermostatInteractionEvent.MODE_NEXT))
-        return ""
+        return eventBus.safeInvoke(self.__getStatus)
 
     def api_action_raise_comfort(self):
         eventBus = self._getService(EventBus)
-        eventBus.fireEvent(UserThermostatInteractionEvent(
-            UserThermostatInteractionEvent.COMFORT_RAISE))
-        return ""
+        offset = float(request.args.get('offset', 1.0))
+        return eventBus.safeInvoke(self.__changeComfortMax, offset=offset)
 
     def api_action_lower_comfort(self):
         eventBus = self._getService(EventBus)
         eventBus.fireEvent(UserThermostatInteractionEvent(
             UserThermostatInteractionEvent.COMFORT_LOWER))
-        return ""
+        return eventBus.safeInvoke(self.__getStatus)
 
     def __processThermostatStateChanged(
             self, event: ThermostatStateChangedEvent):

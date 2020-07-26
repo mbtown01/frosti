@@ -77,7 +77,8 @@ class Test_Thermostat(unittest.TestCase):
             RelayManagementService, self.relayManagement)
         self.ormManagementService = OrmManagementService(isTestInstance=True)
         self.ormManagementService.setServiceProvider(self.serviceProvider)
-        self.ormManagementService.importFromDict(yaml.load(yamlText))
+        self.ormManagementService.importFromDict(
+            yaml.load(yamlText, Loader=yaml.FullLoader))
         self.serviceProvider.installService(
             OrmManagementService, self.ormManagementService)
         self.thermostat = ThermostatService()

@@ -49,10 +49,10 @@ class RootDriver(ServiceProvider):
         localPath = path.realpath(__file__)
 
         searchOrder = (
-            path.expanduser('~/.thermostat.yaml'),
-            '/etc/thermostat.yaml',
+            path.expanduser('~/.rpt.yaml'),
+            '/etc/rpt.yaml',
             path.abspath(
-                path.dirname(localPath) + '/../etc/thermostat.yaml')
+                path.dirname(localPath) + '/../etc/rpt.yaml')
         )
 
         for fileName in searchOrder:
@@ -61,7 +61,7 @@ class RootDriver(ServiceProvider):
                 with open(fileName) as configFile:
                     return yaml.load(configFile, Loader=yaml.FullLoader)
 
-        raise RuntimeError("Couldn't not find a thermostat.yaml config file")
+        raise RuntimeError("Couldn't not find a rpt.yaml config file")
 
     def __setupCore(self):
         self.__eventBus = EventBus()

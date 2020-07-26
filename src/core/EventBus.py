@@ -12,13 +12,49 @@ class EventBus:
     """ Transceiver for all messaging, and owner of the main
     application thread """
 
-    def __init__(self, now: float=time()):
+    class __SafeInvokeEvent(Event):
+        """ Encapsulates a method call as an event to be fired and handled
+        by the EventBus event loop processing thread. """
+
+        def __init__(self, method, *args, **kwargs):
+            super().__init__('SafeInvokeEvent')
+            self.__method = method
+            self.__returnValue = None
+            self.__exception = None
+            self.__args = args
+            self.__kwargs = kwargs
+            self.__threadingEvent = ThreadingEvent()
+
+        def execute(self):
+            """ Calls the provided method on the appropriate thread, and then
+            signals that the call was completed """
+            try:
+                self.__returnValue = \
+                    self.__method(*self.__args, **self.__kwargs)
+            except Exception as e:
+                self.__exception = e
+            finally:
+                self.__threadingEvent.set()
+
+        def wait(self, timeout=None):
+            """ Waits for the execute() call to happen """
+            self.__threadingEvent.wait(timeout)
+
+            if self.__exception is not None:
+                raise self.__exception
+
+            return self.__returnValue
+
+    def __init__(self, now: float = time()):
         self.__threadingEvent = ThreadingEvent()
         self.__timers = []
         self.__eventHandlers = {}
         self.__eventQueue = Queue()
         self.__now = now
         self.__stop = False
+
+        self.installEventHandler(
+            EventBus.__SafeInvokeEvent, self.__safeInvoke)
 
     def installEventHandler(self, eventType: type, handler):
         """ Installs the provided handler method as a callback for when
@@ -33,7 +69,7 @@ class EventBus:
         self.__eventHandlers[eventType].append(handler)
 
     def installTimer(
-            self, frequency: float, handler, oneShot: bool=False):
+            self, frequency: float, handler, oneShot: bool = False):
         """ Installs the provided list of handlers as a series of callbacks
         to be called at the provided frequency.  If more than one handler is
         provided, handlers are rotated through one at a time on successive
@@ -54,7 +90,7 @@ class EventBus:
         self.__timers.append(timer)
         return timer
 
-    def fireEvent(self, event: Event, immediately: bool=False):
+    def fireEvent(self, event: Event, immediately: bool = False):
         """ Fires the event to any subscribed listeners
 
         immediately: bool
@@ -71,6 +107,22 @@ class EventBus:
             self.__eventQueue.put(event)
             self.__threadingEvent.set()
 
+    def __safeInvoke(self, event: __SafeInvokeEvent):
+        """ Executes the method but relies on the main loop for any exception
+        handling """
+        event.execute()
+
+    def safeInvoke(self, methodCall, *args, **kwargs):
+        """ Invoke the provided method call onto the event loop thread and
+        provide the return value.
+
+        This scenario is very important when events
+        are coming in from another thread but need to interact safely with
+        operations happening in the base event loop.  """
+        event = EventBus.__SafeInvokeEvent(methodCall, *args, **kwargs)
+        self.fireEvent(event)
+        return event.wait()
+
     @property
     def now(self):
         """ Gets the time of the last call to processEvents, or None.  This
@@ -83,7 +135,7 @@ class EventBus:
         self.__stop = True
         self.__threadingEvent.set()
 
-    def processEvents(self, now: float=None):
+    def processEvents(self, now: float = None):
         """ Process any events that have been generated since the last call,
         compute and return the time to wait until call method should be
         called again."""
@@ -119,7 +171,7 @@ class EventBus:
 
         return max(0.0, timeout)
 
-    def exec(self, iterations: int=MAX_INT):
+    def exec(self, iterations: int = MAX_INT):
         """ Drive the main application loop for some number of iterations,
         using the system time() command to tell processEvents the current
         time """

@@ -290,9 +290,9 @@ class ThermostatService(ServiceConsumer):
 
     def _modifyComfortSettings(self, increment: int):
         if ThermostatMode.HEAT == self.__mode:
-            self.__comfortMin = self.__comfortMin + increment
-        if ThermostatMode.COOL == self.__mode:
-            self.__comfortMax = self.__comfortMax + increment
+            self.comfortMin += increment
+        elif ThermostatMode.COOL == self.__mode:
+            self.comfortMax += increment
 
     def __fanRunout(self):
         if self.__state == ThermostatState.FAN and \
