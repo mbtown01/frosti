@@ -1,5 +1,17 @@
 version: "3.7"
 
+x-rpt-2:
+  &rpt-defaults
+  labels: [rpt]
+  privileged: true
+  ports:
+    - "5000:5000"
+  environment:
+    LC_ALL: C
+  depends_on:
+    - postgres
+    - grafana
+
 services:
 
   postgres:
@@ -13,77 +25,48 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data:delegated
     
   grafana:
     image: mbtowns/grafana:arm-latest
+    build:
+      context: grafana/
+      dockerfile: ./Dockerfile.arm
     container_name: rpt-grafana
     labels: [rpt]
-    environment:
-      TZ: ${TZ}
     ports:
       - "3000:3000"
     depends_on:
       - postgres
     volumes:
-      - grafana-data:/etc/grafana
-    entrypoint: ['/usr/sbin/grafana-server', 
-      '-config', '/etc/grafana/grafana.ini', 'web']
+      - grafana-data:/var/lib/grafana:delegated
+      - ./grafana:/etc/grafana:delegated
 
   rpt-daemon:
+    <<: *rpt-defaults
     image: mbtowns/rpt:arm-latest
+    build:
+      context: rpt/
+      dockerfile: ./Dockerfile.arm
     container_name: rpt-daemon
-    labels: [rpt]
-    privileged: true
-    environment:
-      TZ: ${TZ}
-    ports:
-      - "5000:5000"
-    depends_on:
-      - postgres
-      - grafana
-    volumes:
-      - ../:/usr/local/rpt
-    entrypoint: ['python3', '-m', 'src', '--hardware', 'auto']
+    entrypoint: ['python3', '-m', 'src', '--hardware', 'term']
 
   rpt-dev:
-    image: mbtowns/rpt:arm-latest
+    <<: *rpt-defaults
+    image: mbtowns/rpt-dev:arm-latest
+    build:
+      context: rpt/
+      dockerfile: ./Dockerfile.arm
+      args:
+        RPT_DEV: 'true'
     container_name: rpt-dev
-    labels: [rpt]
-    privileged: true
-    environment:
-      TZ: ${TZ}
-      LC_LOCAL: C
-    ports:
-      - "5000:5000"
-    depends_on:
-      - postgres
-      - grafana
     volumes:
-      - ../:/usr/local/rpt
+      - ../:/usr/local/rpt:delegated
     entrypoint: ['bash', '-c', 'while sleep 600; do /bin/false; done']
-
-  rpt-debug:
-    image: mbtowns/rpt:arm-latest
-    container_name: rpt-debug
-    labels: [rpt]
-    privileged: true
-    environment:
-      TZ: ${TZ}
-    ports:
-      - "5000:5000"
-      - "3001:3001"
-    depends_on:
-      - postgres
-      - grafana
-    volumes:
-      - ../:/usr/local/rpt
-    entrypoint: ['python3', '-m', 'ptvsd',
-      '--host', '0.0.0.0', '--port', '3001', '--wait', '-m', 'src',
-      '--hardware', 'auto']    
 
 volumes:
   postgres-data:
     external: true
   grafana-data:
     external: true
+
