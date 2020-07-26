@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# This magic is run by the CI/CD integration at github to get the VM to 
+# work with qemu.  
+#
+# https://geoffhudik.com/tech/2020/04/27/deploying-to-raspberry-pi-with-github-actions-and-docker/
 apt-get update && apt-get install -y --no-install-recommends qemu-user-static binfmt-support
 update-binfmts --enable qemu-arm
 update-binfmts --display qemu-arm
