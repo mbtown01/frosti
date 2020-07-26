@@ -16,7 +16,6 @@ RUN python3 -m pip install pip && \
     sqlalchemy sqlalchemy-utils PyYAML
 
 ARG RPT_DEV=false
-ARG RPT_BRANCH=master
 
 RUN if [ ${RPT_DEV} = 'false' ]; then \
     cd /usr/local && \
@@ -36,6 +35,13 @@ RUN if [ ${RPT_DEV} = 'true' ]; then \
     adafruit-circuitpython-mcp230xx \
     ptvsd; \
     fi
+
+# RUN if [ ${RPT_DEV} = 'true' ]; then \
+#     curl -sL https://deb.nodesource.com/setup_12.x | bash - && \
+#     apt-get remove cmdtest && apt-get install -y nodejs; \
+#     npm install -g yarn prettier; \
+#     npm install -g --unsafe-perm=true --allow-root @grafana/toolkit; \
+#     fi
 
 EXPOSE 5000
 
