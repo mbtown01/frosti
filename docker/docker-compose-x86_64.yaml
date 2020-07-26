@@ -30,8 +30,8 @@ services:
   grafana:
     image: mbtowns/grafana:x86_64-latest
     build:
-      context: grafana/
-      dockerfile: ./Dockerfile.x86_64
+      context: .
+      dockerfile: ./grafana/Dockerfile.x86_64
     container_name: rpt-grafana
     labels: [rpt]
     ports:
@@ -46,17 +46,19 @@ services:
     <<: *rpt-defaults
     image: mbtowns/rpt:x86_64-latest
     build:
-      context: rpt/
-      dockerfile: ./Dockerfile.x86_64
+      context: .
+      dockerfile: ./rpt/Dockerfile.x86_64
     container_name: rpt-daemon
+    volumes:
+      - ../:/usr/local/rpt:delegated
     entrypoint: ['python3', '-m', 'src', '--hardware', 'term']
 
   rpt-dev:
     <<: *rpt-defaults
     image: mbtowns/rpt-dev:x86_64-latest
     build:
-      context: rpt/
-      dockerfile: ./Dockerfile.x86_64
+      context: .
+      dockerfile: ./rpt/Dockerfile.x86_64
       args:
         RPT_DEV: 'true'
     container_name: rpt-dev
