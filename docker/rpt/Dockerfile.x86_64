@@ -18,13 +18,13 @@ RUN python3 -m pip install pip && \
 ARG RPT_DEV=false
 ARG RPT_BRANCH=master
 
-RUN if [ ${RPT_DEV} = 'false' ]; then \
-    cd /usr/local && \
-    curl -LOk https://github.com/mbtown01/rpt/archive/${RPT_BRANCH}.zip && \
-    unzip ${RPT_BRANCH}.zip && \
-    mv rpt-${RPT_BRANCH} rpt && \
-    rm ${RPT_BRANCH}.zip; \
-    fi
+# RUN if [ ${RPT_DEV} = 'false' ]; then \
+#     cd /usr/local && \
+#     curl -LOk https://github.com/mbtown01/rpt/archive/${RPT_BRANCH}.zip && \
+#     unzip ${RPT_BRANCH}.zip && \
+#     mv rpt-${RPT_BRANCH} rpt && \
+#     rm ${RPT_BRANCH}.zip; \
+#     fi
 
 RUN if [ ${RPT_DEV} = 'true' ]; then \
     apt-get install -y \
