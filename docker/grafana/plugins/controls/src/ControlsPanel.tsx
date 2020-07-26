@@ -8,9 +8,10 @@ import { stylesFactory } from "@grafana/ui";
 import { Button } from "@grafana/ui";
 //import { stylesFactory, useTheme } from '@grafana/ui';
 
-interface Props extends PanelProps<ControlsPanelOptions> {}
+interface Props extends PanelProps<ControlsPanelOptions> { }
 
-const URL_BASE = "http://localhost:5000";
+// const URL_BASE = "http://localhost:5000";
+var URL_BASE = `http://${window.location.hostname}:5000`;
 
 const useThermostatState = () => {
   const [mode, setMode] = useState("NONE");
@@ -101,11 +102,11 @@ export const ControlsPanel: React.FC<Props> = ({
   const stateElementClass =
     stateColor !== ""
       ? cx(
-          styles.wrapper,
-          css`
+        styles.wrapper,
+        css`
             background-color: ${stateColor};
           `
-        )
+      )
       : cx(styles.wrapper, css``);
 
   return (

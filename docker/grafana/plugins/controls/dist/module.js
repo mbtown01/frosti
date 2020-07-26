@@ -362,8 +362,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+ // const URL_BASE = "http://localhost:5000";
 
-var URL_BASE = "http://localhost:5000";
+var URL_BASE = "http://" + window.location.hostname + ":5000";
 
 var useThermostatState = function useThermostatState() {
   var _a = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__read"])(Object(react__WEBPACK_IMPORTED_MODULE_1__["useState"])("NONE"), 2),
