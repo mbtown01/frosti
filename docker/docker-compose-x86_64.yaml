@@ -1,6 +1,6 @@
 version: "3.7"
 
-x-rpt-defaults:
+x-rpt-2:
   &rpt-defaults
   labels: [rpt]
   privileged: true
