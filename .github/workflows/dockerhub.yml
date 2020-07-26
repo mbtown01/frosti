@@ -21,15 +21,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Build/push grafana for x86_64
-        uses: docker/build-push-action@v1
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          repository: mbtowns/grafana
-          tags: x86_64-latest
-          path: docker
-          dockerfile: docker/grafana/Dockerfile.x86_64
+      # - name: Build/push grafana for x86_64
+      #   uses: docker/build-push-action@v1
+      #   with:
+      #     username: ${{ secrets.DOCKER_USERNAME }}
+      #     password: ${{ secrets.DOCKER_PASSWORD }}
+      #     repository: mbtowns/grafana
+      #     tags: x86_64-latest
+      #     path: docker
+      #     dockerfile: docker/grafana/Dockerfile.x86_64
+
+      - name: QEMU Prep
+        working-directory: ./
+        run: sudo bash scripts/qemu-setup.sh
 
       - name: Build/push grafana for arm
         uses: docker/build-push-action@v1
