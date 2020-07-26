@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI/CD for building arm-based RPT images
+name: CI/CD for building x86_64-based RPT images
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the master branch
