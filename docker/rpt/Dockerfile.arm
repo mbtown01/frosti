@@ -13,7 +13,11 @@ RUN apt-get install -y \
 RUN python3 -m pip install pip && \
     python3 -m pip install \
     flask flask-cors requests psycopg2-binary \
-    sqlalchemy sqlalchemy-utils PyYAML
+    sqlalchemy sqlalchemy-utils PyYAML RPi.GPIO \
+    adafruit-circuitpython-bmp280 \
+    adafruit-circuitpython-bme280 \
+    adafruit-circuitpython-charlcd \
+    adafruit-circuitpython-mcp230xx 
 
 ARG RPT_DEV=false
 ARG RPT_BRANCH=master
@@ -29,12 +33,7 @@ ARG RPT_BRANCH=master
 RUN if [ ${RPT_DEV} = 'true' ]; then \
     apt-get install -y \
     vim i2c-tools git postgresql-client libpq-dev tzdata; \
-    python3 -m pip install \
-    adafruit-circuitpython-bmp280 \
-    adafruit-circuitpython-bme280 \
-    adafruit-circuitpython-charlcd \
-    adafruit-circuitpython-mcp230xx \
-    ptvsd; \
+    python3 -m pip install ptvsd; \
     fi
 
 # RUN if [ ${RPT_DEV} = 'true' ]; then \
