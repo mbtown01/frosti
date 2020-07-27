@@ -10,8 +10,8 @@ After=docker.service
 Type=oneshot
 RemainAfterExit=true
 WorkingDirectory=/usr/local/rpt
-ExecStart=/usr/local/rpt/scripts/docker-compose.py up -d --remove-orphans rpt-daemon
-ExecStop=/usr/local/rpt/scripts/docker-compose.py down
+ExecStart= /usr/local/bin/docker-compose --file docker/docker-compose-arm.yaml up -d rpt-daemon
+ExecStop= /usr/local/bin/docker-compose --file docker/docker-compose-arm.yaml down
 
 [Install]
 WantedBy=multi-user.target

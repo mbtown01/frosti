@@ -51,7 +51,7 @@ services:
     container_name: rpt-daemon
     volumes:
       - ../:/usr/local/rpt:delegated
-    entrypoint: ['python3', '-m', 'src', '--hardware', 'term']
+    entrypoint: ['python3', '-m', 'src', '--hardware', 'auto']
 
   rpt-dev:
     <<: *rpt-defaults
