@@ -13,7 +13,7 @@ RUN apt-get install -y \
 RUN python3 -m pip install pip && \
     python3 -m pip install \
     flask flask-cors requests psycopg2-binary \
-    sqlalchemy sqlalchemy-utils PyYAML RPi.GPIO \
+    sqlalchemy sqlalchemy-utils PyYAML RPi.GPIO pytz \
     adafruit-circuitpython-bmp280 \
     adafruit-circuitpython-bme280 \
     adafruit-circuitpython-charlcd \

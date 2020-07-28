@@ -13,6 +13,7 @@ yamlText = """
 config:
     thermostat.delta: 1.0
     thermostat.fanRunoutDuration: 30
+    thermostat.timezone: "America/Chicago"
     ui.backlightTimeout: 10
 
 programs:
@@ -65,10 +66,11 @@ class Test_Thermostat(unittest.TestCase):
             self.__lastState = event.state
 
     def setup_method(self, method):
-        # This is a Tuesday FYI, day '1' of 7 [0-6]
+        # This is a Tuesday FYI, day '1' of 7 [0-6], built manually in UTC
+        # time to represent 8:01 AM in the America/Chicago time zone
         # All tests should be in the 'away' program above
+        testTime = strptime('01/01/19 14:01:00', '%m/%d/%y %H:%M:%S')
         self.serviceProvider = ServiceProvider()
-        testTime = strptime('01/01/19 08:01:00', '%m/%d/%y %H:%M:%S')
         self.eventBus = EventBus(now=mktime(testTime))
         self.serviceProvider.installService(EventBus, self.eventBus)
         self.relayManagement = RelayManagementService()

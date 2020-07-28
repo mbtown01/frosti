@@ -5,6 +5,8 @@ config:
   # Amount of time (seconds) to continue running the fan after a HEAT or
   # COOL cycle has ended
   thermostat.fanRunoutDuration: 15
+  # Default timezone 
+  thermostat.timezone: "America/Chicago"
   
   # For the three environment sensors (temperature, pressure, humidity), 
   # apply translate and scale so that for any sensor reading 'x', the actual

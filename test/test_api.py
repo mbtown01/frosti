@@ -14,6 +14,7 @@ yamlText = """
 config:
     thermostat.delta: 1.0
     thermostat.fanRunoutDuration: 30
+    thermostat.timezone: "America/Chicago"
     ui.backlightTimeout: 10
 """
 
@@ -25,8 +26,10 @@ class Test_ApiDataBroker(unittest.TestCase):
     def __init__(self, methodName='runTest'):
         super().__init__(methodName)
 
+        # This is a Tuesday FYI, day '1' of 7 [0-6], built manually in UTC
+        # time to represent 8:01 AM in the America/Chicago time zone
+        testTime = strptime('01/01/19 14:01:00', '%m/%d/%y %H:%M:%S')
         self.serviceProvider = ServiceProvider()
-        testTime = strptime('01/01/19 08:01:00', '%m/%d/%y %H:%M:%S')
         self.eventBus = EventBus(now=mktime(testTime))
         self.serviceProvider.installService(EventBus, self.eventBus)
         self.ormManagementService = OrmManagementService(isTestInstance=True)
@@ -61,11 +64,6 @@ class Test_ApiDataBroker(unittest.TestCase):
 
     def test_status(self):
         req = requests.get(API_URL + '/api/status')
-        data = json.loads(req.text)
-        self.assertTrue('version' in data)
-
-    def test_settings(self):
-        req = requests.get(API_URL + '/api/settings')
         data = json.loads(req.text)
         self.assertTrue('version' in data)
 

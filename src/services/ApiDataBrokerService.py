@@ -1,4 +1,4 @@
-from flask import Flask, render_template, send_from_directory, request
+from flask import Flask, request
 from flask_cors import CORS
 from threading import Thread
 import json
@@ -17,21 +17,12 @@ class ApiDataBrokerService(ServiceConsumer):
     brokering any necessary data/events """
 
     def __init__(self,):
-        self.__app = Flask(
-            __name__, static_url_path='', template_folder='../templates')
-        self.__app.add_url_rule(
-            '/', 'serve_root', self.serve_root)
-        self.__app.add_url_rule(
-            '/main.css', 'serve_css', self.serve_css)
-        self.__app.add_url_rule(
-            '/include/<path:path>', 'serve_static', self.serve_static)
+        self.__app = Flask(__name__, static_url_path='')
 
         self.__app.add_url_rule(
             '/api/version', 'api_version', self.api_version)
         self.__app.add_url_rule(
             '/api/status', 'api_status', self.api_status)
-        self.__app.add_url_rule(
-            '/api/settings', 'api_settings', self.api_settings)
 
         self.__app.add_url_rule(
             '/api/action/nextMode', 'api_action_next_mode',
@@ -65,6 +56,15 @@ class ApiDataBrokerService(ServiceConsumer):
         eventBus.installEventHandler(
             ThermostatStateChangedEvent, self.__processThermostatStateChanged)
 
+    def __processThermostatStateChanged(
+            self, event: ThermostatStateChangedEvent):
+        self.__lastState = event.state
+
+    def __processSensorDataChanged(self, event: SensorDataChangedEvent):
+        self.__lastTemperature = event.temperature
+        self.__lastPressure = event.pressure
+        self.__lastHumidity = event.humidity
+
     def __flaskEntryPoint(self):
         try:
             self.__app.run("0.0.0.0", 5000)
@@ -89,35 +89,10 @@ class ApiDataBrokerService(ServiceConsumer):
         }
         return json.dumps(response, indent=4)
 
-    def __getSettings(self):
-        thermostatService = self._getService(ThermostatService)
-
-        response = {
-            'version': self.api_version(),
-            'comfortMin': thermostatService.comfortMin,
-            'comfortMax': thermostatService.comfortMax,
-            'mode': str(thermostatService.mode),
-        }
-        return json.dumps(response, indent=4)
-
-    def serve_root(self):
-        return render_template(
-            'index.html',
-            temperature=f'{self.__lastTemperature}',
-            pressure=f'{self.__lastPressure}',
-            humidity=f'{self.__lastHumidity}',
-        )
-
     def __changeComfortMax(self, offset: int = 1.0):
         thermostatService = self._getService(ThermostatService)
         thermostatService.comfortMax += offset
         return self.__getStatus()
-
-    def serve_css(self):
-        return render_template('main.css')
-
-    def serve_static(self, path: str):
-        return send_from_directory('../include', path)
 
     def api_version(self):
         return 'rpt-0.1'
@@ -125,10 +100,6 @@ class ApiDataBrokerService(ServiceConsumer):
     def api_status(self):
         eventBus = self._getService(EventBus)
         return eventBus.safeInvoke(self.__getStatus)
-
-    def api_settings(self):
-        eventBus = self._getService(EventBus)
-        return eventBus.safeInvoke(self.__getSettings)
 
     def api_action_next_mode(self):
         eventBus = self._getService(EventBus)
@@ -146,12 +117,3 @@ class ApiDataBrokerService(ServiceConsumer):
         eventBus.fireEvent(UserThermostatInteractionEvent(
             UserThermostatInteractionEvent.COMFORT_LOWER))
         return eventBus.safeInvoke(self.__getStatus)
-
-    def __processThermostatStateChanged(
-            self, event: ThermostatStateChangedEvent):
-        self.__lastState = event.state
-
-    def __processSensorDataChanged(self, event: SensorDataChangedEvent):
-        self.__lastTemperature = event.temperature
-        self.__lastPressure = event.pressure
-        self.__lastHumidity = event.humidity

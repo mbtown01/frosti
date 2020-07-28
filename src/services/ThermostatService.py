@@ -1,5 +1,7 @@
-from time import localtime
+from time import gmtime
+from datetime import datetime
 from sqlalchemy import desc
+from pytz import timezone
 
 from .RelayManagementService import RelayManagementService
 from .OrmManagementService import OrmManagementService
@@ -35,6 +37,9 @@ class ThermostatService(ServiceConsumer):
             'thermostat.delta')
         self.__fanRunoutDuration = ormManagementService.getConfigInt(
             'thermostat.fanRunoutDuration')
+        self.__timezone = ormManagementService.getConfigString(
+            'thermostat.timezone')
+        self.__localTimeZone = timezone(self.__timezone)
 
         eventBus = self._getService(EventBus)
         self.__checkScheduleInvoker = eventBus.installTimer(
@@ -120,7 +125,6 @@ class ThermostatService(ServiceConsumer):
             for scheduleTime in scheduleDay.schedule.times:
                 timeInMinutes = scheduleTime.minute + 60 * \
                     (scheduleTime.hour + 24*scheduleDay.day)
-                scheduleTime = scheduleTime
                 scheduleTimesList.append((timeInMinutes, scheduleTime))
 
         if len(scheduleTimesList):
@@ -132,8 +136,11 @@ class ThermostatService(ServiceConsumer):
             # If we match nothing below, then assume we carry in the
             # configured schedule from the last entry from last week
             currentScheduleTime = scheduleTimesList[0][1]
-            timeData = localtime(eventBus.now)
-            now = timeData.tm_min + 60*(timeData.tm_hour + 24*timeData.tm_wday)
+            tm = gmtime(eventBus.now)
+            localNow = self.__localTimeZone.fromutc(datetime(
+                tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min))
+            now = localNow.minute + 60 * \
+                (localNow.hour + 24*((localNow.weekday()+1) % 7))
             for entry in scheduleTimesList:
                 if now > entry[0]:
                     currentScheduleTime = entry[1]

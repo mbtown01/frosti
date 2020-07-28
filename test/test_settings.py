@@ -10,6 +10,7 @@ yamlText = """
 config:
   thermostat.delta: 1.0
   thermostat.fanRunoutDuration: 30
+  thermostat.timezone: "America/Los_Angeles"
   ui.backlightTimeout: 10
 
 programs:
@@ -64,8 +65,9 @@ class Test_Settings(unittest.TestCase):
             ThermostatService, self.thermostat)
 
     def timeChanged(self, day: int, hour: int, minute: int):
-        # This is a MONDAY
-        testTime = strptime('12/31/18 00:00:01', '%m/%d/%y %H:%M:%S')
+        # This is a MONDAY manually built in UTC time to be a bit past
+        # midnight in Los Angeles
+        testTime = strptime('12/31/18 08:00:01', '%m/%d/%y %H:%M:%S')
         time = mktime(testTime) + 60*(minute + 60*(hour + 24*day))
         self.eventBus.processEvents(time)
         time += 60*5

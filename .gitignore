@@ -5,6 +5,7 @@
 .DS_store
 nodeids
 **/node-modules
+qemu/
 
 
 # Temporary files
