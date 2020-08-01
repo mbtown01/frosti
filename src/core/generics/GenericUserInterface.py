@@ -7,7 +7,7 @@ from src.core import ServiceConsumer, ServiceProvider, EventBus, Event
 from src.services import ThermostatService, OrmManagementService
 from src.core.events import ThermostatStateChangedEvent, \
     SensorDataChangedEvent, PowerPriceChangedEvent, \
-    UserThermostatInteractionEvent, SettingsChangedEvent
+    SettingsChangedEvent
 
 
 class GenericUserInterface(ServiceConsumer):
@@ -102,18 +102,16 @@ class GenericUserInterface(ServiceConsumer):
 
     def __buttonPressedHandler(self, event: ButtonPressedEvent):
         if self.__lcd.backlightStatus:
-            eventBus = self._getService(EventBus)
+            # eventBus = self._getService(EventBus)
+            thermostatService = self._getService(ThermostatService)
             self.backlightReset()
 
             if event.button == GenericUserInterface.Button.UP:
-                eventBus.fireEvent(UserThermostatInteractionEvent(
-                    UserThermostatInteractionEvent.COMFORT_RAISE))
+                thermostatService.modifyComfortSettings(1)
             elif event.button == GenericUserInterface.Button.DOWN:
-                eventBus.fireEvent(UserThermostatInteractionEvent(
-                    UserThermostatInteractionEvent.COMFORT_LOWER))
+                thermostatService.modifyComfortSettings(-1)
             elif event.button == GenericUserInterface.Button.MODE:
-                eventBus.fireEvent(UserThermostatInteractionEvent(
-                    UserThermostatInteractionEvent.MODE_NEXT))
+                thermostatService.nextMode()
             elif event.button == GenericUserInterface.Button.NEXT:
                 self.__redrawAndRotate()
                 self.__redrawAndRotateInvoker.reset()

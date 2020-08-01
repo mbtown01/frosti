@@ -1,3 +1,4 @@
+from src.core.orm import OrmScheduleDay, OrmPriceOverride
 from time import gmtime
 from datetime import datetime
 from sqlalchemy import desc
@@ -9,10 +10,8 @@ from src.logging import log
 from src.core import EventBus, ServiceConsumer, ServiceProvider, \
     ThermostatState, ThermostatMode
 from src.core.events import ThermostatStateChangedEvent, \
-    SensorDataChangedEvent, UserThermostatInteractionEvent, \
-    ThermostatStateChangingEvent, PowerPriceChangedEvent, \
-    SettingsChangedEvent
-from src.core.orm import OrmScheduleDay, OrmPriceOverride
+    SensorDataChangedEvent, ThermostatStateChangingEvent, \
+    PowerPriceChangedEvent, SettingsChangedEvent
 
 
 class ThermostatService(ServiceConsumer):
@@ -49,8 +48,6 @@ class ThermostatService(ServiceConsumer):
             oneShot=True)
         self.__fanRunoutInvoker.disable()
 
-        eventBus.installEventHandler(
-            UserThermostatInteractionEvent, self.__userThermostatInteraction)
         eventBus.installEventHandler(
             SensorDataChangedEvent, self.__sensorDataChanged)
         eventBus.installEventHandler(
@@ -285,21 +282,19 @@ class ThermostatService(ServiceConsumer):
             self.__state = newState
             eventBus.fireEvent(ThermostatStateChangedEvent(newState))
 
-    def __userThermostatInteraction(
-            self, event: UserThermostatInteractionEvent):
-        if event.interaction == UserThermostatInteractionEvent.MODE_NEXT:
-            self.mode = ThermostatMode(
-                (int(self.__mode.value) + 1) % len(ThermostatMode))
-        if event.interaction == UserThermostatInteractionEvent.COMFORT_LOWER:
-            self._modifyComfortSettings(-1)
-        if event.interaction == UserThermostatInteractionEvent.COMFORT_RAISE:
-            self._modifyComfortSettings(1)
+    def nextMode(self):
+        self.mode = ThermostatMode(
+            (int(self.__mode.value) + 1) % len(ThermostatMode))
 
-    def _modifyComfortSettings(self, increment: int):
+    def modifyComfortSettings(self, offset: int = 0, value: int = -1):
         if ThermostatMode.HEAT == self.__mode:
-            self.comfortMin += increment
+            if value > 0:
+                self.comfortMin = value
+            self.comfortMin += offset
         elif ThermostatMode.COOL == self.__mode:
-            self.comfortMax += increment
+            if value > 0:
+                self.comfortMax = value
+            self.comfortMax += offset
 
     def __fanRunout(self):
         if self.__state == ThermostatState.FAN and \
