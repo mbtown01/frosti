@@ -69,13 +69,13 @@ class Test_ApiDataBroker(unittest.TestCase):
         self.assertTrue('version' in data)
 
     def test_temp_change1(self):
-        req = requests.post(API_URL + '/api/action/raiseComfort?offset=2')
+        req = requests.post(API_URL + '/api/action/changeComfort?offset=2')
         data = req.json()
         self.assertTrue('comfortMax' in data)
         self.assertEqual(77.0, data['comfortMax'])
 
     def test_temp_change2(self):
-        req = requests.post(API_URL + '/api/action/lowerComfort?offset=2')
+        req = requests.post(API_URL + '/api/action/changeComfort?offset=-2')
         data = req.json()
         self.assertTrue('comfortMax' in data)
         self.assertEqual(73.0, data['comfortMax'])
@@ -85,3 +85,49 @@ class Test_ApiDataBroker(unittest.TestCase):
         data = req.json()
         self.assertTrue('comfortMax' in data)
         self.assertEqual(80.0, data['comfortMax'])
+
+    def test_config_get_1(self):
+        req = requests.get(API_URL + '/api/config')
+        data = req.json()
+        expected = yaml.load(yamlText, Loader=yaml.FullLoader)['config']
+        for key, value in data.items():
+            self.assertEqual(str(expected[key]), str(value))
+
+    def test_config_get_2(self):
+        name = 'thermostat.delta'
+        req = requests.get(API_URL + f'/api/config/{name}')
+        data = req.json()
+        expected = yaml.load(yamlText, Loader=yaml.FullLoader)['config']
+        self.assertEqual(1, len(data))
+        self.assertTrue(name in data)
+        self.assertEqual(str(data[name]), str(expected[name]))
+
+    def test_config_post_1(self):
+        name = 'thermostat.delta'
+        requests.post(API_URL + '/api/config', json={name: '150'})
+        req = requests.get(API_URL + f'/api/config/{name}')
+        data = req.json()
+        self.assertEqual(1, len(data))
+        self.assertTrue(name in data)
+        self.assertEqual('150', data[name])
+
+    def test_config_post_2(self):
+        name = 'thermostat.delta'
+        requests.post(API_URL + f'/api/config/{name}', json='150')
+        req = requests.get(API_URL + f'/api/config/{name}')
+        data = req.json()
+        self.assertEqual(1, len(data))
+        self.assertTrue(name in data)
+        self.assertEqual('150', data[name])
+
+    def test_config_post_3(self):
+        jsonData = {
+            'thermostat.delta': '123',
+            'thermostat.fanRunoutDuration': '10130',
+        }
+        requests.post(API_URL + '/api/config', json=jsonData)
+        req = requests.get(API_URL + '/api/config')
+        data = req.json()
+        for name, value in jsonData.items():
+            self.assertTrue(name in data)
+            self.assertEqual(data[name], jsonData[name])

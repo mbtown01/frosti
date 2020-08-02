@@ -340,16 +340,16 @@ function __classPrivateFieldSet(receiver, privateMap, value) {
 
 /***/ }),
 
-/***/ "./ControlsPanel.tsx":
-/*!***************************!*\
-  !*** ./ControlsPanel.tsx ***!
-  \***************************/
-/*! exports provided: ControlsPanel */
+/***/ "./ConfigPanel.tsx":
+/*!*************************!*\
+  !*** ./ConfigPanel.tsx ***!
+  \*************************/
+/*! exports provided: ConfigPanel */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ControlsPanel", function() { return ControlsPanel; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ConfigPanel", function() { return ConfigPanel; });
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! tslib */ "../node_modules/tslib/tslib.es6.js");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
@@ -362,36 +362,60 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
- // URL for the thermostat API is at the same host but on a different port
+ // import { stylesFactory, useTheme } from '@grafana/ui';
+// URL for the thermostat API is at the same host but on a different port
 
-var URL_BASE = "http://" + window.location.hostname + ":5000";
+var URL_BASE = "http://" + window.location.hostname + ":5000"; // Holds all the changed config values
 
-var useThermostatState = function useThermostatState() {
-  var _a = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__read"])(Object(react__WEBPACK_IMPORTED_MODULE_1__["useState"])("NONE"), 2),
-      mode = _a[0],
-      setMode = _a[1];
+var CHANGED_CONFIG_MAP = new Map();
+;
 
-  var _b = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__read"])(Object(react__WEBPACK_IMPORTED_MODULE_1__["useState"])("NONE"), 2),
-      state = _b[0],
-      setState = _b[1];
+var ConfigEntry = function ConfigEntry(props) {
+  var _a = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__read"])(Object(react__WEBPACK_IMPORTED_MODULE_1__["useState"])(props.value), 2),
+      inputValue = _a[0],
+      setInputValue = _a[1];
 
-  var _c = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__read"])(Object(react__WEBPACK_IMPORTED_MODULE_1__["useState"])("99"), 2),
-      comfortMin = _c[0],
-      setComfortMin = _c[1];
+  var styles = getStyles(props.width);
+  var labelStyle = Object(emotion__WEBPACK_IMPORTED_MODULE_2__["css"])({
+    width: '100px'
+  });
 
-  var _d = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__read"])(Object(react__WEBPACK_IMPORTED_MODULE_1__["useState"])("49"), 2),
-      comfortMax = _d[0],
-      setComfortMax = _d[1];
+  var handleChange = function handleChange(event) {
+    setInputValue(event.target.value);
+    console.log('setting global value', event.target.name, event.target.value);
+    CHANGED_CONFIG_MAP.set(event.target.name, event.target.value);
+  };
 
-  var udpateThermostatState = function udpateThermostatState() {
+  return react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
+    css: styles.divStyle
+  }, react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["Label"], {
+    key: props.name + ".label",
+    css: labelStyle
+  }, props.name), react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["Input"], {
+    key: props.name + ".input",
+    type: 'text',
+    name: props.name,
+    value: inputValue,
+    onChange: handleChange
+  }));
+}; // ###########################################################################
+// State data for the ConfigPanel
+
+
+var useConfigData = function useConfigData() {
+  var _a = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__read"])(Object(react__WEBPACK_IMPORTED_MODULE_1__["useState"])(new Map()), 2),
+      configData = _a[0],
+      setConfigData = _a[1];
+
+  var getConfigData = function getConfigData() {
     return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(void 0, void 0, void 0, function () {
-      var response, jsonData;
+      var response, jsonData, updatedConfigData, key;
       return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__generator"])(this, function (_a) {
         switch (_a.label) {
           case 0:
             return [4
             /*yield*/
-            , fetch(URL_BASE + "/api/status", {
+            , fetch(URL_BASE + "/api/config", {
               method: "GET"
             })];
 
@@ -403,10 +427,13 @@ var useThermostatState = function useThermostatState() {
 
           case 2:
             jsonData = _a.sent();
-            setState(jsonData.state);
-            setMode(jsonData.mode);
-            setComfortMin(jsonData.comfortMin);
-            setComfortMax(jsonData.comfortMax);
+            updatedConfigData = new Map();
+
+            for (key in jsonData) {
+              updatedConfigData.set(key, jsonData[key]);
+            }
+
+            setConfigData(updatedConfigData);
             return [2
             /*return*/
             ];
@@ -416,36 +443,47 @@ var useThermostatState = function useThermostatState() {
   };
 
   return {
-    mode: mode,
-    state: state,
-    comfortMin: comfortMin,
-    comfortMax: comfortMax,
-    udpateThermostatState: udpateThermostatState
+    configData: configData,
+    setConfigData: setConfigData,
+    getConfigData: getConfigData
   };
 };
 
-var ControlsPanel = function ControlsPanel(_a) {
+function GetConfigData() {
+  var getConfigData = useConfigData().getConfigData;
+  Object(react__WEBPACK_IMPORTED_MODULE_1__["useEffect"])(function () {
+    console.log('GetConfigData in effect');
+    getConfigData();
+  }, []);
+  return react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", null);
+}
+
+var ConfigPanel = function ConfigPanel(_a) {
   var options = _a.options,
       data = _a.data,
       width = _a.width,
       height = _a.height;
-  var styles = getStyles();
+  var styles = getStyles(width);
 
-  var _b = useThermostatState(),
-      mode = _b.mode,
-      state = _b.state,
-      comfortMin = _b.comfortMin,
-      comfortMax = _b.comfortMax,
-      udpateThermostatState = _b.udpateThermostatState;
+  var _b = useConfigData(),
+      configData = _b.configData,
+      getConfigData = _b.getConfigData;
 
-  if ("NONE" === mode) {
-    udpateThermostatState();
-  }
+  var configEntryList = [];
+  var sortedMap = new Map(Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__spread"])(configData.entries()).sort());
+  sortedMap.forEach(function (value, key) {
+    configEntryList.push(react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(ConfigEntry, {
+      key: key,
+      name: key,
+      value: value,
+      width: width
+    }));
+  });
 
   var OnUpdateButtonClicked = function OnUpdateButtonClicked() {
     return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(void 0, void 0, void 0, function () {
       return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__generator"])(this, function (_a) {
-        udpateThermostatState();
+        getConfigData();
         return [2
         /*return*/
         ];
@@ -453,21 +491,33 @@ var ControlsPanel = function ControlsPanel(_a) {
     });
   };
 
-  var onUpButtonClicked = function onUpButtonClicked() {
+  var OnSubmitButtonClicked = function OnSubmitButtonClicked() {
     return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(void 0, void 0, void 0, function () {
+      var rawResponse;
       return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__generator"])(this, function (_a) {
         switch (_a.label) {
           case 0:
             return [4
             /*yield*/
-            , fetch(URL_BASE + "/api/action/changeComfort?offset=1", {
-              method: "POST"
+            , fetch(URL_BASE + "/api/config", {
+              method: 'POST',
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(Object.fromEntries(CHANGED_CONFIG_MAP))
             })];
 
           case 1:
+            rawResponse = _a.sent();
+            return [4
+            /*yield*/
+            , rawResponse.json()];
+
+          case 2:
             _a.sent();
 
-            udpateThermostatState();
+            CHANGED_CONFIG_MAP.clear();
             return [2
             /*return*/
             ];
@@ -476,92 +526,46 @@ var ControlsPanel = function ControlsPanel(_a) {
     });
   };
 
-  var onDownButtonClicked = function onDownButtonClicked() {
-    return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(void 0, void 0, void 0, function () {
-      return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__generator"])(this, function (_a) {
-        switch (_a.label) {
-          case 0:
-            return [4
-            /*yield*/
-            , fetch(URL_BASE + "/api/action/changeComfort?offset=-1", {
-              method: "POST"
-            })];
-
-          case 1:
-            _a.sent();
-
-            udpateThermostatState();
-            return [2
-            /*return*/
-            ];
-        }
-      });
-    });
-  };
-
-  var onModeButtonClicked = function onModeButtonClicked() {
-    return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(void 0, void 0, void 0, function () {
-      return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__generator"])(this, function (_a) {
-        switch (_a.label) {
-          case 0:
-            return [4
-            /*yield*/
-            , fetch(URL_BASE + "/api/action/nextMode", {
-              method: "POST"
-            })];
-
-          case 1:
-            _a.sent();
-
-            udpateThermostatState();
-            return [2
-            /*return*/
-            ];
-        }
-      });
-    });
-  };
-
-  var buttonClass = Object(emotion__WEBPACK_IMPORTED_MODULE_2__["cx"])(styles.wrapper, Object(emotion__WEBPACK_IMPORTED_MODULE_2__["css"])(templateObject_1 || (templateObject_1 = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__makeTemplateObject"])(["\n      width: ", "px;\n      text-align: center;\n      margin-top: 5px;\n      margin-bottom: 5px;\n      margin-left: 0px;\n      margin-right: 0px;\n      flex-grow: 1;\n    "], ["\n      width: ", "px;\n      text-align: center;\n      margin-top: 5px;\n      margin-bottom: 5px;\n      margin-left: 0px;\n      margin-right: 0px;\n      flex-grow: 1;\n    "])), width / 2));
-  var stateColor = "";
-
-  if (state === "COOLING") {
-    stateColor = "#0000FF";
-  } else if (state === "HEATING") {
-    stateColor = "#FF0000";
-  } else if (state === "FAN") {
-    stateColor = "#00FF00";
-  }
-
-  var stateElementClass = stateColor !== "" ? Object(emotion__WEBPACK_IMPORTED_MODULE_2__["cx"])(styles.wrapper, Object(emotion__WEBPACK_IMPORTED_MODULE_2__["css"])(templateObject_2 || (templateObject_2 = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__makeTemplateObject"])(["\n            background-color: ", ";\n          "], ["\n            background-color: ", ";\n          "])), stateColor)) : Object(emotion__WEBPACK_IMPORTED_MODULE_2__["cx"])(styles.wrapper, Object(emotion__WEBPACK_IMPORTED_MODULE_2__["css"])(templateObject_3 || (templateObject_3 = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__makeTemplateObject"])([""], [""]))));
   return react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
-    className: Object(emotion__WEBPACK_IMPORTED_MODULE_2__["cx"])(styles.wrapper, Object(emotion__WEBPACK_IMPORTED_MODULE_2__["css"])(templateObject_4 || (templateObject_4 = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__makeTemplateObject"])(["\n          width: ", "px;\n          display: flex;\n          flex-direction: row;\n          align-items: center;\n        "], ["\n          width: ", "px;\n          display: flex;\n          flex-direction: row;\n          align-items: center;\n        "])), width))
-  }, react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
-    className: Object(emotion__WEBPACK_IMPORTED_MODULE_2__["cx"])(styles.wrapper, Object(emotion__WEBPACK_IMPORTED_MODULE_2__["css"])(templateObject_5 || (templateObject_5 = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__makeTemplateObject"])(["\n            height: ", "px;\n            display: flex;\n            flex-direction: column;\n            justify-content: space-between;\n            align-items: center;\n            flex-grow: 1;\n          "], ["\n            height: ", "px;\n            display: flex;\n            flex-direction: column;\n            justify-content: space-between;\n            align-items: center;\n            flex-grow: 1;\n          "])), height))
-  }, react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["Button"], {
-    className: buttonClass,
-    onClick: onUpButtonClicked
-  }, "Up"), react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["Button"], {
-    className: buttonClass,
-    onClick: onDownButtonClicked
-  }, "Down"), react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["Button"], {
-    className: buttonClass,
-    onClick: onModeButtonClicked
-  }, "Mode"), react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["Button"], {
-    className: buttonClass,
+    className: Object(emotion__WEBPACK_IMPORTED_MODULE_2__["cx"])(styles.wrapper, Object(emotion__WEBPACK_IMPORTED_MODULE_2__["css"])({
+      width: width,
+      height: height
+    }))
+  }, react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("form", null, configEntryList), react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["Button"], {
     onClick: OnUpdateButtonClicked
-  }, "Update")), react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
-    className: Object(emotion__WEBPACK_IMPORTED_MODULE_2__["cx"])(styles.wrapper, Object(emotion__WEBPACK_IMPORTED_MODULE_2__["css"])(templateObject_6 || (templateObject_6 = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__makeTemplateObject"])(["\n            height: ", "px;\n            display: flex;\n            flex-direction: column;\n            justify-content: space-between;\n            align-items: center;\n            flex-grow: 1;\n          "], ["\n            height: ", "px;\n            display: flex;\n            flex-direction: column;\n            justify-content: space-between;\n            align-items: center;\n            flex-grow: 1;\n          "])), height))
-  }, react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("span", null, "Mode: ", mode), react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("span", {
-    className: stateElementClass
-  }, "State: ", state), react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("span", null, "Targets ", comfortMin, " / ", comfortMax)));
-};
-var getStyles = Object(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["stylesFactory"])(function () {
+  }, "Update"), react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["Button"], {
+    onClick: OnSubmitButtonClicked
+  }, "Submit"), react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(GetConfigData, null));
+}; // Random styles put here so they don't make the code even harde to read...
+
+var getStyles = Object(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["stylesFactory"])(function (width) {
   return {
-    wrapper: Object(emotion__WEBPACK_IMPORTED_MODULE_2__["css"])(templateObject_7 || (templateObject_7 = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__makeTemplateObject"])(["\n      position: relative;\n    "], ["\n      position: relative;\n    "])))
+    wrapper: Object(emotion__WEBPACK_IMPORTED_MODULE_2__["css"])({
+      position: 'relative'
+    }),
+    svg: Object(emotion__WEBPACK_IMPORTED_MODULE_2__["css"])({
+      position: 'absolute',
+      top: 0,
+      left: 0
+    }),
+    textBox: Object(emotion__WEBPACK_IMPORTED_MODULE_2__["css"])({
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      padding: 10
+    }),
+    divStyle: Object(emotion__WEBPACK_IMPORTED_MODULE_2__["css"])({
+      width: width + "px",
+      marginTop: '5px',
+      marginBottom: '5px',
+      marginLeft: '0px',
+      marginRight: '0px',
+      display: 'flex',
+      flexGrow: 1,
+      flexDirection: 'row'
+    })
   };
 });
-var templateObject_1, templateObject_2, templateObject_3, templateObject_4, templateObject_5, templateObject_6, templateObject_7;
 
 /***/ }),
 
@@ -577,54 +581,19 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "plugin", function() { return plugin; });
 /* harmony import */ var _grafana_data__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @grafana/data */ "@grafana/data");
 /* harmony import */ var _grafana_data__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_grafana_data__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _ControlsPanel__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ControlsPanel */ "./ControlsPanel.tsx");
+/* harmony import */ var _ConfigPanel__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ConfigPanel */ "./ConfigPanel.tsx");
 
 
-var plugin = new _grafana_data__WEBPACK_IMPORTED_MODULE_0__["PanelPlugin"](_ControlsPanel__WEBPACK_IMPORTED_MODULE_1__["ControlsPanel"]).setPanelOptions(function (builder) {
+var plugin = new _grafana_data__WEBPACK_IMPORTED_MODULE_0__["PanelPlugin"](_ConfigPanel__WEBPACK_IMPORTED_MODULE_1__["ConfigPanel"]).setPanelOptions(function (builder) {
   return builder.addTextInput({
-    path: "text",
-    name: "Simple text option",
-    description: "Description of panel option",
-    defaultValue: "Default value of text input option"
+    path: 'text',
+    name: 'Simple text option',
+    description: 'Description of panel option',
+    defaultValue: 'Default value of text input option'
   }).addBooleanSwitch({
-    path: "showSeriesCount",
-    name: "Show series counter",
+    path: 'showSeriesCount',
+    name: 'Show series counter',
     defaultValue: false
-  }).addRadio({
-    path: "seriesCountSize",
-    defaultValue: "sm",
-    name: "Series counter size",
-    settings: {
-      options: [{
-        value: "sm",
-        label: "Small"
-      }, {
-        value: "md",
-        label: "Medium"
-      }, {
-        value: "lg",
-        label: "Large"
-      }]
-    },
-    showIf: function showIf(config) {
-      return config.showSeriesCount;
-    }
-  }).addRadio({
-    path: "color",
-    name: "Circle color",
-    defaultValue: "red",
-    settings: {
-      options: [{
-        value: "red",
-        label: "Red"
-      }, {
-        value: "green",
-        label: "Green"
-      }, {
-        value: "blue",
-        label: "Blue"
-      }]
-    }
   });
 });
 

@@ -10,7 +10,7 @@ import { Button } from "@grafana/ui";
 
 interface Props extends PanelProps<ControlsPanelOptions> { }
 
-// const URL_BASE = "http://localhost:5000";
+// URL for the thermostat API is at the same host but on a different port
 var URL_BASE = `http://${window.location.hostname}:5000`;
 
 const useThermostatState = () => {
@@ -37,14 +37,8 @@ export const ControlsPanel: React.FC<Props> = ({
   width,
   height
 }) => {
-  //const theme = useTheme();
-  const styles = getStyles();
 
-  // if ( data.series.length > 0 ) {
-  //   length = data.series[0].length;
-  //   if ( length > 0 )
-  //     console.debug(data.series[0].fields[1].values.get(length-1));
-  // }
+  const styles = getStyles();
 
   const {
     mode,
@@ -63,12 +57,12 @@ export const ControlsPanel: React.FC<Props> = ({
   };
 
   const onUpButtonClicked = async () => {
-    await fetch(`${URL_BASE}/api/action/raiseComfort`, { method: "POST" });
+    await fetch(`${URL_BASE}/api/action/changeComfort?offset=1`, { method: "POST" });
     udpateThermostatState();
   };
 
   const onDownButtonClicked = async () => {
-    await fetch(`${URL_BASE}/api/action/lowerComfort`, { method: "POST" });
+    await fetch(`${URL_BASE}/api/action/changeComfort?offset=1`, { method: "POST" });
     udpateThermostatState();
   };
 

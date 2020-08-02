@@ -1,4 +1,4 @@
-from flask import Flask, request, abort
+from flask import Flask, Response, request, abort
 from flask_cors import CORS
 from functools import wraps
 from threading import Thread
@@ -6,14 +6,15 @@ from random import getrandbits
 import json
 
 from .ThermostatService import ThermostatService
+from .OrmManagementService import OrmManagementService
 from src.logging import log, handleException
 from src.core import ServiceProvider, ServiceConsumer, EventBus, \
     ThermostatState
-from src.core.events import \
-    ThermostatStateChangedEvent, \
-    SensorDataChangedEvent
+from src.core.events import ThermostatStateChangedEvent, SensorDataChangedEvent
+from src.core.orm import OrmConfig
 
 VALID_API_KEYS = list()
+API_VERSION = 'rpt-v0.2'
 
 
 def require_appkey(method):
@@ -29,31 +30,48 @@ def require_appkey(method):
 
 class ApiDataBrokerService(ServiceConsumer):
     """ Dedicated to responding to the REST API for the thermostat and
-    brokering any necessary data/events """
+    brokering any necessary data/events
+
+    https://docs.microsoft.com/en-us/azure/architecture/best-practices/api-design
+
+    Some summaries of the above:
+        * GET retrieves a representation of the resource at the specified URI.
+          The body of the response message contains the details of the
+          requested resource.
+        * POST creates a new resource at the specified URI. The body of the
+          request message provides the details of the new resource. Note that
+          POST can also be used to trigger operations that don't actually
+          create resources.
+        * PUT either creates or replaces the resource at the specified URI.
+          The body of the request message specifies the resource to be created
+          or updated.
+        * PATCH performs a partial update of a resource. The request body
+          specifies the set of changes to apply to the resource
+        * DELETE removes the resource at the specified URI.
+    """
 
     def __init__(self,):
         self.__app = Flask(__name__, static_url_path='')
 
         self.__app.add_url_rule(
-            '/api/version', 'api_version', self.api_version)
-        self.__app.add_url_rule(
-            '/api/status', 'api_status', self.api_status)
-        self.__app.add_url_rule(
-            '/api/action/stop', 'api_action_stop',
-            self.api_action_stop, methods=['POST'])
+            '/api/status', view_func=self.__apiStatus)
 
         self.__app.add_url_rule(
-            '/api/action/nextMode', 'api_action_next_mode',
-            self.api_action_next_mode, methods=['POST'])
+            '/api/config', view_func=self.__apiConfig,
+            methods=['GET', 'POST', 'PUT'])
         self.__app.add_url_rule(
-            '/api/action/raiseComfort', 'api_action_raise_comfort',
-            self.api_action_raise_comfort, methods=['POST'])
+            '/api/config/<name>', view_func=self.__apiConfig,
+            methods=['GET', 'POST', 'PUT', 'DELETE'])
+
         self.__app.add_url_rule(
-            '/api/action/lowerComfort', 'api_next_lower_comfort',
-            self.api_action_lower_comfort, methods=['POST'])
+            '/api/action/stop',
+            view_func=self.__apiActionStop, methods=['POST'])
         self.__app.add_url_rule(
-            '/api/action/changeComfort', 'api_next_change_comfort',
-            self.api_action_change_comfort, methods=['POST'])
+            '/api/action/nextMode',
+            view_func=self.__apiActionNextMode, methods=['POST'])
+        self.__app.add_url_rule(
+            '/api/action/changeComfort',
+            view_func=self.__apiActionChangeComfort, methods=['POST'])
 
         self.__cors = CORS(self.__app)
 
@@ -88,18 +106,11 @@ class ApiDataBrokerService(ServiceConsumer):
     def __processSensorDataChanged(self, event: SensorDataChangedEvent):
         self.__lastSensorData = event
 
-    def __flaskEntryPoint(self):
-        try:
-            self.__app.run("0.0.0.0", 5000)
-            log.error("Somehow we exited the Flask thread")
-        except:
-            handleException("starting flask")
-
-    def __getStatus(self):
+    def getStatus(self):
         thermostatService = self._getService(ThermostatService)
 
         response = {
-            'version': self.api_version(),
+            'version': API_VERSION,
             'comfortMin': thermostatService.comfortMin,
             'comfortMax': thermostatService.comfortMax,
             'currentProgram': thermostatService.currentProgramName,
@@ -115,47 +126,93 @@ class ApiDataBrokerService(ServiceConsumer):
                 'humidity': f"{self.__lastSensorData.humidity}",
             }
 
-        return json.dumps(response, indent=4)
+        return response
 
-    def __modifyComfortSettings(self, offset: int = 0, value: int = -1):
+    def getConfig(self):
+        ormManagementService = self._getService(OrmManagementService)
+
+        results = ormManagementService.session.query(OrmConfig)
+        return {a.name: a.value for a in results}
+
+    def setConfig(self, data: dict):
+        ormManagementService = self._getService(OrmManagementService)
+
+        results = ormManagementService.session.query(OrmConfig) \
+            .filter(OrmConfig.name.in_(data.keys()))
+        for ormConfigEntry in results:
+            ormConfigEntry.value = data[ormConfigEntry.name]
+            data.pop(ormConfigEntry.name)
+        for name, value in data.items():
+            configEntry = OrmConfig()
+            configEntry.name = name
+            configEntry.value = value
+            ormManagementService.session.add(configEntry)
+
+        ormManagementService.session.commit()
+
+    def modifyComfortSettings(self, offset: int = 0, value: int = -1):
         thermostatService = self._getService(ThermostatService)
         thermostatService.modifyComfortSettings(offset=offset, value=value)
-        return self.__getStatus()
 
-    def __nextMode(self):
+    def nextMode(self):
         thermostatService = self._getService(ThermostatService)
         thermostatService.nextMode()
-        return self.__getStatus()
 
-    def api_version(self):
-        return 'rpt-0.1'
+    # region Flask API calls, all happening on a different thread
 
-    def api_status(self):
-        return self.__eventBus.safeInvoke(self.__getStatus)
+    def __apiResponse(self, data, status=200):
+        mimeType = 'application/json'
+        jsonText = json.dumps(data, indent=4)
+        response = Response(jsonText, status=status, mimetype=mimeType)
+        return response
 
-    def api_action_next_mode(self):
-        return self.__eventBus.safeInvoke(self.__nextMode)
+    def __apiStatus(self):
+        data = self.__eventBus.safeInvoke(self.getStatus)
+        return self.__apiResponse(data)
 
-    def api_action_raise_comfort(self):
-        offset = float(request.args.get('offset', 1.0))
-        return self.__eventBus.safeInvoke(
-            self.__modifyComfortSettings, offset=offset)
+    def __apiConfig(self, name: str = None):
+        """ If name is not null, use it as the key for the config value,
+        otherwise assume the request is the contents of the entire config """
 
-    def api_action_lower_comfort(self):
-        offset = float(request.args.get('offset', 1.0))
-        return self.__eventBus.safeInvoke(
-            self.__modifyComfortSettings, offset=-offset)
+        if 'GET' == request.method:
+            # Gets the value of the named config item, or all items
+            data = self.__eventBus.safeInvoke(self.getConfig)
+            if name is not None:
+                data = {name: data.get(name)}
+            return self.__apiResponse(data)
 
-    def api_action_change_comfort(self):
+        if request.method in ['PUT', 'POST']:
+            # Sets the value of the named config item, or all items
+            data = request.get_json()
+            if name is not None:
+                data = {name: data}
+            self.__eventBus.safeInvoke(self.setConfig, data)
+            return self.__apiResponse(data)
+
+    def __apiActionNextMode(self):
+        self.__eventBus.safeInvoke(self.nextMode)
+        return self.__apiStatus()
+
+    def __apiActionChangeComfort(self):
         offset = float(request.args.get('offset', 0.0))
         value = float(request.args.get('value', -1.0))
-        return self.__eventBus.safeInvoke(
-            self.__modifyComfortSettings, offset=offset, value=value)
+        self.__eventBus.safeInvoke(
+            self.modifyComfortSettings, offset=offset, value=value)
+        return self.__apiStatus()
 
     @require_appkey
-    def api_action_stop(self):
+    def __apiActionStop(self):
         VALID_API_KEYS.remove(self.__sessionApiKey)
-        status = self.__eventBus.safeInvoke(self.__getStatus)
+        data = self.__eventBus.safeInvoke(self.getStatus)
+        response = self.__apiResponse(data)
         self.__eventBus.stop()
-        shutdownMethod = request.environ.get('werkzeug.server.shutdown')
-        return status
+        return response
+
+    # endregion
+
+    def __flaskEntryPoint(self):
+        try:
+            self.__app.run("0.0.0.0", 5000)
+            log.error("Somehow we exited the Flask thread")
+        except:
+            handleException("starting flask")

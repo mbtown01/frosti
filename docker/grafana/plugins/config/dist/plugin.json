@@ -1,9 +1,9 @@
 {
   "type": "panel",
-  "name": "RPT Control Panel",
-  "id": "madllama-net-rpt-control-panel",
+  "name": "RPT Configuration Panel",
+  "id": "madllama-net-rpt-config-panel",
   "info": {
-    "description": "RPT Control Panel",
+    "description": "RPT Configuration Panel",
     "author": {
       "name": "Mike Townsley",
       "url": ""

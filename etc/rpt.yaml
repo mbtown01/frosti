@@ -1,3 +1,6 @@
+# In the absence of a setting being in the postgres database, these are the
+# default values chosen at initialization time.  Once in the database, they
+# must be changed there
 config:
   # Temperature delta (degF) above comfortMax where COOL kicks in AND delta 
   # below comfortMin where HEAT kicks in
@@ -7,7 +10,6 @@ config:
   thermostat.fanRunoutDuration: 15
   # Default timezone 
   thermostat.timezone: "America/Chicago"
-  
   # For the three environment sensors (temperature, pressure, humidity), 
   # apply translate and scale so that for any sensor reading 'x', the actual
   # reading is scale*x + translate
@@ -17,10 +19,8 @@ config:
   environment.humidity.scale: 1.0
   environment.pressure.translate: 0.0
   environment.pressure.scale: 1.0
-
   # How long (seconds) to leave the backlight on before timing out
   ui.backlightTimeout: 10
-
   # Default gogriddy membership info that should be removed in a final release
   # but is required to call the Griddy web API
   gogriddy.meterId: "1008901023809085840100"
