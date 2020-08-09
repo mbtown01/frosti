@@ -61,6 +61,21 @@ from (
     ) as foo
 ```
 
+Show how many times the thermostat skipped a reasonably
+long temperature check over the past 30 days, possibly 
+because it had frozen and needed a reboot
+```sql
+select
+    *
+from (
+    select
+        time, time - lag(time) over (order by time) as delta
+    from sensor_reading
+    where time > NOW() - INTERVAL '30 DAYS'
+    ) as foo
+where extract(epoch from foo.delta) > 60
+```
+
 Calculate the percentage of time we spend cooling over the past 24 hours
 
 ```sql

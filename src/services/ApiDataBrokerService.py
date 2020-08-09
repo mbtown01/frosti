@@ -58,10 +58,10 @@ class ApiDataBrokerService(ServiceConsumer):
 
         self.__app.add_url_rule(
             '/api/config', view_func=self.__apiConfig,
-            methods=['GET', 'POST', 'PUT'])
+            methods=['GET', 'PUT'])
         self.__app.add_url_rule(
             '/api/config/<name>', view_func=self.__apiConfig,
-            methods=['GET', 'POST', 'PUT', 'DELETE'])
+            methods=['GET', 'PUT'])
 
         self.__app.add_url_rule(
             '/api/action/stop',
@@ -172,7 +172,21 @@ class ApiDataBrokerService(ServiceConsumer):
 
     def __apiConfig(self, name: str = None):
         """ If name is not null, use it as the key for the config value,
-        otherwise assume the request is the contents of the entire config """
+        otherwise assume the request is the contents of the entire config
+
+        Examples:
+            <GET> /api/config
+                Gets the current configuration set in a json dict
+            <GET> /api/config/<item>
+                Gets teh current configuration for a specific item as
+                a single key/value pair in a json dict
+            <PUT> /api/config
+                Takes the provided json dict and updates the current
+                configuration set
+            <PUT> /api/config/<item>
+                Takes the provided json dict for a specific entry and updates
+                the current configuration set
+        """
 
         if 'GET' == request.method:
             # Gets the value of the named config item, or all items
@@ -181,7 +195,7 @@ class ApiDataBrokerService(ServiceConsumer):
                 data = {name: data.get(name)}
             return self.__apiResponse(data)
 
-        if request.method in ['PUT', 'POST']:
+        if request.method in ['PUT']:
             # Sets the value of the named config item, or all items
             data = request.get_json()
             if name is not None:

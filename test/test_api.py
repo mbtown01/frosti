@@ -102,30 +102,30 @@ class Test_ApiDataBroker(unittest.TestCase):
         self.assertTrue(name in data)
         self.assertEqual(str(data[name]), str(expected[name]))
 
-    def test_config_post_1(self):
+    def test_config_put_1(self):
         name = 'thermostat.delta'
-        requests.post(API_URL + '/api/config', json={name: '150'})
+        requests.put(API_URL + '/api/config', json={name: '150'})
         req = requests.get(API_URL + f'/api/config/{name}')
         data = req.json()
         self.assertEqual(1, len(data))
         self.assertTrue(name in data)
         self.assertEqual('150', data[name])
 
-    def test_config_post_2(self):
+    def test_config_put_2(self):
         name = 'thermostat.delta'
-        requests.post(API_URL + f'/api/config/{name}', json='150')
+        requests.put(API_URL + f'/api/config/{name}', json='150')
         req = requests.get(API_URL + f'/api/config/{name}')
         data = req.json()
         self.assertEqual(1, len(data))
         self.assertTrue(name in data)
         self.assertEqual('150', data[name])
 
-    def test_config_post_3(self):
+    def test_config_put_3(self):
         jsonData = {
             'thermostat.delta': '123',
             'thermostat.fanRunoutDuration': '10130',
         }
-        requests.post(API_URL + '/api/config', json=jsonData)
+        requests.put(API_URL + '/api/config', json=jsonData)
         req = requests.get(API_URL + '/api/config')
         data = req.json()
         for name, value in jsonData.items():

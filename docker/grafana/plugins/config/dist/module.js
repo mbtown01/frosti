@@ -361,11 +361,11 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
  // import { stylesFactory, useTheme } from '@grafana/ui';
 // URL for the thermostat API is at the same host but on a different port
 
-var URL_BASE = "http://" + window.location.hostname + ":5000"; // Holds all the changed config values
+var URL_BASE = "http://" + window.location.hostname + ":5000"; // Holds all the changed config values, looking for a cleaner way of doing
+// this, so assume this is temporary
 
 var CHANGED_CONFIG_MAP = new Map();
 ;
@@ -449,19 +449,8 @@ var useConfigData = function useConfigData() {
   };
 };
 
-function GetConfigData() {
-  var getConfigData = useConfigData().getConfigData;
-  Object(react__WEBPACK_IMPORTED_MODULE_1__["useEffect"])(function () {
-    console.log('GetConfigData in effect');
-    getConfigData();
-  }, []);
-  return react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", null);
-}
-
 var ConfigPanel = function ConfigPanel(_a) {
-  var options = _a.options,
-      data = _a.data,
-      width = _a.width,
+  var width = _a.width,
       height = _a.height;
   var styles = getStyles(width);
 
@@ -469,6 +458,10 @@ var ConfigPanel = function ConfigPanel(_a) {
       configData = _b.configData,
       getConfigData = _b.getConfigData;
 
+  Object(react__WEBPACK_IMPORTED_MODULE_1__["useEffect"])(function () {
+    console.log('GetConfigData in effect');
+    getConfigData();
+  }, []);
   var configEntryList = [];
   var sortedMap = new Map(Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__spread"])(configData.entries()).sort());
   sortedMap.forEach(function (value, key) {
@@ -500,7 +493,7 @@ var ConfigPanel = function ConfigPanel(_a) {
             return [4
             /*yield*/
             , fetch(URL_BASE + "/api/config", {
-              method: 'POST',
+              method: 'PUT',
               headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
@@ -535,7 +528,7 @@ var ConfigPanel = function ConfigPanel(_a) {
     onClick: OnUpdateButtonClicked
   }, "Update"), react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["Button"], {
     onClick: OnSubmitButtonClicked
-  }, "Submit"), react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(GetConfigData, null));
+  }, "Submit"));
 }; // Random styles put here so they don't make the code even harde to read...
 
 var getStyles = Object(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["stylesFactory"])(function (width) {

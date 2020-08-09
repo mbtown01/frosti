@@ -1,14 +1,15 @@
 import React from 'react';
 import { useState, useEffect } from "react";
-import { PanelProps, ColorScheme } from '@grafana/data';
+import { PanelProps } from '@grafana/data';
 import { css, cx } from 'emotion';
-import { stylesFactory } from "@grafana/ui";
-import { Button, Label, Input } from "@grafana/ui";
+import { Button, Label, Input, stylesFactory } from "@grafana/ui";
 // import { stylesFactory, useTheme } from '@grafana/ui';
 
 // URL for the thermostat API is at the same host but on a different port
 var URL_BASE = `http://${window.location.hostname}:5000`;
-// Holds all the changed config values
+
+// Holds all the changed config values, looking for a cleaner way of doing
+// this, so assume this is temporary
 var CHANGED_CONFIG_MAP = new Map<string, string>();
 
 
@@ -38,7 +39,8 @@ const ConfigEntry: React.FunctionComponent<ConfigEntryProps> = (props) => {
   return (
     <div css={styles.divStyle}>
       <Label key={`${props.name}.label`} css={labelStyle}>{props.name}</Label>
-      <Input key={`${props.name}.input`} type='text' name={props.name} value={inputValue} onChange={handleChange}></Input>
+      <Input key={`${props.name}.input`} type='text' name={props.name}
+        value={inputValue} onChange={handleChange}></Input>
     </div>);
 };
 
@@ -61,7 +63,6 @@ const useConfigData = () => {
   return { configData, setConfigData, getConfigData };
 };
 
-
 // ###########################################################################
 // ConfigPanel 
 export interface ConfigPanelOptions {
@@ -71,65 +72,60 @@ export interface ConfigPanelOptions {
 
 interface ConfigPanelProps extends PanelProps<ConfigPanelOptions> { }
 
-function GetConfigData() {
-  const { getConfigData } = useConfigData();
+export const ConfigPanel:
+  React.FunctionComponent<ConfigPanelProps> = ({ width, height }) => {
+    const styles = getStyles(width);
 
-  useEffect(() => {
-    console.log('GetConfigData in effect');
-    getConfigData()
-  }, []);
+    const {
+      configData,
+      getConfigData
+    } = useConfigData();
 
-  return <div></div>;
-}
+    useEffect(() => {
+      console.log('GetConfigData in effect');
+      getConfigData()
+    }, []);
 
-export const ConfigPanel: React.FunctionComponent<ConfigPanelProps> = ({ options, data, width, height }) => {
-  const styles = getStyles(width);
 
-  const {
-    configData,
-    getConfigData
-  } = useConfigData();
-
-  let configEntryList: Array<JSX.Element> = [];
-  let sortedMap = new Map([...configData.entries()].sort())
-  sortedMap.forEach((value: string, key: string) => {
-    configEntryList.push(<ConfigEntry key={key} name={key} value={value} width={width} />);
-  });
-
-  const OnUpdateButtonClicked = async () => {
-    getConfigData();
-  };
-
-  const OnSubmitButtonClicked = async () => {
-    const rawResponse = await fetch(`${URL_BASE}/api/config`, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(Object.fromEntries(CHANGED_CONFIG_MAP))
+    let configEntryList: Array<JSX.Element> = [];
+    let sortedMap = new Map([...configData.entries()].sort())
+    sortedMap.forEach((value: string, key: string) => {
+      configEntryList.push(<ConfigEntry key={key} name={key} value={value} width={width} />);
     });
 
-    await rawResponse.json();
-    CHANGED_CONFIG_MAP.clear()
-  };
+    const OnUpdateButtonClicked = async () => {
+      getConfigData();
+    };
 
-  return (
-    <div
-      className={cx(
-        styles.wrapper,
-        css({ width: width, height: height })
-      )}
-    >
-      <form>
-        {configEntryList}
-      </form>
-      <Button onClick={OnUpdateButtonClicked}>Update</Button>
-      <Button onClick={OnSubmitButtonClicked}>Submit</Button>
-      <GetConfigData />
-    </div >
-  );
-};
+    const OnSubmitButtonClicked = async () => {
+      const rawResponse = await fetch(`${URL_BASE}/api/config`, {
+        method: 'PUT',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(Object.fromEntries(CHANGED_CONFIG_MAP))
+      });
+
+      await rawResponse.json();
+      CHANGED_CONFIG_MAP.clear()
+    };
+
+    return (
+      <div
+        className={cx(
+          styles.wrapper,
+          css({ width: width, height: height })
+        )}
+      >
+        <form>
+          {configEntryList}
+        </form>
+        <Button onClick={OnUpdateButtonClicked}>Update</Button>
+        <Button onClick={OnSubmitButtonClicked}>Submit</Button>
+      </div >
+    );
+  };
 
 // Random styles put here so they don't make the code even harde to read...
 const getStyles = stylesFactory((width: number) => {
