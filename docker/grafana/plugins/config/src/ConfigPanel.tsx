@@ -11,6 +11,7 @@ var URL_BASE = `http://${window.location.hostname}:5000`;
 // Holds all the changed config values, looking for a cleaner way of doing
 // this, so assume this is temporary
 var CHANGED_CONFIG_MAP = new Map<string, string>();
+var CHANGED_PROGRAM_MAP = new Map<string, Map<string, string>>();
 
 
 // ###########################################################################
@@ -50,7 +51,7 @@ const useConfigData = () => {
   const [configData, setConfigData] = useState(new Map<string, string>());
 
   const getConfigData = async () => {
-    let response = await fetch(`${URL_BASE}/api/config`, { method: "GET" });
+    let response = await fetch(`${URL_BASE}/api/v1/config`, { method: "GET" });
     let jsonData = await response.json();
     let updatedConfigData = new Map<string, string>();
     for (var key in jsonData) {
@@ -76,21 +77,17 @@ export const ConfigPanel:
   React.FunctionComponent<ConfigPanelProps> = ({ width, height }) => {
     const styles = getStyles(width);
 
-    const {
-      configData,
-      getConfigData
-    } = useConfigData();
+    const { configData, getConfigData } = useConfigData();
 
     useEffect(() => {
-      console.log('GetConfigData in effect');
       getConfigData()
     }, []);
-
 
     let configEntryList: Array<JSX.Element> = [];
     let sortedMap = new Map([...configData.entries()].sort())
     sortedMap.forEach((value: string, key: string) => {
-      configEntryList.push(<ConfigEntry key={key} name={key} value={value} width={width} />);
+      configEntryList.push(
+        <ConfigEntry key={key} name={key} value={value} width={width} />);
     });
 
     const OnUpdateButtonClicked = async () => {
@@ -98,7 +95,7 @@ export const ConfigPanel:
     };
 
     const OnSubmitButtonClicked = async () => {
-      const rawResponse = await fetch(`${URL_BASE}/api/config`, {
+      const rawResponse = await fetch(`${URL_BASE}/api/v1/config`, {
         method: 'PUT',
         headers: {
           'Accept': 'application/json',

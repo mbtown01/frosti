@@ -53,9 +53,11 @@ class OrmProgram(Base):
 
     # Relationships
     ''' All price overrides for this program '''
-    overrides = relationship("OrmPriceOverride", back_populates="program")
+    overrides = relationship(
+        "OrmPriceOverride", back_populates="program", cascade="all, delete")
     ''' All times this program runs '''
-    times = relationship("OrmScheduleTime", back_populates="program")
+    times = relationship(
+        "OrmScheduleTime", back_populates="program", cascade="all, delete")
 
 
 class OrmPriceOverride(Base):
@@ -68,7 +70,8 @@ class OrmPriceOverride(Base):
     price = Column(Float, primary_key=True)
     ''' associated program '''
     program_name = Column(
-        String, ForeignKey('program.name'), nullable=False, primary_key=True)
+        String, ForeignKey('program.name', ondelete="CASCADE"),
+        nullable=False, primary_key=True)
 
     # Columns
     ''' Minimum temperature before heat is engaged '''
@@ -78,7 +81,8 @@ class OrmPriceOverride(Base):
 
     # Relationships
     ''' associated program record '''
-    program = relationship("OrmProgram", back_populates="overrides")
+    program = relationship(
+        "OrmProgram", back_populates="overrides", cascade="all, delete")
 
 
 class OrmSchedule(Base):
@@ -92,9 +96,11 @@ class OrmSchedule(Base):
 
     # Relationships
     ''' All days this schedule runs in '''
-    days = relationship("OrmScheduleDay", back_populates="schedule")
+    days = relationship(
+        "OrmScheduleDay", back_populates="schedule", cascade="all, delete")
     ''' All times this schedule runs each day '''
-    times = relationship("OrmScheduleTime", back_populates="schedule")
+    times = relationship(
+        "OrmScheduleTime", back_populates="schedule", cascade="all, delete")
 
 
 class OrmScheduleDay(Base):
@@ -109,11 +115,14 @@ class OrmScheduleDay(Base):
 
     # Columns
     ''' associated schedule '''
-    schedule_name = Column(String, ForeignKey('schedule.name'), nullable=False)
+    schedule_name = Column(
+        String, ForeignKey('schedule.name', ondelete="CASCADE"),
+        nullable=False)
 
     # Relationships
     ''' associated schedule record '''
-    schedule = relationship("OrmSchedule", back_populates="days")
+    schedule = relationship(
+        "OrmSchedule", back_populates="days", cascade="all, delete")
 
 
 class OrmScheduleTime(Base):
@@ -123,7 +132,8 @@ class OrmScheduleTime(Base):
     # Primary Key
     ''' associated schedule '''
     schedule_name = Column(
-        String, ForeignKey('schedule.name'), primary_key=True, nullable=False)
+        String, ForeignKey('schedule.name', ondelete="CASCADE"),
+        primary_key=True, nullable=False)
     ''' Integer hour [0-23] for the program to start in this schedule '''
     hour = Column(Integer, primary_key=True)
     ''' Integer minute [0-59] for the program to start in this schedule '''
@@ -131,13 +141,17 @@ class OrmScheduleTime(Base):
 
     # Columns
     ''' associated program name '''
-    program_name = Column(String, ForeignKey('program.name'), nullable=False)
+    program_name = Column(
+        String, ForeignKey('program.name', ondelete="CASCADE"),
+        nullable=False)
 
     # Relationships
     ''' associated program record '''
-    program = relationship("OrmProgram", back_populates="times")
+    program = relationship(
+        "OrmProgram", back_populates="times", cascade="all, delete")
     ''' associated schedule record '''
-    schedule = relationship("OrmSchedule", back_populates="times")
+    schedule = relationship(
+        "OrmSchedule", back_populates="times", cascade="all, delete")
 
 
 # endregion

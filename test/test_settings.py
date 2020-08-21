@@ -4,7 +4,8 @@ from time import mktime, strptime
 
 from src.core import EventBus, ServiceProvider
 from src.core.events import PowerPriceChangedEvent
-from src.services import OrmManagementService, ThermostatService
+from src.services import OrmManagementService, ThermostatService, \
+    ApiDataBrokerService
 
 yamlText = """
 config:
@@ -32,7 +33,7 @@ programs:
         priceOverrides:
             - { price: 0.50, comfortMax: 80 }
             - { price: 1.00, comfortMax: 88 }
-schedule:
+schedules:
     work week:
         days: [0, 1, 2, 3, 4]
         times:
@@ -55,10 +56,18 @@ class Test_Settings(unittest.TestCase):
         self.serviceProvider.installService(EventBus, self.eventBus)
         self.ormManagementService = OrmManagementService(isTestInstance=True)
         self.ormManagementService.setServiceProvider(self.serviceProvider)
-        self.ormManagementService.importFromDict(
-            yaml.load(yamlText, Loader=yaml.FullLoader))
+        # self.ormManagementService.importFromDict(
+        #     yaml.load(yamlText, Loader=yaml.FullLoader))
         self.serviceProvider.installService(
             OrmManagementService, self.ormManagementService)
+
+        configData = yaml.load(yamlText, Loader=yaml.FullLoader)
+        self.apiDataBroker = ApiDataBrokerService()
+        self.apiDataBroker.setServiceProvider(self.serviceProvider)
+        self.apiDataBroker.setConfig(configData['config'])
+        self.apiDataBroker.setPrograms(configData['programs'])
+        self.apiDataBroker.setSchedules(configData['schedules'])
+
         self.thermostat = ThermostatService()
         self.thermostat.setServiceProvider(self.serviceProvider)
         self.serviceProvider.installService(
@@ -137,7 +146,6 @@ class Test_Settings(unittest.TestCase):
         self.eventBus.fireEvent(PowerPriceChangedEvent(9.0, 300))
         self.eventBus.processEvents(time+300)
         self.assertTrue(self.thermostat.isInPriceOverride)
-        self.assertEqual(self.thermostat.comfortMin, 68.0)
         self.assertEqual(self.thermostat.comfortMax, 82.0)
 
         self.eventBus.fireEvent(PowerPriceChangedEvent(0.05, 300))
@@ -150,7 +158,6 @@ class Test_Settings(unittest.TestCase):
         self.eventBus.fireEvent(PowerPriceChangedEvent(0.55, 300))
         self.eventBus.processEvents(time+1200)
         self.assertTrue(self.thermostat.isInPriceOverride)
-        self.assertEqual(self.thermostat.comfortMin, 68.0)
         self.assertEqual(self.thermostat.comfortMax, 82.0)
 
         self.eventBus.fireEvent(PowerPriceChangedEvent(0.05, 300))

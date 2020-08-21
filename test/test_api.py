@@ -15,6 +15,38 @@ config:
     thermostat.fanRunoutDuration: 30
     thermostat.timezone: "America/Chicago"
     ui.backlightTimeout: 10
+
+programs:
+    away:
+        comfortMin: 64.0
+        comfortMax: 78.0
+        priceOverrides:
+            - { price: 0.25, comfortMax: 82.0, comfortMin: null }
+    overnight:
+        comfortMin: 68.0
+        comfortMax: 72.0
+        priceOverrides:
+            - { price: 0.25, comfortMax: 76.0, comfortMin: null }
+            - { price: 0.50, comfortMax: 78.0, comfortMin: null }
+            - { price: 1.00, comfortMax: 88.0, comfortMin: null }
+    home:
+        comfortMin: 70.0
+        comfortMax: 76.0
+        priceOverrides:
+            - { price: 0.50, comfortMax: 80.0, comfortMin: null }
+            - { price: 1.00, comfortMax: 88.0, comfortMin: null }
+schedules:
+    work week:
+        days: [0, 1, 2, 3, 4]
+        times:
+            - { hour: 8, minute: 0, program: away }
+            - { hour: 17, minute: 0, program: home }
+            - { hour: 20, minute: 0, program: overnight }
+    weekend:
+        days: [5, 6]
+        times:
+            - { hour: 8, minute: 0, program: home }
+            - { hour: 20, minute: 0, program: overnight }
 """
 
 API_URL = 'http://localhost:5000'
@@ -31,17 +63,22 @@ class Test_ApiDataBroker(unittest.TestCase):
         cls.serviceProvider.installService(EventBus, cls.eventBus)
         cls.ormManagementService = OrmManagementService(isTestInstance=True)
         cls.ormManagementService.setServiceProvider(cls.serviceProvider)
-        cls.ormManagementService.importFromDict(
-            yaml.load(yamlText, Loader=yaml.FullLoader))
+        # cls.ormManagementService.importFromDict(
+        #     yaml.load(yamlText, Loader=yaml.FullLoader))
         cls.serviceProvider.installService(
             OrmManagementService, cls.ormManagementService)
+
+        configData = yaml.load(yamlText, Loader=yaml.FullLoader)
+        cls.apiDataBroker = ApiDataBrokerService()
+        cls.apiDataBroker.setServiceProvider(cls.serviceProvider)
+        cls.apiDataBroker.setConfig(configData['config'])
+        cls.apiDataBroker.setPrograms(configData['programs'])
+        cls.apiDataBroker.setSchedules(configData['schedules'])
+
         cls.thermostat = ThermostatService()
         cls.thermostat.setServiceProvider(cls.serviceProvider)
         cls.serviceProvider.installService(
             ThermostatService, cls.thermostat)
-
-        cls.apiDataBroker = ApiDataBrokerService()
-        cls.apiDataBroker.setServiceProvider(cls.serviceProvider)
 
         cls.__eventThread = Thread(
             target=cls.eventBus.exec,
@@ -51,7 +88,7 @@ class Test_ApiDataBroker(unittest.TestCase):
 
     def teardown_class(cls):
         apiKey = cls.apiDataBroker.sessionApiKey
-        requests.post(API_URL + f'/api/action/stop?key={apiKey}')
+        requests.post(API_URL + f'/api/v1/action/stop?key={apiKey}')
 
     def setup_method(self, method):
         def safelySetup(thermostat):
@@ -63,31 +100,26 @@ class Test_ApiDataBroker(unittest.TestCase):
             temperature=72.5, pressure=1015.2, humidity=42.2))
         self.eventBus.safeInvoke(safelySetup, thermostat=self.thermostat)
 
-    def test_status(self):
-        req = requests.get(API_URL + '/api/status')
-        data = req.json()
-        self.assertTrue('version' in data)
-
     def test_temp_change1(self):
-        req = requests.post(API_URL + '/api/action/changeComfort?offset=2')
+        req = requests.post(API_URL + '/api/v1/action/changeComfort?offset=2')
         data = req.json()
         self.assertTrue('comfortMax' in data)
         self.assertEqual(77.0, data['comfortMax'])
 
     def test_temp_change2(self):
-        req = requests.post(API_URL + '/api/action/changeComfort?offset=-2')
+        req = requests.post(API_URL + '/api/v1/action/changeComfort?offset=-2')
         data = req.json()
         self.assertTrue('comfortMax' in data)
         self.assertEqual(73.0, data['comfortMax'])
 
     def test_temp_change3(self):
-        req = requests.post(API_URL + '/api/action/changeComfort?value=80')
+        req = requests.post(API_URL + '/api/v1/action/changeComfort?value=80')
         data = req.json()
         self.assertTrue('comfortMax' in data)
         self.assertEqual(80.0, data['comfortMax'])
 
     def test_config_get_1(self):
-        req = requests.get(API_URL + '/api/config')
+        req = requests.get(API_URL + '/api/v1/config')
         data = req.json()
         expected = yaml.load(yamlText, Loader=yaml.FullLoader)['config']
         for key, value in data.items():
@@ -95,39 +127,76 @@ class Test_ApiDataBroker(unittest.TestCase):
 
     def test_config_get_2(self):
         name = 'thermostat.delta'
-        req = requests.get(API_URL + f'/api/config/{name}')
+        req = requests.get(API_URL + f'/api/v1/config/{name}')
         data = req.json()
-        expected = yaml.load(yamlText, Loader=yaml.FullLoader)['config']
-        self.assertEqual(1, len(data))
-        self.assertTrue(name in data)
-        self.assertEqual(str(data[name]), str(expected[name]))
-
-    def test_config_put_1(self):
-        name = 'thermostat.delta'
-        requests.put(API_URL + '/api/config', json={name: '150'})
-        req = requests.get(API_URL + f'/api/config/{name}')
-        data = req.json()
-        self.assertEqual(1, len(data))
-        self.assertTrue(name in data)
-        self.assertEqual('150', data[name])
+        expected = yaml.load(yamlText, Loader=yaml.FullLoader)['config'][name]
+        self.assertEqual(str(data), str(expected))
 
     def test_config_put_2(self):
         name = 'thermostat.delta'
-        requests.put(API_URL + f'/api/config/{name}', json='150')
-        req = requests.get(API_URL + f'/api/config/{name}')
+        requests.put(API_URL + f'/api/v1/config/{name}', json='150')
+        req = requests.get(API_URL + f'/api/v1/config/{name}')
         data = req.json()
-        self.assertEqual(1, len(data))
-        self.assertTrue(name in data)
-        self.assertEqual('150', data[name])
+        self.assertEqual('150', data)
 
     def test_config_put_3(self):
         jsonData = {
             'thermostat.delta': '123',
             'thermostat.fanRunoutDuration': '10130',
         }
-        requests.put(API_URL + '/api/config', json=jsonData)
-        req = requests.get(API_URL + '/api/config')
+        requests.put(API_URL + '/api/v1/config', json=jsonData)
+        req = requests.get(API_URL + '/api/v1/config')
         data = req.json()
-        for name, value in jsonData.items():
-            self.assertTrue(name in data)
-            self.assertEqual(data[name], jsonData[name])
+        self.assertEqual(data, jsonData)
+
+    def test_config_patch(self):
+        jsonData = {
+            'thermostat.delta': '123',
+            'thermostat.fanRunoutDuration': '10130',
+        }
+        requests.patch(API_URL + '/api/v1/config', json=jsonData)
+        req = requests.get(API_URL + '/api/v1/config')
+        data = req.json()
+        expected = yaml.load(yamlText, Loader=yaml.FullLoader)['config']
+        self.assertEqual(len(data), len(expected))
+        for key, value in jsonData.items():
+            self.assertEqual(data[key], jsonData[key])
+
+    def test_programs_get_1(self):
+        req = requests.get(API_URL + '/api/v1/programs')
+        data = req.json()
+        expected = yaml.load(yamlText, Loader=yaml.FullLoader)
+        self.assertEqual(data, expected['programs'])
+
+    def test_programs_get_2(self):
+        req = requests.get(API_URL + '/api/v1/programs/doesnotexist')
+        self.assertEqual(req.status_code, 404)
+
+    def test_schedule_get_1(self):
+        req = requests.get(API_URL + '/api/v1/schedules')
+        data = req.json()
+        expected = yaml.load(yamlText, Loader=yaml.FullLoader)
+        self.assertEqual(data, expected['schedules'])
+
+    def test_schedule_get_2(self):
+        name = 'weekend'
+        req = requests.get(API_URL + f'/api/v1/schedules/{name}')
+        data = req.json()
+        expected = yaml.load(yamlText, Loader=yaml.FullLoader)['schedules']
+        self.assertEqual(data, expected[name])
+
+    def test_schedule_put_1(self):
+        name = 'weekend'
+        jsonData = {
+            'days': [5, 6],
+            'times': [
+                {'hour': 3, 'minute': 30, 'program': 'home'},
+                {'hour': 9, 'minute': 30, 'program': 'overnight'},
+                {'hour': 18, 'minute': 30, 'program': 'away'},
+            ]
+        }
+
+        requests.put(API_URL + f'/api/v1/schedules/{name}', json=jsonData)
+        req = requests.get(API_URL + '/api/v1/schedules')
+        data = req.json()
+        self.assertEqual(data[name], jsonData)

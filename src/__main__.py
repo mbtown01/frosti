@@ -1,8 +1,8 @@
 from queue import Queue
-from curses import wrapper
 from os import path
 import yaml
 import argparse
+import curses
 
 from src.logging import log, setupLogging, handleException
 from src.core import EventBus, ThermostatState, ServiceProvider, \
@@ -22,7 +22,8 @@ class RootDriver(ServiceProvider):
         parser = argparse.ArgumentParser(
             description='RPT main process')
         parser.add_argument(
-            '--hardware', choices=['term', 'v1', 'v2', 'auto'], default='term',
+            '--hardware', choices=['term', 'daemon', 'v1', 'v2', 'auto'],
+            default='term',
             help='Pick the underlying hardware supporting operations')
         parser.add_argument(
             '--diagnostics', default=False, action='store_true',
@@ -69,13 +70,9 @@ class RootDriver(ServiceProvider):
 
         ormManagementService = OrmManagementService()
         ormManagementService.setServiceProvider(self)
-        ormManagementService.importFromDict(self.__getYamlConfigData())
+        # ormManagementService.importFromDict(self.__getYamlConfigData())
         self.installService(
             OrmManagementService, ormManagementService)
-
-        thermostatService = ThermostatService()
-        thermostatService.setServiceProvider(self)
-        self.installService(ThermostatService, thermostatService)
 
         ormStateCaptureService = OrmStateCaptureService()
         ormStateCaptureService.setServiceProvider(self)
@@ -83,11 +80,19 @@ class RootDriver(ServiceProvider):
             OrmStateCaptureService, ormStateCaptureService)
 
         # Put all the event handlers together
+        configData = self.__getYamlConfigData()
         apiDataBrokerService = ApiDataBrokerService()
         apiDataBrokerService.setServiceProvider(self)
+        apiDataBrokerService.setConfig(configData['config'])
+        apiDataBrokerService.setPrograms(configData['programs'])
+        apiDataBrokerService.setSchedules(configData['schedules'])
+
+        thermostatService = ThermostatService()
+        thermostatService.setServiceProvider(self)
+        self.installService(ThermostatService, thermostatService)
 
     def __start(self, stdscr):
-        if stdscr is not None:
+        if stdscr is not None or self.__args.hardware == 'daemon':
             from src.terminal import TerminalRelayManagementService, \
                 TerminalUserInterface
 
@@ -96,12 +101,13 @@ class RootDriver(ServiceProvider):
             self.__setupCore()
 
             self.sensor = GenericEnvironmentSensor()
-            self.__installService(
-                RelayManagementService, TerminalRelayManagementService())
 
-            self.userInterface = \
-                TerminalUserInterface(stdscr, self.sensor, messageQueue)
-            self.userInterface.setServiceProvider(self)
+            if self.__args.hardware != 'daemon':
+                self.__installService(
+                    RelayManagementService, TerminalRelayManagementService())
+                self.userInterface = \
+                    TerminalUserInterface(stdscr, self.sensor, messageQueue)
+                self.userInterface.setServiceProvider(self)
         else:
             from src.hardware.PanasonicAgqRelay \
                 import PanasonicAgqRelay as HardwareRelay
@@ -165,7 +171,20 @@ class RootDriver(ServiceProvider):
 
     def start(self):
         if self.__args.hardware == 'term':
-            wrapper(self.__start)
+            try:
+                stdscr = curses.initscr()
+                curses.noecho()
+                curses.cbreak()
+                curses.start_color()
+                stdscr.keypad(True)
+                self.__start(stdscr)
+            finally:
+                curses.nocbreak()
+                stdscr.keypad(False)
+                curses.echo()
+                curses.endwin()
+
+            # curses.wrapper(self.__start)
         else:
             self.__start(None)
 

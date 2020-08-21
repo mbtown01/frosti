@@ -20,7 +20,7 @@ const useThermostatState = () => {
   const [comfortMax, setComfortMax] = useState("49");
 
   const udpateThermostatState = async () => {
-    let response = await fetch(`${URL_BASE}/api/status`, { method: "GET" });
+    let response = await fetch(`${URL_BASE}/api/v1/status`, { method: "GET" });
     let jsonData = await response.json();
     setState(jsonData.state);
     setMode(jsonData.mode);
@@ -57,17 +57,17 @@ export const ControlsPanel: React.FC<Props> = ({
   };
 
   const onUpButtonClicked = async () => {
-    await fetch(`${URL_BASE}/api/action/changeComfort?offset=1`, { method: "POST" });
+    await fetch(`${URL_BASE}/api/v1/action/changeComfort?offset=1`, { method: "POST" });
     udpateThermostatState();
   };
 
   const onDownButtonClicked = async () => {
-    await fetch(`${URL_BASE}/api/action/changeComfort?offset=1`, { method: "POST" });
+    await fetch(`${URL_BASE}/api/v1/action/changeComfort?offset=1`, { method: "POST" });
     udpateThermostatState();
   };
 
   const onModeButtonClicked = async () => {
-    await fetch(`${URL_BASE}/api/action/nextMode`, { method: "POST" });
+    await fetch(`${URL_BASE}/api/v1/action/nextMode`, { method: "POST" });
     udpateThermostatState();
   };
 

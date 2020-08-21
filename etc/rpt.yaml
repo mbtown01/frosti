@@ -42,7 +42,7 @@ programs:
     priceOverrides:
       - { price: 0.25, comfortMax: 99 }
 
-schedule:
+schedules:
   work week:
     days: [0, 1, 2, 3, 4]
     times:

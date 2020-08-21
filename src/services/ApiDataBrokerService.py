@@ -11,7 +11,8 @@ from src.logging import log, handleException
 from src.core import ServiceProvider, ServiceConsumer, EventBus, \
     ThermostatState
 from src.core.events import ThermostatStateChangedEvent, SensorDataChangedEvent
-from src.core.orm import OrmConfig
+from src.core.orm import OrmConfig, OrmProgram, OrmSchedule, \
+    OrmPriceOverride, OrmScheduleDay, OrmScheduleTime
 
 VALID_API_KEYS = list()
 API_VERSION = 'rpt-v0.2'
@@ -30,47 +31,51 @@ def require_appkey(method):
 
 class ApiDataBrokerService(ServiceConsumer):
     """ Dedicated to responding to the REST API for the thermostat and
-    brokering any necessary data/events
+    brokering any necessary data/events.
 
-    https://docs.microsoft.com/en-us/azure/architecture/best-practices/api-design
-
-    Some summaries of the above:
-        * GET retrieves a representation of the resource at the specified URI.
-          The body of the response message contains the details of the
-          requested resource.
-        * POST creates a new resource at the specified URI. The body of the
-          request message provides the details of the new resource. Note that
-          POST can also be used to trigger operations that don't actually
-          create resources.
-        * PUT either creates or replaces the resource at the specified URI.
-          The body of the request message specifies the resource to be created
-          or updated.
-        * PATCH performs a partial update of a resource. The request body
-          specifies the set of changes to apply to the resource
-        * DELETE removes the resource at the specified URI.
+    This service owns the Flask thread that is monitoring incoming requests.
+    All web API requests are given to the main event thread for processing.
     """
 
-    def __init__(self,):
+    def __init__(self):
         self.__app = Flask(__name__, static_url_path='')
 
         self.__app.add_url_rule(
-            '/api/status', view_func=self.__apiStatus)
+            '/api/v1/status', view_func=self.__apiStatus, methods=['GET'])
 
         self.__app.add_url_rule(
-            '/api/config', view_func=self.__apiConfig,
-            methods=['GET', 'PUT'])
+            '/api/v1/config', view_func=self.__apiConfig,
+            methods=['GET', 'PUT', 'PATCH', 'DELETE'])
         self.__app.add_url_rule(
-            '/api/config/<name>', view_func=self.__apiConfig,
-            methods=['GET', 'PUT'])
+            '/api/v1/config/<name>', view_func=self.__apiConfig,
+            methods=['GET', 'PUT', 'PATCH', 'DELETE'])
+        self.__app.add_url_rule(
+            '/api/v1/programs', view_func=self.__apiPrograms,
+            methods=['GET', 'PUT', 'PATCH', 'DELETE'])
+        self.__app.add_url_rule(
+            '/api/v1/programs/<name>', view_func=self.__apiPrograms,
+            methods=['GET', 'PUT', 'PATCH', 'DELETE'])
+        self.__app.add_url_rule(
+            '/api/v1/schedules', view_func=self.__apiSchedules,
+            methods=['GET', 'PUT', 'PATCH', 'DELETE'])
+        self.__app.add_url_rule(
+            '/api/v1/schedules/<name>', view_func=self.__apiSchedules,
+            methods=['GET', 'PUT', 'PATCH', 'DELETE'])
+        self.__app.add_url_rule(
+            '/api/v1/actions', view_func=self.__apiActions,
+            methods=['GET'])
+        self.__app.add_url_rule(
+            '/api/v1/actions/<name>', view_func=self.__apiActions,
+            methods=['POST'])
 
         self.__app.add_url_rule(
-            '/api/action/stop',
+            '/api/v1/action/stop',
             view_func=self.__apiActionStop, methods=['POST'])
         self.__app.add_url_rule(
-            '/api/action/nextMode',
+            '/api/v1/action/nextMode',
             view_func=self.__apiActionNextMode, methods=['POST'])
         self.__app.add_url_rule(
-            '/api/action/changeComfort',
+            '/api/v1/action/changeComfort',
             view_func=self.__apiActionChangeComfort, methods=['POST'])
 
         self.__cors = CORS(self.__app)
@@ -110,7 +115,6 @@ class ApiDataBrokerService(ServiceConsumer):
         thermostatService = self._getService(ThermostatService)
 
         response = {
-            'version': API_VERSION,
             'comfortMin': thermostatService.comfortMin,
             'comfortMax': thermostatService.comfortMax,
             'currentProgram': thermostatService.currentProgramName,
@@ -134,21 +138,101 @@ class ApiDataBrokerService(ServiceConsumer):
         results = ormManagementService.session.query(OrmConfig)
         return {a.name: a.value for a in results}
 
-    def setConfig(self, data: dict):
+    def __upsertEntities(
+            self, entityClass, updateMethod, data: dict, patch: bool):
         ormManagementService = self._getService(OrmManagementService)
 
-        results = ormManagementService.session.query(OrmConfig) \
-            .filter(OrmConfig.name.in_(data.keys()))
-        for ormConfigEntry in results:
-            ormConfigEntry.value = data[ormConfigEntry.name]
-            data.pop(ormConfigEntry.name)
+        if not patch:
+            ormManagementService.session.query(entityClass).delete()
+        results = ormManagementService.session.query(entityClass) \
+            .filter(entityClass.name.in_(data.keys()))
+        for entity in results:
+            updateMethod(entity, entity.name, data[entity.name])
+            data.pop(entity.name)
         for name, value in data.items():
-            configEntry = OrmConfig()
-            configEntry.name = name
-            configEntry.value = value
-            ormManagementService.session.add(configEntry)
+            entity = entityClass()
+            updateMethod(entity, name, value)
+            ormManagementService.session.add(entity)
 
         ormManagementService.session.commit()
+
+    def setConfig(self, data: dict, patch: bool = False):
+        def updateOrmConfig(ormConfig: OrmConfig, name: str, update: dict):
+            ormConfig.name = name
+            ormConfig.value = data[name]
+
+        self.__upsertEntities(OrmConfig, updateOrmConfig, data, patch)
+
+    def getPrograms(self):
+        ormManagementService = self._getService(OrmManagementService)
+
+        results = ormManagementService.session.query(OrmProgram)
+        return {program.name: {
+            'comfortMin': program.comfort_min,
+            'comfortMax': program.comfort_max,
+            'priceOverrides': list({
+                'price': override.price,
+                'comfortMin': override.comfort_min,
+                'comfortMax': override.comfort_max,
+            } for override in program.overrides)
+        } for program in results}
+
+    def setPrograms(self, data: dict, patch: bool = False):
+        ormManagementService = self._getService(OrmManagementService)
+
+        def updateOrmProgram(ormProgram: OrmProgram, name: str, update: dict):
+            ormProgram.name = name
+            ormProgram.comfort_min = update.get('comfortMin')
+            ormProgram.comfort_max = update.get('comfortMax')
+            for child in ormProgram.overrides:
+                ormManagementService.session.delete(child)
+            for override in update.get('priceOverrides', list()):
+                ormPriceOverride = OrmPriceOverride()
+                ormPriceOverride.program_name = name
+                ormPriceOverride.price = override['price']
+                ormPriceOverride.comfort_min = override.get('comfortMin')
+                ormPriceOverride.comfort_max = override.get('comfortMax')
+                ormManagementService.session.add(ormPriceOverride)
+
+        self.__upsertEntities(OrmProgram, updateOrmProgram, data, patch)
+
+    def getSchedules(self):
+        ormManagementService = self._getService(OrmManagementService)
+
+        results = ormManagementService.session.query(OrmSchedule)
+        return {schedule.name: {
+            'days': list(day.day for day in schedule.days),
+            'times': list({
+                'hour': time.hour,
+                'minute': time.minute,
+                'program': time.program_name
+            } for time in schedule.times)
+        } for schedule in results}
+
+    def setSchedules(self, data: dict, patch: bool = False):
+        ormManagementService = self._getService(OrmManagementService)
+
+        def updateOrmSchedule(
+                ormSchedule: OrmSchedule, name: str, update: dict):
+            ormSchedule.name = name
+            for child in ormSchedule.days:
+                ormManagementService.session.delete(child)
+            for child in ormSchedule.times:
+                ormManagementService.session.delete(child)
+            for day in update.get('days', list()):
+                ormScheduleDay = OrmScheduleDay()
+                ormScheduleDay.schedule_name = name
+                ormScheduleDay.day = day
+                ormManagementService.session.add(ormScheduleDay)
+            for time in update.get('times', list()):
+                ormScheduleTime = OrmScheduleTime()
+                ormScheduleTime.schedule_name = name
+                ormScheduleTime.program_name = time['program']
+                ormScheduleTime.hour = time['hour']
+                ormScheduleTime.minute = time['minute']
+                ormManagementService.session.add(ormScheduleTime)
+
+        self.__upsertEntities(OrmSchedule, updateOrmSchedule, data, patch)
 
     def modifyComfortSettings(self, offset: int = 0, value: int = -1):
         thermostatService = self._getService(ThermostatService)
@@ -170,37 +254,62 @@ class ApiDataBrokerService(ServiceConsumer):
         data = self.__eventBus.safeInvoke(self.getStatus)
         return self.__apiResponse(data)
 
-    def __apiConfig(self, name: str = None):
-        """ If name is not null, use it as the key for the config value,
+    def __apiServiceNamedDictionaryRequest(self, name, getMethod, setMethod):
+        """ If name is not null, use it as the dictionary key value,
         otherwise assume the request is the contents of the entire config
-
-        Examples:
-            <GET> /api/config
-                Gets the current configuration set in a json dict
-            <GET> /api/config/<item>
-                Gets teh current configuration for a specific item as
-                a single key/value pair in a json dict
-            <PUT> /api/config
-                Takes the provided json dict and updates the current
-                configuration set
-            <PUT> /api/config/<item>
-                Takes the provided json dict for a specific entry and updates
-                the current configuration set
         """
-
         if 'GET' == request.method:
-            # Gets the value of the named config item, or all items
-            data = self.__eventBus.safeInvoke(self.getConfig)
-            if name is not None:
-                data = {name: data.get(name)}
-            return self.__apiResponse(data)
+            data = self.__eventBus.safeInvoke(getMethod)
+            if name is None:
+                return self.__apiResponse(data)
+            if name not in data:
+                return self.__apiResponse(dict(), 404)
+            return self.__apiResponse(data[name])
 
-        if request.method in ['PUT']:
-            # Sets the value of the named config item, or all items
+        if 'PUT' == request.method:
             data = request.get_json()
             if name is not None:
                 data = {name: data}
-            self.__eventBus.safeInvoke(self.setConfig, data)
+            self.__eventBus.safeInvoke(setMethod, data)
+            return self.__apiResponse(data)
+
+        if 'PATCH' == request.method:
+            data = request.get_json()
+            if name is not None:
+                data = {name: data}
+            self.__eventBus.safeInvoke(setMethod, data, patch=True)
+            return self.__apiResponse(data)
+
+        if 'DELETE' == request.method:
+            data = request.get_json()
+            if name is None:
+                response = {'ErrorText': 'A name must be provided'}
+                return self.__apiResponse(response, 400)
+            self.__eventBus.safeInvoke(setMethod, data)
+            return self.__apiResponse(data)
+
+    def __apiConfig(self, name: str = None):
+        return self.__apiServiceNamedDictionaryRequest(
+            name, self.getConfig, self.setConfig)
+
+    def __apiPrograms(self, name: str = None):
+        return self.__apiServiceNamedDictionaryRequest(
+            name, self.getPrograms, self.setPrograms)
+
+    def __apiSchedules(self, name: str = None):
+        return self.__apiServiceNamedDictionaryRequest(
+            name, self.getSchedules, self.setSchedules)
+
+    def __apiActions(self, name: str = None):
+        if 'GET' == request.method:
+            actions = ['stop', 'nextMode', 'changeComfort']
+            return self.__apiResponse(actions)
+
+        if 'POST' == request.method:
+            data = request.get_json()
+            if name is not None:
+                data = {name: data}
+            self.__eventBus.safeInvoke(setMethod, data)
             return self.__apiResponse(data)
 
     def __apiActionNextMode(self):
@@ -214,7 +323,7 @@ class ApiDataBrokerService(ServiceConsumer):
             self.modifyComfortSettings, offset=offset, value=value)
         return self.__apiStatus()
 
-    @require_appkey
+    @ require_appkey
     def __apiActionStop(self):
         VALID_API_KEYS.remove(self.__sessionApiKey)
         data = self.__eventBus.safeInvoke(self.getStatus)

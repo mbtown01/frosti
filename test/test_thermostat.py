@@ -5,7 +5,7 @@ from time import mktime, strptime
 from src.core import EventBus, ServiceConsumer, ServiceProvider, \
     ThermostatState, ThermostatMode
 from src.services import ThermostatService, RelayManagementService, \
-    OrmManagementService
+    OrmManagementService, ApiDataBrokerService
 from src.core.events import ThermostatStateChangedEvent, SensorDataChangedEvent
 
 
@@ -28,7 +28,7 @@ programs:
         comfortMax: 75
         priceOverrides:
             - { price: 0.25, comfortMax: 82 }
-schedule:
+schedules:
     work week:
         days: [0, 1, 2, 3, 4]
         times:
@@ -79,10 +79,18 @@ class Test_Thermostat(unittest.TestCase):
             RelayManagementService, self.relayManagement)
         self.ormManagementService = OrmManagementService(isTestInstance=True)
         self.ormManagementService.setServiceProvider(self.serviceProvider)
-        self.ormManagementService.importFromDict(
-            yaml.load(yamlText, Loader=yaml.FullLoader))
+        # self.ormManagementService.importFromDict(
+        #     yaml.load(yamlText, Loader=yaml.FullLoader))
         self.serviceProvider.installService(
             OrmManagementService, self.ormManagementService)
+
+        configData = yaml.load(yamlText, Loader=yaml.FullLoader)
+        self.apiDataBroker = ApiDataBrokerService()
+        self.apiDataBroker.setServiceProvider(self.serviceProvider)
+        self.apiDataBroker.setConfig(configData['config'])
+        self.apiDataBroker.setPrograms(configData['programs'])
+        self.apiDataBroker.setSchedules(configData['schedules'])
+
         self.thermostat = ThermostatService()
         self.thermostat.setServiceProvider(self.serviceProvider)
         self.thermostat.mode = ThermostatMode.COOL
