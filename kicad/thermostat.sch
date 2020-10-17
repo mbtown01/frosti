@@ -202,7 +202,7 @@ Wire Wire Line
 Wire Wire Line
 	5375 1100 4575 1100
 $Comp
-L thermostat-rescue:Relay?-thermostat RELAY2
+L thermostat:AGQ210A03 RELAY2
 U 1 1 5D5EC4AE
 P 6825 2250
 F 0 "RELAY2" V 6975 2450 50  0001 C CNN
@@ -1269,7 +1269,7 @@ GPIO12(PWM0)
 NoConn ~ 6575 1900
 NoConn ~ 7075 1900
 $Comp
-L thermostat-rescue:Relay?-thermostat RELAY1
+L thermostat:AGQ210A03 RELAY1
 U 1 1 5D5E9059
 P 6825 1750
 F 0 "RELAY1" V 6975 1950 50  0001 C CNN
@@ -1285,7 +1285,7 @@ $EndComp
 NoConn ~ 6575 2900
 NoConn ~ 7075 2900
 $Comp
-L thermostat-rescue:Relay?-thermostat RELAY3
+L thermostat:AGQ210A03 RELAY3
 U 1 1 5D5EE68E
 P 6825 2750
 F 0 "RELAY3" V 6975 2950 50  0001 C CNN
@@ -1524,4 +1524,17 @@ Connection ~ 7625 3600
 NoConn ~ 7175 3200
 Text Notes 7850 3375 1    50   ~ 0
 Need to connect pin 2’s here to GPIOs that make physical sense
+$Comp
+L thermostat:LP5024 U2
+U 1 1 5F80FF55
+P 8500 4900
+F 0 "U2" H 8500 5915 50  0000 C CNN
+F 1 "LP5024" H 8500 5824 50  0000 C CNN
+F 2 "Package_DFN_QFN:QFN-32-1EP_4x4mm_P0.4mm_EP2.9x2.9mm" H 8500 5900 50  0001 C CNN
+F 3 "https://www.ti.com/lit/ds/symlink/lp5024.pdf?ts=1601824290425&ref_url=https%253A%252F%252Fwww.ti.com%252Fproduct%252FLP5024" H 8500 5900 50  0001 C CNN
+	1    8500 4900
+	1    0    0    -1  
+$EndComp
+Text Notes 8050 3825 0    50   ~ 10
+## GPIO addr=0x28 ##
 $EndSCHEMATC

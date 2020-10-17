@@ -301,16 +301,22 @@ class ApiDataBrokerService(ServiceConsumer):
             name, self.getSchedules, self.setSchedules)
 
     def __apiActions(self, name: str = None):
+        actions = ['nextMode', 'changeComfort']
+
         if 'GET' == request.method:
-            actions = ['stop', 'nextMode', 'changeComfort']
             return self.__apiResponse(actions)
 
         if 'POST' == request.method:
-            data = request.get_json()
-            if name is not None:
-                data = {name: data}
-            self.__eventBus.safeInvoke(setMethod, data)
-            return self.__apiResponse(data)
+            if name not in actions:
+                return self.__apiResponse("Unsupport action", 400)
+            if 'nextMode' == name:
+                self.__eventBus.safeInvoke(self.nextMode)
+            elif 'changeComfort' == name:
+                offset = float(request.args.get('offset', 0.0))
+                value = float(request.args.get('value', -1.0))
+                self.__eventBus.safeInvoke(
+                    self.modifyComfortSettings, offset=offset, value=value)
+            return self.__apiStatus()
 
     def __apiActionNextMode(self):
         self.__eventBus.safeInvoke(self.nextMode)

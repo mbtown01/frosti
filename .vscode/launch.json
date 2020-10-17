@@ -27,7 +27,7 @@
             "stopOnEntry": false,
             "args": [
                 "--hardware",
-                "auto"
+                "term"
             ],
         },
         {
