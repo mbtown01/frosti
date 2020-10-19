@@ -4,7 +4,7 @@
 .pytest_cache
 .DS_store
 nodeids
-**/node-modules
+node-modules
 qemu/
 
 

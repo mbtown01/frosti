@@ -2,11 +2,11 @@ from sqlalchemy import Column, Float, DateTime, Integer, String, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import UUID
+import uuid
 
 
 Base = declarative_base()
-
-# region Configuration
 
 
 class OrmVersionInfo(Base):
@@ -43,9 +43,13 @@ class OrmProgram(Base):
     __tablename__ = 'program'
 
     # Primary Key
-    name = Column(String, primary_key=True)
+    ''' GUID as primary key '''
+    guid = Column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
 
     # Columns
+    ''' Name of this program '''
+    name = Column(String, unique=True, nullable=False)
     ''' Minimum temperature before heat is engaged '''
     comfort_min = Column(Float)
     ''' Maximum temperature before air conditioning is engaged '''
@@ -69,8 +73,8 @@ class OrmPriceOverride(Base):
     ''' Current price '''
     price = Column(Float, primary_key=True)
     ''' associated program '''
-    program_name = Column(
-        String, ForeignKey('program.name', ondelete="CASCADE"),
+    program_guid = Column(
+        UUID(as_uuid=True), ForeignKey('program.guid', ondelete="CASCADE"),
         nullable=False, primary_key=True)
 
     # Columns
@@ -92,7 +96,13 @@ class OrmSchedule(Base):
     __tablename__ = 'schedule'
 
     # Primary Key
-    name = Column(String, primary_key=True)
+    ''' GUID as primary key '''
+    guid = Column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
+
+    # Columns
+    ''' Name of this schedule '''
+    name = Column(String, unique=True, nullable=False)
 
     # Relationships
     ''' All days this schedule runs in '''
@@ -115,8 +125,8 @@ class OrmScheduleDay(Base):
 
     # Columns
     ''' associated schedule '''
-    schedule_name = Column(
-        String, ForeignKey('schedule.name', ondelete="CASCADE"),
+    schedule_guid = Column(
+        UUID(as_uuid=True), ForeignKey('schedule.guid', ondelete="CASCADE"),
         nullable=False)
 
     # Relationships
@@ -131,8 +141,8 @@ class OrmScheduleTime(Base):
 
     # Primary Key
     ''' associated schedule '''
-    schedule_name = Column(
-        String, ForeignKey('schedule.name', ondelete="CASCADE"),
+    schedule_guid = Column(
+        UUID(as_uuid=True), ForeignKey('schedule.guid', ondelete="CASCADE"),
         primary_key=True, nullable=False)
     ''' Integer hour [0-23] for the program to start in this schedule '''
     hour = Column(Integer, primary_key=True)
@@ -140,9 +150,9 @@ class OrmScheduleTime(Base):
     minute = Column(Integer, primary_key=True)
 
     # Columns
-    ''' associated program name '''
-    program_name = Column(
-        String, ForeignKey('program.name', ondelete="CASCADE"),
+    ''' associated program guid '''
+    program_guid = Column(
+        UUID(as_uuid=True), ForeignKey('program.guid', ondelete="CASCADE"),
         nullable=False)
 
     # Relationships

@@ -3,6 +3,7 @@ from flask_cors import CORS
 from functools import wraps
 from threading import Thread
 from random import getrandbits
+import uuid
 import json
 
 from .ThermostatService import ThermostatService
@@ -15,7 +16,6 @@ from src.core.orm import OrmConfig, OrmProgram, OrmSchedule, \
     OrmPriceOverride, OrmScheduleDay, OrmScheduleTime
 
 VALID_API_KEYS = list()
-API_VERSION = 'rpt-v0.2'
 
 
 def require_appkey(method):
@@ -45,19 +45,19 @@ class ApiDataBrokerService(ServiceConsumer):
 
         self.__app.add_url_rule(
             '/api/v1/config', view_func=self.__apiConfig,
-            methods=['GET', 'PUT', 'PATCH', 'DELETE'])
+            methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
         self.__app.add_url_rule(
             '/api/v1/config/<name>', view_func=self.__apiConfig,
             methods=['GET', 'PUT', 'PATCH', 'DELETE'])
         self.__app.add_url_rule(
             '/api/v1/programs', view_func=self.__apiPrograms,
-            methods=['GET', 'PUT', 'PATCH', 'DELETE'])
+            methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
         self.__app.add_url_rule(
             '/api/v1/programs/<name>', view_func=self.__apiPrograms,
             methods=['GET', 'PUT', 'PATCH', 'DELETE'])
         self.__app.add_url_rule(
             '/api/v1/schedules', view_func=self.__apiSchedules,
-            methods=['GET', 'PUT', 'PATCH', 'DELETE'])
+            methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
         self.__app.add_url_rule(
             '/api/v1/schedules/<name>', view_func=self.__apiSchedules,
             methods=['GET', 'PUT', 'PATCH', 'DELETE'])
@@ -168,6 +168,7 @@ class ApiDataBrokerService(ServiceConsumer):
 
         results = ormManagementService.session.query(OrmProgram)
         return {program.name: {
+            'guid': str(program.guid),
             'comfortMin': program.comfort_min,
             'comfortMax': program.comfort_max,
             'priceOverrides': list({
@@ -182,13 +183,14 @@ class ApiDataBrokerService(ServiceConsumer):
 
         def updateOrmProgram(ormProgram: OrmProgram, name: str, update: dict):
             ormProgram.name = name
+            ormProgram.guid = uuid.uuid4()
             ormProgram.comfort_min = update.get('comfortMin')
             ormProgram.comfort_max = update.get('comfortMax')
             for child in ormProgram.overrides:
                 ormManagementService.session.delete(child)
             for override in update.get('priceOverrides', list()):
                 ormPriceOverride = OrmPriceOverride()
-                ormPriceOverride.program_name = name
+                ormPriceOverride.program_guid = ormProgram.guid
                 ormPriceOverride.price = override['price']
                 ormPriceOverride.comfort_min = override.get('comfortMin')
                 ormPriceOverride.comfort_max = override.get('comfortMax')
@@ -201,11 +203,12 @@ class ApiDataBrokerService(ServiceConsumer):
 
         results = ormManagementService.session.query(OrmSchedule)
         return {schedule.name: {
+            'guid': str(schedule.guid),
             'days': list(day.day for day in schedule.days),
             'times': list({
                 'hour': time.hour,
                 'minute': time.minute,
-                'program': time.program_name
+                'program': time.program.name,
             } for time in schedule.times)
         } for schedule in results}
 
@@ -214,20 +217,26 @@ class ApiDataBrokerService(ServiceConsumer):
 
         def updateOrmSchedule(
                 ormSchedule: OrmSchedule, name: str, update: dict):
+            programNameMap = {
+                a.name: a.guid for a in
+                ormManagementService.session.query(OrmProgram)}
+
             ormSchedule.name = name
+            ormSchedule.guid = uuid.uuid4()
             for child in ormSchedule.days:
                 ormManagementService.session.delete(child)
             for child in ormSchedule.times:
                 ormManagementService.session.delete(child)
             for day in update.get('days', list()):
                 ormScheduleDay = OrmScheduleDay()
-                ormScheduleDay.schedule_name = name
+                ormScheduleDay.schedule_guid = ormSchedule.guid
                 ormScheduleDay.day = day
                 ormManagementService.session.add(ormScheduleDay)
             for time in update.get('times', list()):
                 ormScheduleTime = OrmScheduleTime()
-                ormScheduleTime.schedule_name = name
-                ormScheduleTime.program_name = time['program']
+                ormScheduleTime.schedule_guid = ormSchedule.guid
+                ormScheduleTime.program_guid = \
+                    programNameMap[time['program']]
                 ormScheduleTime.hour = time['hour']
                 ormScheduleTime.minute = time['minute']
                 ormManagementService.session.add(ormScheduleTime)
@@ -241,8 +250,6 @@ class ApiDataBrokerService(ServiceConsumer):
     def nextMode(self):
         thermostatService = self._getService(ThermostatService)
         thermostatService.nextMode()
-
-    # region Flask API calls, all happening on a different thread
 
     def __apiResponse(self, data, status=200):
         mimeType = 'application/json'
@@ -265,6 +272,17 @@ class ApiDataBrokerService(ServiceConsumer):
             if name not in data:
                 return self.__apiResponse(dict(), 404)
             return self.__apiResponse(data[name])
+
+        # Request a new entity be created with name provided in the entity
+        # data, but only at the root end point and never at a named end point
+        if 'POST' == request.method:
+            data = request.get_json()
+            if name is not None:
+                response = {'ErrorText': 'POST not supported for named entity'}
+                return self.__apiResponse(response, 400)
+            dataMap = {data['name']: data}
+            self.__eventBus.safeInvoke(setMethod, dataMap, patch=True)
+            return self.__apiResponse(data)
 
         if 'PUT' == request.method:
             data = request.get_json()
@@ -336,8 +354,6 @@ class ApiDataBrokerService(ServiceConsumer):
         response = self.__apiResponse(data)
         self.__eventBus.stop()
         return response
-
-    # endregion
 
     def __flaskEntryPoint(self):
         try:

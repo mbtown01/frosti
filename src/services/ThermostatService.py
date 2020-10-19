@@ -1,4 +1,4 @@
-from src.core.orm import OrmScheduleDay, OrmPriceOverride
+from src.core.orm import OrmProgram, OrmScheduleDay, OrmPriceOverride
 from time import gmtime
 from datetime import datetime
 from sqlalchemy import desc
@@ -22,7 +22,7 @@ class ThermostatService(ServiceConsumer):
         self.__priceWindowHistory = []
         self.__priceWindow = None
 
-        self.__currentProgramName = None
+        self.__currentProgramGuid = None
         self.__comfortMin = 68.0
         self.__comfortMax = 78.0
         self.__state = ThermostatState.OFF
@@ -57,7 +57,10 @@ class ThermostatService(ServiceConsumer):
 
     @property
     def currentProgramName(self):
-        return self.__currentProgramName
+        ormManagementService = self._getService(OrmManagementService)
+        results = list(ormManagementService.session.query(OrmProgram)
+                       .filter(OrmProgram.guid == self.__currentProgramGuid))
+        return results[0].name if len(results) else None
 
     @property
     def isInPriceOverride(self):
@@ -143,8 +146,8 @@ class ThermostatService(ServiceConsumer):
                     currentScheduleTime = entry[1]
                     break
 
-            if self.__currentProgramName != currentScheduleTime.program_name:
-                self.__currentProgramName = currentScheduleTime.program_name
+            if self.__currentProgramGuid != currentScheduleTime.program_guid:
+                self.__currentProgramGuid = currentScheduleTime.program_guid
                 self.__comfortMin = currentScheduleTime.program.comfort_min
                 self.__comfortMax = currentScheduleTime.program.comfort_max
                 eventBus.fireEvent(SettingsChangedEvent())
@@ -170,10 +173,10 @@ class ThermostatService(ServiceConsumer):
         priceHistoryLength = len(self.__priceWindowHistory)
         priceAverage = sum(self.__priceWindowHistory)/priceHistoryLength
 
-        if self.__currentProgramName is not None:
+        if self.__currentProgramGuid is not None:
             priceOverrides = \
                 ormManagementService.session.query(OrmPriceOverride). \
-                filter_by(program_name=self.__currentProgramName). \
+                filter_by(program_guid=self.__currentProgramGuid). \
                 order_by(desc(OrmPriceOverride.price))
             for priceOverride in priceOverrides:
                 if priceAverage >= priceOverride.price:
@@ -190,7 +193,7 @@ class ThermostatService(ServiceConsumer):
             if self.__lastOverridePrice is not None:
                 self.__lastOverridePrice = None
                 self.__isInPriceOverride = False
-                self.__currentProgramName = None
+                self.__currentProgramGuid = None
                 self.__checkSchedule()
 
     def __sensorDataChanged(self, event: SensorDataChangedEvent):

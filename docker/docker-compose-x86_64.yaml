@@ -6,6 +6,7 @@ x-rpt-2:
   privileged: true
   ports:
     - "5000:5000"
+    - "8080:8080"
   environment:
     LC_ALL: C
   depends_on:

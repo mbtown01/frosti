@@ -96,6 +96,11 @@ class Test_ApiDataBroker(unittest.TestCase):
             thermostat.comfortMax = 75.0
             thermostat.mode = ThermostatMode.COOL
 
+        configData = yaml.load(yamlText, Loader=yaml.FullLoader)
+        self.apiDataBroker.setConfig(configData['config'])
+        self.apiDataBroker.setPrograms(configData['programs'])
+        self.apiDataBroker.setSchedules(configData['schedules'])
+
         self.eventBus.fireEvent(SensorDataChangedEvent(
             temperature=72.5, pressure=1015.2, humidity=42.2))
         self.eventBus.safeInvoke(safelySetup, thermostat=self.thermostat)
@@ -165,8 +170,32 @@ class Test_ApiDataBroker(unittest.TestCase):
     def test_programs_get_1(self):
         req = requests.get(API_URL + '/api/v1/programs')
         data = req.json()
+        for program in data.values():
+            program.pop('guid')
+
         expected = yaml.load(yamlText, Loader=yaml.FullLoader)
         self.assertEqual(data, expected['programs'])
+
+    def test_programs_post_1(self):
+        jsonData = {
+            'name': 'new_program',
+            'comfortMin': 70.0,
+            'comfortMax': 80.0,
+        }
+
+        requests.post(API_URL + '/api/v1/programs', json=jsonData)
+        req = requests.get(API_URL + '/api/v1/programs')
+        data = req.json()
+        self.assertTrue('new_program' in data)
+        programData = data['new_program']
+        for key in ['comfortMin', 'comfortMax']:
+            self.assertEqual(programData[key], jsonData[key])
+
+    def test_programs_delete_1(self):
+        requests.delete(API_URL + '/api/v1/programs/away')
+        req = requests.get(API_URL + '/api/v1/programs')
+        data = req.json()
+        self.assertFalse('away' in data)
 
     def test_programs_get_2(self):
         req = requests.get(API_URL + '/api/v1/programs/doesnotexist')
@@ -175,6 +204,8 @@ class Test_ApiDataBroker(unittest.TestCase):
     def test_schedule_get_1(self):
         req = requests.get(API_URL + '/api/v1/schedules')
         data = req.json()
+        for schedule in data.values():
+            schedule.pop('guid')
         expected = yaml.load(yamlText, Loader=yaml.FullLoader)
         self.assertEqual(data, expected['schedules'])
 
@@ -182,6 +213,7 @@ class Test_ApiDataBroker(unittest.TestCase):
         name = 'weekend'
         req = requests.get(API_URL + f'/api/v1/schedules/{name}')
         data = req.json()
+        data.pop('guid')
         expected = yaml.load(yamlText, Loader=yaml.FullLoader)['schedules']
         self.assertEqual(data, expected[name])
 
@@ -199,4 +231,6 @@ class Test_ApiDataBroker(unittest.TestCase):
         requests.put(API_URL + f'/api/v1/schedules/{name}', json=jsonData)
         req = requests.get(API_URL + '/api/v1/schedules')
         data = req.json()
+        for schedule in data.values():
+            schedule.pop('guid')
         self.assertEqual(data[name], jsonData)
