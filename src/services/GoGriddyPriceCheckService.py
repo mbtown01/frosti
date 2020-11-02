@@ -28,9 +28,6 @@ class GoGriddyPriceCheckService(ServiceConsumer):
     """ ServiceConsumer thread that monitors power prices and fires an event
     if there is a change """
 
-    def __init__(self):
-        self.__retries = 0
-
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
 
@@ -78,10 +75,7 @@ class GoGriddyPriceCheckService(ServiceConsumer):
                 f"in {event.nextUpdate}s")
 
             eventBus.fireEvent(event)
-            self.__retries = 0
         except:
-            self.__retries += 1
             handleException(
-                f"GoGriddy price checker, tries={self.__retries}")
-            if self.__retries < 5:
-                self.__startUpdatePriceHandler.reset(frequency=5)
+                "GoGriddy price checker, retrying in 60s")
+            self.__startUpdatePriceHandler.reset(frequency=60)
