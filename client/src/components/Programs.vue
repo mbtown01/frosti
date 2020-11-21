@@ -30,7 +30,12 @@
               <td>{{ program.comfortMax }}</td>
               <td>
                 <div class="btn-group" role="group">
-                  <button type="button" class="btn btn-warning btn-sm">
+                  <button
+                    type="button"
+                    class="btn btn-warning btn-sm"
+                    v-b-modal.program-update-modal
+                    @click="editProgram(program)"
+                  >
                     Configure
                   </button>
                   <button type="button" class="btn btn-danger btn-sm">
@@ -49,7 +54,7 @@
       title="Add a new program"
       hide-footer
     >
-      <b-form @submit="onSubmit" @reset="onReset" class="w-100">
+      <b-form @submit="onSubmitAdd" @reset="onReset" class="w-100">
         <b-form-group
           id="form-name-group"
           label="Name:"
@@ -97,6 +102,60 @@
         <b-button type="reset" variant="danger">Reset</b-button>
       </b-form>
     </b-modal>
+    <b-modal
+      ref="editProgramModal"
+      id="program-update-modal"
+      title="Edit program"
+      hide-footer
+    >
+      <b-form @submit="onSubmitUpdate" @reset="onReset" class="w-100">
+        <b-form-group
+          id="form-name-edit-group"
+          label="Name:"
+          label-for="form-name-input"
+        >
+          <b-form-input
+            id="form-name-edit-input"
+            type="text"
+            v-model="editProgramForm.name"
+            required
+            placeholder="Enter name"
+          >
+          </b-form-input>
+        </b-form-group>
+        <b-form-group
+          id="form-comfortMin-edit-group"
+          label="Min:"
+          label-for="form-comfortMin-edit-input"
+        >
+          <b-form-input
+            id="form-comfortMin-edit-input"
+            type="text"
+            v-model="editProgramForm.comfortMin"
+            required
+            placeholder="Enter minimum temperature"
+          >
+          </b-form-input>
+        </b-form-group>
+        <b-form-group
+          id="form-comfortMax-edit-group"
+          label="Max:"
+          label-for="form-comfortMax-edit-input"
+        >
+          <b-form-input
+            id="form-comfortMax-edit-input"
+            type="text"
+            v-model="editProgramForm.comfortMax"
+            required
+            placeholder="Enter minimum temperature"
+          >
+          </b-form-input>
+        </b-form-group>
+
+        <b-button type="submit" variant="primary">Update</b-button>
+        <b-button type="reset" variant="danger">Cancel</b-button>
+      </b-form>
+    </b-modal>
   </div>
 </template>
 
@@ -109,6 +168,12 @@ export default {
     return {
       programs: [],
       addProgramForm: {
+        name: '',
+        comfortMin: '',
+        comfortMax: '',
+      },
+      editProgramForm: {
+        guid: '',
         name: '',
         comfortMin: '',
         comfortMax: '',
@@ -154,12 +219,31 @@ export default {
           this.getPrograms();
         });
     },
+    updateProgram(payload) {
+      const path = `http://localhost:5000/api/v1/programs/${payload.guid}`;
+      console.log('performing put');
+      console.log(payload);
+      axios.put(path, payload)
+        .then(() => {
+          this.getPrograms();
+          this.message = 'Program updated!';
+          this.showMessage = true;
+        })
+        .catch((error) => {
+          // eslint-disable-next-line
+          console.log(error);
+          this.getPrograms();
+        });
+    },
+    editProgram(program) {
+      this.editProgramForm = program;
+    },
     initForm() {
       this.addProgramForm.name = '';
       this.addProgramForm.comfortMin = '';
       this.addProgramForm.comfortMax = '';
     },
-    onSubmit(evt) {
+    onSubmitAdd(evt) {
       evt.preventDefault();
       this.$refs.addProgramModal.hide();
       const payload = {
@@ -168,6 +252,18 @@ export default {
         comfortMax: this.addProgramForm.comfortMax,
       };
       this.addProgram(payload);
+      this.initForm();
+    },
+    onSubmitUpdate(evt) {
+      evt.preventDefault();
+      this.$refs.editProgramModal.hide();
+      const payload = {
+        guid: this.editProgramForm.guid,
+        name: this.editProgramForm.name,
+        comfortMin: this.editProgramForm.comfortMin,
+        comfortMax: this.editProgramForm.comfortMax,
+      };
+      this.updateProgram(payload);
       this.initForm();
     },
     onReset(evt) {

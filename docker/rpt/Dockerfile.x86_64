@@ -13,7 +13,7 @@ RUN apt-get install -y \
 RUN python3 -m pip install pip && \
     python3 -m pip install \
     flask flask-cors requests psycopg2-binary \
-    sqlalchemy sqlalchemy-utils PyYAML pytz
+    sqlalchemy sqlalchemy-utils PyYAML pytz qrcode pillow
 
 ARG RPT_DEV=false
 ARG RPT_BRANCH=master

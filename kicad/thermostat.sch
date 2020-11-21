@@ -206,7 +206,7 @@ L thermostat:AGQ210A03 RELAY2
 U 1 1 5D5EC4AE
 P 7075 1800
 F 0 "RELAY2" V 7225 2000 50  0001 C CNN
-F 1 "HEAT" H 7075 1850 50  0000 C CNN
+F 1 "COOL" H 7075 1850 50  0000 C CNN
 F 2 "project_footprints:AGQ210A03" V 7225 2000 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/315/mech_eng_gq-1299323.pdf" V 7225 2000 50  0001 C CNN
 F 4 "769-AGQ210A03Z" H 7075 1800 50  0001 C CNN "Mouser"
@@ -216,9 +216,9 @@ F 6 "769-AGQ210A03Z" H 7075 1800 50  0001 C CNN "MPN"
 	1    0    0    -1  
 $EndComp
 Text Label 6825 1750 2    50   ~ 0
-HVAC_HEAT(WHITE)
-Text Label 6825 2250 2    50   ~ 0
 HVAC_COOL(YELLOW)
+Text Label 6825 2250 2    50   ~ 0
+HVAC_HEAT(WHITE)
 Text Label 4150 2225 0    50   ~ 0
 GND
 Text Label 4150 2125 0    50   ~ 0
@@ -248,10 +248,10 @@ F 6 "926-LM2596S-5.0/NOPB" H 2400 3975 50  0001 C CNN "MPN"
 	1    0    0    -1  
 $EndComp
 $Comp
-L Connector:Screw_Terminal_01x05 J2
+L Connector:Screw_Terminal_01x05 J1
 U 1 1 5D6C475A
 P 3750 1250
-F 0 "J2" H 3300 825 50  0000 L CNN
+F 0 "J1" H 3300 825 50  0000 L CNN
 F 1 "Screw_Terminal_01x05" H 2950 900 50  0000 L CNN
 F 2 "project_footprints:CUI_TB004-508-05BE" H 3750 1250 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/670/tb004-508-1550640.pdf" H 3750 1250 50  0001 C CNN
@@ -268,10 +268,10 @@ Wire Wire Line
 Text Label 1400 3875 2    50   ~ 0
 HVAC_PWR(RED)
 $Comp
-L Device:D_Small D2
+L Device:D_Small D10
 U 1 1 5D6DD814
 P 2950 4375
-F 0 "D2" V 2904 4443 50  0000 L CNN
+F 0 "D10" V 2904 4443 50  0000 L CNN
 F 1 "SS24" V 2995 4443 50  0000 L CNN
 F 2 "Diode_SMD:D_SMB" V 2950 4375 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/427/ss22-59686.pdf" V 2950 4375 50  0001 C CNN
@@ -304,10 +304,10 @@ Wire Wire Line
 Wire Wire Line
 	1900 4075 1900 4575
 $Comp
-L Device:CP C2
+L Device:CP C5
 U 1 1 5D767EF7
 P 3550 4225
-F 0 "C2" H 3350 4425 50  0000 L CNN
+F 0 "C5" H 3350 4425 50  0000 L CNN
 F 1 "100uF/50V" H 3050 4325 50  0000 L CNN
 F 2 "Capacitor_SMD:C_Elec_8x10.2" H 3588 4075 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/315/ABA0000C1184-947404.pdf" H 3550 4225 50  0001 C CNN
@@ -318,34 +318,10 @@ F 6 "667-EEE-FP1H101AV" H 3550 4225 50  0001 C CNN "MPN"
 	1    0    0    -1  
 $EndComp
 $Comp
-L thermostat:Mounting_Hole-Mechanical Pi1
-U 1 1 5D6C5FE0
-P 10475 6300
-F 0 "Pi1" H 10575 6346 50  0000 L CNN
-F 1 "PiZero" H 10575 6255 50  0000 L CNN
-F 2 "project_footprints:RasperryPi_Zero" H 10475 6300 50  0001 C CNN
-F 3 "" H 10475 6300 50  0001 C CNN
-F 4 "0" H 10475 6300 50  0001 C CNN "Populate"
-	1    10475 6300
-	1    0    0    -1  
-$EndComp
-$Comp
-L thermostat:Mounting_Hole-Mechanical Gr1
-U 1 1 5D6CA3D9
-P 10475 6050
-F 0 "Gr1" H 10575 6096 50  0000 L CNN
-F 1 "Logo" H 10575 6005 50  0000 L CNN
-F 2 "project_footprints:LlamaHead" H 10475 6050 50  0001 C CNN
-F 3 "" H 10475 6050 50  0001 C CNN
-F 4 "0" H 10475 6050 50  0001 C CNN "Populate"
-	1    10475 6050
-	1    0    0    -1  
-$EndComp
-$Comp
-L Device:CP C1
+L Device:CP C3
 U 1 1 5D6E0E38
 P 1700 4425
-F 0 "C1" H 1450 4575 50  0000 L CNN
+F 0 "C3" H 1450 4575 50  0000 L CNN
 F 1 "100uF/50V" H 1150 4475 50  0000 L CNN
 F 2 "Capacitor_SMD:C_Elec_8x10.2" H 1738 4275 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/315/ABA0000C1184-947404.pdf" H 1700 4425 50  0001 C CNN
@@ -386,10 +362,10 @@ $EndComp
 Wire Wire Line
 	2400 3000 3450 3000
 $Comp
-L Device:D_Small D1
+L Device:D_Small D5
 U 1 1 5D6DC8DD
 P 1600 3875
-F 0 "D1" H 1600 3670 50  0000 C CNN
+F 0 "D5" H 1600 3670 50  0000 C CNN
 F 1 "S1A" H 1600 3761 50  0000 C CNN
 F 2 "Diode_SMD:D_SOD-123F" V 1600 3875 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/308/US1AFA-1301710.pdf" V 1600 3875 50  0001 C CNN
@@ -438,10 +414,10 @@ HVAC_FAN(GREEN)
 Text Notes 8200 725  0    50   ~ 0
 Based on https://www.electroschematics.com/bmp280-diy-project-primer/
 $Comp
-L thermostat:GND #PWR01
+L thermostat:GND #PWR02
 U 1 1 5E0DA227
 P 2150 3200
-F 0 "#PWR01" H 2150 2950 50  0001 C CNN
+F 0 "#PWR02" H 2150 2950 50  0001 C CNN
 F 1 "GND" H 2155 3027 50  0000 C CNN
 F 2 "" H 2150 3200 50  0000 C CNN
 F 3 "" H 2150 3200 50  0000 C CNN
@@ -452,7 +428,7 @@ Wire Wire Line
 	2150 3200 2500 3200
 Connection ~ 2150 3200
 Text Label 3700 3875 0    50   ~ 0
-PWR_5V_RAW
+PWR_5V
 Text Label 3700 4575 0    50   ~ 0
 GND
 Wire Wire Line
@@ -462,40 +438,26 @@ Wire Wire Line
 	3550 4575 3700 4575
 Connection ~ 3550 4575
 $Comp
-L Device:LED D6
+L Device:LED D16
 U 1 1 5D754FCE
-P 5625 2125
-F 0 "D6" V 5664 2008 50  0000 R CNN
-F 1 "Green" V 5573 2008 50  0000 R CNN
-F 2 "LED_SMD:LED_0805_2012Metric" H 5625 2125 50  0001 C CNN
-F 3 "~" H 5625 2125 50  0001 C CNN
-F 4 "1" H 5625 2125 50  0001 C CNN "Populate"
-F 5 "710-150080GS75000" H 5625 2125 50  0001 C CNN "Mouser"
-F 6 "710-150080GS75000" H 5625 2125 50  0001 C CNN "MPN"
-	1    5625 2125
+P 5625 2025
+F 0 "D16" V 5664 1908 50  0000 R CNN
+F 1 "Green" V 5573 1908 50  0000 R CNN
+F 2 "LED_SMD:LED_0805_2012Metric" H 5625 2025 50  0001 C CNN
+F 3 "~" H 5625 2025 50  0001 C CNN
+F 4 "1" H 5625 2025 50  0001 C CNN "Populate"
+F 5 "710-150080GS75000" H 5625 2025 50  0001 C CNN "Mouser"
+F 6 "710-150080GS75000" H 5625 2025 50  0001 C CNN "MPN"
+	1    5625 2025
 	0    1    1    0   
 $EndComp
-$Comp
-L Device:R_US R19
-U 1 1 5D7582DF
-P 5625 1825
-F 0 "R19" H 5693 1871 50  0000 L CNN
-F 1 "1k" H 5693 1780 50  0000 L CNN
-F 2 "Resistor_SMD:R_0805_2012Metric" V 5665 1815 50  0001 C CNN
-F 3 "~" H 5625 1825 50  0001 C CNN
-F 4 "1" H 5625 1825 50  0001 C CNN "Populate"
-F 5 "667-ERJ-PB6B1001V" H 5625 1825 50  0001 C CNN "MPN"
-F 6 "667-ERJ-PB6B1001V" H 5625 1825 50  0001 C CNN "Mouser"
-	1    5625 1825
-	-1   0    0    1   
-$EndComp
-Text Label 5625 2275 3    50   ~ 0
+Text Label 5625 2175 3    50   ~ 0
 PWR_5V
 $Comp
-L thermostat:GND #PWR04
+L thermostat:GND #PWR05
 U 1 1 5E32CA24
 P 5625 1675
-F 0 "#PWR04" H 5625 1425 50  0001 C CNN
+F 0 "#PWR05" H 5625 1425 50  0001 C CNN
 F 1 "GND" H 5630 1502 50  0000 C CNN
 F 2 "" H 5625 1675 50  0000 C CNN
 F 3 "" H 5625 1675 50  0000 C CNN
@@ -503,59 +465,14 @@ F 3 "" H 5625 1675 50  0000 C CNN
 	-1   0    0    1   
 $EndComp
 NoConn ~ 7325 1950
-$Comp
-L Device:LED D5
-U 1 1 5E323C66
-P 5225 2125
-F 0 "D5" V 5264 2008 50  0000 R CNN
-F 1 "Green" V 5173 2008 50  0000 R CNN
-F 2 "LED_SMD:LED_0805_2012Metric" H 5225 2125 50  0001 C CNN
-F 3 "~" H 5225 2125 50  0001 C CNN
-F 4 "1" H 5225 2125 50  0001 C CNN "Populate"
-F 5 "710-150080GS75000" H 5225 2125 50  0001 C CNN "Mouser"
-F 6 "710-150080GS75000" H 5225 2125 50  0001 C CNN "MPN"
-	1    5225 2125
-	0    1    1    0   
-$EndComp
-$Comp
-L Device:R_US R18
-U 1 1 5E323C6D
-P 5225 1825
-F 0 "R18" H 5293 1871 50  0000 L CNN
-F 1 "1k" H 5293 1780 50  0000 L CNN
-F 2 "Resistor_SMD:R_0805_2012Metric" V 5265 1815 50  0001 C CNN
-F 3 "~" H 5225 1825 50  0001 C CNN
-F 4 "1" H 5225 1825 50  0001 C CNN "Populate"
-F 5 "667-ERJ-PB6B1001V" H 5225 1825 50  0001 C CNN "MPN"
-F 6 "667-ERJ-PB6B1001V" H 5225 1825 50  0001 C CNN "Mouser"
-	1    5225 1825
-	-1   0    0    1   
-$EndComp
-Text Label 5225 2275 3    50   ~ 0
-PWR_5V_RAW
-$Comp
-L thermostat:GND #PWR03
-U 1 1 5E323C74
-P 5225 1675
-F 0 "#PWR03" H 5225 1425 50  0001 C CNN
-F 1 "GND" H 5230 1502 50  0000 C CNN
-F 2 "" H 5225 1675 50  0000 C CNN
-F 3 "" H 5225 1675 50  0000 C CNN
-	1    5225 1675
-	-1   0    0    1   
-$EndComp
 Connection ~ 1700 3875
 Wire Wire Line
 	1700 4275 1700 3875
-Text Label 5425 1100 2    50   ~ 0
-PWR_5V_RAW
-Text Label 5425 1200 2    50   ~ 0
-PWR_5V
 $Comp
-L Connector_Generic:Conn_01x04 J1
+L Connector_Generic:Conn_01x04 J2
 U 1 1 5E5BDB33
 P 3750 2125
-F 0 "J1" H 3325 1575 50  0000 R CNN
+F 0 "J2" H 3325 1575 50  0000 R CNN
 F 1 "Conn_01x04" H 3450 1675 50  0000 R CNN
 F 2 "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical" H 3750 2125 50  0001 C CNN
 F 3 "~" H 3750 2125 50  0001 C CNN
@@ -566,7 +483,7 @@ $EndComp
 Wire Wire Line
 	3950 1925 4150 1925
 Text Label 10475 1900 0    50   ~ 0
-BTNS_GND
+GND
 Wire Wire Line
 	9925 850  9925 1000
 Connection ~ 8925 1450
@@ -634,10 +551,10 @@ F 6 "667-ERJ-PB6B1002V" H 8925 1200 50  0001 C CNN "Mouser"
 	1    0    0    -1  
 $EndComp
 $Comp
-L Device:C C4
+L Device:C C10
 U 1 1 5E5BFD1A
 P 10475 1150
-F 0 "C4" H 10590 1196 50  0000 L CNN
+F 0 "C10" H 10590 1196 50  0000 L CNN
 F 1 "100nF" H 10590 1105 50  0000 L CNN
 F 2 "Capacitor_SMD:C_0805_2012Metric" H 10513 1000 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/212/KEM_C1013_X7R_FT-CAP_SMD-1103280.pdf" H 10475 1150 50  0001 C CNN
@@ -666,11 +583,11 @@ F 6 "667-ERJ-PB6B1002V" H 9375 1900 50  0001 C CNN "Mouser"
 	1    0    0    -1  
 $EndComp
 Text Label 9225 1750 3    50   ~ 0
-BTNS_SCL
+GPIO3(SCL1)
 Text Label 8925 1750 3    50   ~ 0
-BTNS_SDA
+GPIO2(SDA1)
 Text Label 9925 850  2    50   ~ 0
-BTNS_PWR_3V3
+PWR_3.3V
 Wire Wire Line
 	9825 1900 9925 1900
 Wire Wire Line
@@ -678,10 +595,10 @@ Wire Wire Line
 Wire Wire Line
 	9925 1850 9925 1900
 $Comp
-L Sensor_Pressure:BMP280 U3
+L Sensor_Pressure:BMP280 U4
 U 1 1 5E52B744
 P 9825 1550
-F 0 "U3" H 10055 1646 50  0000 L CNN
+F 0 "U4" H 10055 1646 50  0000 L CNN
 F 1 "BME280" H 10055 1555 50  0000 L CNN
 F 2 "Package_LGA:Bosch_LGA-8_2.5x2.5mm_P0.65mm_ClockwisePinNumbering" H 9825 850 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/783/BST-BME280-DS002-1509607.pdf" H 9825 1550 50  0001 C CNN
@@ -694,10 +611,10 @@ $EndComp
 Wire Wire Line
 	9925 1000 10250 1000
 $Comp
-L Device:C C3
+L Device:C C9
 U 1 1 5E5B7137
 P 10250 1150
-F 0 "C3" H 10025 1225 50  0000 L CNN
+F 0 "C9" H 10025 1225 50  0000 L CNN
 F 1 "1uF" H 10025 1150 50  0000 L CNN
 F 2 "Capacitor_SMD:C_0805_2012Metric" H 10288 1000 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/212/KEM_C1023_X7R_AUTO_SMD-1093309.pdf" H 10250 1150 50  0001 C CNN
@@ -762,20 +679,6 @@ NoConn ~ 1900 1700
 NoConn ~ 1900 1800
 NoConn ~ 2400 2100
 $Comp
-L Connector_Generic:Conn_01x03 J3
-U 1 1 5E8E3FE9
-P 5625 1200
-F 0 "J3" H 5275 1575 50  0000 L CNN
-F 1 "Conn_01x03" H 5150 1475 50  0000 L CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical" H 5625 1200 50  0001 C CNN
-F 3 "~" H 5625 1200 50  0001 C CNN
-F 4 "0" H 5625 1200 50  0001 C CNN "Populate"
-	1    5625 1200
-	1    0    0    -1  
-$EndComp
-Text Label 5425 1300 2    50   ~ 0
-GND
-$Comp
 L Device:R_US R14
 U 1 1 5E62AE45
 P 8625 1200
@@ -792,10 +695,10 @@ $EndComp
 Wire Wire Line
 	8625 1050 8625 1000
 $Comp
-L thermostat:GND #PWR02
+L thermostat:GND #PWR06
 U 1 1 5ED210C1
 P 7875 3150
-F 0 "#PWR02" H 7875 2900 50  0001 C CNN
+F 0 "#PWR06" H 7875 2900 50  0001 C CNN
 F 1 "GND" H 7880 2977 50  0000 C CNN
 F 2 "" H 7875 3150 50  0000 C CNN
 F 3 "" H 7875 3150 50  0000 C CNN
@@ -833,7 +736,7 @@ L thermostat:AGQ210A03 RELAY3
 U 1 1 5D5EE68E
 P 7075 2300
 F 0 "RELAY3" V 7225 2500 50  0001 C CNN
-F 1 "COOL" H 7075 2350 50  0000 C CNN
+F 1 "HEAT" H 7075 2350 50  0000 C CNN
 F 2 "project_footprints:AGQ210A03" V 7225 2500 50  0001 C CNN
 F 3 "https://www.mouser.com/datasheet/2/315/mech_eng_gq-1299323.pdf" V 7225 2500 50  0001 C CNN
 F 4 "769-AGQ210A03Z" H 7075 2300 50  0001 C CNN "Mouser"
@@ -853,10 +756,10 @@ Text Label 6275 775  0    50   ~ 0
 HVAC_PWR(RED)
 NoConn ~ 6625 2750
 $Comp
-L Transistor_Array:ULN2003A U2
+L Transistor_Array:ULN2003A U3
 U 1 1 5ECF45E1
 P 7025 3150
-F 0 "U2" V 7071 3679 50  0000 L CNN
+F 0 "U3" V 7071 3679 50  0000 L CNN
 F 1 "ULN2003AD" V 6980 3679 50  0000 L CNN
 F 2 "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm" H 7075 2600 50  0001 L CNN
 F 3 "http://www.ti.com/lit/ds/symlink/uln2003a.pdf" H 7125 2950 50  0001 C CNN
@@ -1071,14 +974,14 @@ Need to connect pin 2’s here to GPIOs that make physical sense
 Text Notes 1650 5175 0    50   ~ 10
 ## GPIO addr=0x28 ##
 Text Label 2500 6800 0    50   ~ 0
-GPIO2(SDA1)
+RING_SDA
 Text Label 2500 6900 0    50   ~ 0
-GPIO3(SCL1)
+RING_SCL
 $Comp
-L Device:C_Small C5
+L Device:C_Small C1
 U 1 1 5FAD95E9
 P 1100 7100
-F 0 "C5" H 900 7150 50  0000 L CNN
+F 0 "C1" H 900 7150 50  0000 L CNN
 F 1 "1uF" H 875 7050 50  0000 L CNN
 F 2 "Capacitor_SMD:C_0805_2012Metric" H 1100 7100 50  0001 C CNN
 F 3 "~" H 1100 7100 50  0001 C CNN
@@ -1087,10 +990,10 @@ F 4 "80-C0805C105M8RAUTO" H 1100 7100 50  0001 C CNN "Mouser"
 	1    0    0    -1  
 $EndComp
 $Comp
-L Device:C_Small C6
+L Device:C_Small C2
 U 1 1 5FAD95F0
 P 1425 7100
-F 0 "C6" H 1225 7150 50  0000 L CNN
+F 0 "C2" H 1225 7150 50  0000 L CNN
 F 1 "0.1uF" H 1150 7050 50  0000 L CNN
 F 2 "Capacitor_SMD:C_0805_2012Metric" H 1425 7100 50  0001 C CNN
 F 3 "~" H 1425 7100 50  0001 C CNN
@@ -1099,21 +1002,10 @@ F 4 "80-C0805X104K5R3316" H 1425 7100 50  0001 C CNN "Mouser"
 	1    0    0    -1  
 $EndComp
 $Comp
-L thermostat:GND #PWR05
-U 1 1 5FAD95F6
-P 2100 7425
-F 0 "#PWR05" H 2100 7175 50  0001 C CNN
-F 1 "GND" H 2105 7252 50  0000 C CNN
-F 2 "" H 2100 7425 50  0000 C CNN
-F 3 "" H 2100 7425 50  0000 C CNN
-	1    2100 7425
-	1    0    0    -1  
-$EndComp
-$Comp
-L thermostat:LP5024 U4
+L thermostat:LP5024 U1
 U 1 1 5FAD95FD
 P 2100 6250
-F 0 "U4" H 2100 7265 50  0000 C CNN
+F 0 "U1" H 2100 7265 50  0000 C CNN
 F 1 "LP5024" H 2100 7174 50  0000 C CNN
 F 2 "Package_DFN_QFN:QFN-32-1EP_4x4mm_P0.4mm_EP2.9x2.9mm" H 2100 7250 50  0001 C CNN
 F 3 "https://www.ti.com/lit/ds/symlink/lp5024.pdf?ts=1601824290425&ref_url=https%253A%252F%252Fwww.ti.com%252Fproduct%252FLP5024" H 2100 7250 50  0001 C CNN
@@ -1122,10 +1014,10 @@ F 4 "595-LP5024RSMR" H 2100 6250 50  0001 C CNN "Mouser"
 	1    0    0    -1  
 $EndComp
 $Comp
-L Device:R_Small_US R20
+L Device:R_Small_US R1
 U 1 1 5FAD9604
 P 1700 7200
-F 0 "R20" H 1775 7175 50  0000 L CNN
+F 0 "R1" H 1775 7175 50  0000 L CNN
 F 1 "7.3k" H 1775 7100 50  0000 L CNN
 F 2 "Resistor_SMD:R_0805_2012Metric" H 1700 7200 50  0001 C CNN
 F 3 "~" H 1700 7200 50  0001 C CNN
@@ -1137,10 +1029,10 @@ Wire Wire Line
 	2100 7250 2100 7425
 Connection ~ 2100 7425
 $Comp
-L Device:C_Small C7
+L Device:C_Small C4
 U 1 1 5FAD960D
 P 2500 7325
-F 0 "C7" H 2300 7400 50  0000 L CNN
+F 0 "C4" H 2300 7400 50  0000 L CNN
 F 1 "1uF" H 2275 7325 50  0000 L CNN
 F 2 "Capacitor_SMD:C_0805_2012Metric" H 2500 7325 50  0001 C CNN
 F 3 "~" H 2500 7325 50  0001 C CNN
@@ -1156,17 +1048,13 @@ Wire Wire Line
 	2500 7425 2100 7425
 Wire Wire Line
 	2625 7000 2500 7000
-Text Label 1100 5275 2    50   ~ 0
-PWR_5V
 Wire Wire Line
 	2500 7225 2500 7100
-Text Label 3100 5275 0    50   ~ 0
-PWR_5V
 $Comp
-L Device:R_Small_US R21
+L Device:R_Small_US R2
 U 1 1 5FAD961B
 P 2725 7000
-F 0 "R21" V 2550 6925 50  0000 L CNN
+F 0 "R2" V 2550 6925 50  0000 L CNN
 F 1 "4.8k" V 2625 6900 50  0000 L CNN
 F 2 "Resistor_SMD:R_0805_2012Metric" H 2725 7000 50  0001 C CNN
 F 3 "~" H 2725 7000 50  0001 C CNN
@@ -1204,10 +1092,10 @@ Connection ~ 1550 7425
 Wire Wire Line
 	1550 7425 1625 7425
 $Comp
-L thermostat:LTRB-RASF D7
+L thermostat:LTRB-RASF D1
 U 1 1 5FAD9633
 P 1400 5600
-F 0 "D7" H 1400 5967 50  0000 C CNN
+F 0 "D1" H 1400 5967 50  0000 C CNN
 F 1 "LTRB-RASF" H 1400 5876 50  0000 C CNN
 F 2 "Package_TO_SOT_SMD:SOT-23-6" H 1200 5280 50  0001 L CNN
 F 3 "https://dammedia.osram.info/media/resource/hires/osram-dam-3950803/LTRB%20RASF_EN.pdf" H 1550 5600 50  0001 L CNN
@@ -1216,10 +1104,10 @@ F 4 "720-LTRBRASFA7231" H 1400 5600 50  0001 C CNN "Mouser"
 	1    0    0    -1  
 $EndComp
 $Comp
-L thermostat:LTRB-RASF D8
+L thermostat:LTRB-RASF D2
 U 1 1 5FAD963A
 P 1400 5900
-F 0 "D8" H 1400 6267 50  0000 C CNN
+F 0 "D2" H 1400 6267 50  0000 C CNN
 F 1 "LTRB-RASF" H 1400 6176 50  0000 C CNN
 F 2 "Package_TO_SOT_SMD:SOT-23-6" H 1200 5580 50  0001 L CNN
 F 3 "https://dammedia.osram.info/media/resource/hires/osram-dam-3950803/LTRB%20RASF_EN.pdf" H 1550 5900 50  0001 L CNN
@@ -1228,10 +1116,10 @@ F 4 "720-LTRBRASFA7231" H 1400 5900 50  0001 C CNN "Mouser"
 	1    0    0    -1  
 $EndComp
 $Comp
-L thermostat:LTRB-RASF D9
+L thermostat:LTRB-RASF D3
 U 1 1 5FAD9641
 P 1400 6200
-F 0 "D9" H 1400 6567 50  0000 C CNN
+F 0 "D3" H 1400 6567 50  0000 C CNN
 F 1 "LTRB-RASF" H 1400 6476 50  0000 C CNN
 F 2 "Package_TO_SOT_SMD:SOT-23-6" H 1200 5880 50  0001 L CNN
 F 3 "https://dammedia.osram.info/media/resource/hires/osram-dam-3950803/LTRB%20RASF_EN.pdf" H 1550 6200 50  0001 L CNN
@@ -1240,10 +1128,10 @@ F 4 "720-LTRBRASFA7231" H 1400 6200 50  0001 C CNN "Mouser"
 	1    0    0    -1  
 $EndComp
 $Comp
-L thermostat:LTRB-RASF D10
+L thermostat:LTRB-RASF D4
 U 1 1 5FAD9648
 P 1400 6500
-F 0 "D10" H 1400 6867 50  0000 C CNN
+F 0 "D4" H 1400 6867 50  0000 C CNN
 F 1 "LTRB-RASF" H 1400 6776 50  0000 C CNN
 F 2 "Package_TO_SOT_SMD:SOT-23-6" H 1200 6180 50  0001 L CNN
 F 3 "https://dammedia.osram.info/media/resource/hires/osram-dam-3950803/LTRB%20RASF_EN.pdf" H 1550 6500 50  0001 L CNN
@@ -1252,10 +1140,10 @@ F 4 "720-LTRBRASFA7231" H 1400 6500 50  0001 C CNN "Mouser"
 	1    0    0    -1  
 $EndComp
 $Comp
-L thermostat:LTRB-RASF D14
+L thermostat:LTRB-RASF D9
 U 1 1 5FAD964F
 P 2800 6500
-F 0 "D14" H 2800 6133 50  0000 C CNN
+F 0 "D9" H 2800 6133 50  0000 C CNN
 F 1 "LTRB-RASF" H 2800 6224 50  0000 C CNN
 F 2 "Package_TO_SOT_SMD:SOT-23-6" H 2600 6180 50  0001 L CNN
 F 3 "https://dammedia.osram.info/media/resource/hires/osram-dam-3950803/LTRB%20RASF_EN.pdf" H 2950 6500 50  0001 L CNN
@@ -1264,10 +1152,10 @@ F 4 "720-LTRBRASFA7231" H 2800 6500 50  0001 C CNN "Mouser"
 	-1   0    0    1   
 $EndComp
 $Comp
-L thermostat:LTRB-RASF D13
+L thermostat:LTRB-RASF D8
 U 1 1 5FAD9656
 P 2800 6200
-F 0 "D13" H 2800 5833 50  0000 C CNN
+F 0 "D8" H 2800 5833 50  0000 C CNN
 F 1 "LTRB-RASF" H 2800 5924 50  0000 C CNN
 F 2 "Package_TO_SOT_SMD:SOT-23-6" H 2600 5880 50  0001 L CNN
 F 3 "https://dammedia.osram.info/media/resource/hires/osram-dam-3950803/LTRB%20RASF_EN.pdf" H 2950 6200 50  0001 L CNN
@@ -1276,10 +1164,10 @@ F 4 "720-LTRBRASFA7231" H 2800 6200 50  0001 C CNN "Mouser"
 	-1   0    0    1   
 $EndComp
 $Comp
-L thermostat:LTRB-RASF D12
+L thermostat:LTRB-RASF D7
 U 1 1 5FAD965D
 P 2800 5900
-F 0 "D12" H 2800 5533 50  0000 C CNN
+F 0 "D7" H 2800 5533 50  0000 C CNN
 F 1 "LTRB-RASF" H 2800 5624 50  0000 C CNN
 F 2 "Package_TO_SOT_SMD:SOT-23-6" H 2600 5580 50  0001 L CNN
 F 3 "https://dammedia.osram.info/media/resource/hires/osram-dam-3950803/LTRB%20RASF_EN.pdf" H 2950 5900 50  0001 L CNN
@@ -1288,10 +1176,10 @@ F 4 "720-LTRBRASFA7231" H 2800 5900 50  0001 C CNN "Mouser"
 	-1   0    0    1   
 $EndComp
 $Comp
-L thermostat:LTRB-RASF D11
+L thermostat:LTRB-RASF D6
 U 1 1 5FAD9664
 P 2800 5600
-F 0 "D11" H 2800 5233 50  0000 C CNN
+F 0 "D6" H 2800 5233 50  0000 C CNN
 F 1 "LTRB-RASF" H 2800 5324 50  0000 C CNN
 F 2 "Package_TO_SOT_SMD:SOT-23-6" H 2600 5280 50  0001 L CNN
 F 3 "https://dammedia.osram.info/media/resource/hires/osram-dam-3950803/LTRB%20RASF_EN.pdf" H 2950 5600 50  0001 L CNN
@@ -1378,17 +1266,17 @@ Wire Wire Line
 	3100 6600 3100 7000
 Wire Wire Line
 	1550 6800 1700 6800
-Text Notes 4575 5175 0    50   ~ 10
+Text Notes 4600 5175 0    50   ~ 10
 ## GPIO addr=0x29 ##
 Text Label 5425 6800 0    50   ~ 0
-GPIO2(SDA1)
+RING_SDA
 Text Label 5425 6900 0    50   ~ 0
-GPIO3(SCL1)
+RING_SCL
 $Comp
-L Device:C_Small C8
+L Device:C_Small C6
 U 1 1 5FAD15B8
 P 4025 7100
-F 0 "C8" H 3825 7150 50  0000 L CNN
+F 0 "C6" H 3825 7150 50  0000 L CNN
 F 1 "1uF" H 3800 7050 50  0000 L CNN
 F 2 "Capacitor_SMD:C_0805_2012Metric" H 4025 7100 50  0001 C CNN
 F 3 "~" H 4025 7100 50  0001 C CNN
@@ -1397,10 +1285,10 @@ F 4 "80-C0805C105M8RAUTO" H 4025 7100 50  0001 C CNN "Mouser"
 	1    0    0    -1  
 $EndComp
 $Comp
-L Device:C_Small C9
+L Device:C_Small C7
 U 1 1 5FAD15BF
 P 4350 7100
-F 0 "C9" H 4150 7150 50  0000 L CNN
+F 0 "C7" H 4150 7150 50  0000 L CNN
 F 1 "0.1uF" H 4075 7050 50  0000 L CNN
 F 2 "Capacitor_SMD:C_0805_2012Metric" H 4350 7100 50  0001 C CNN
 F 3 "~" H 4350 7100 50  0001 C CNN
@@ -1409,21 +1297,10 @@ F 4 "80-C0805X104K5R3316" H 4350 7100 50  0001 C CNN "Mouser"
 	1    0    0    -1  
 $EndComp
 $Comp
-L thermostat:GND #PWR06
-U 1 1 5FAD15C5
-P 5025 7425
-F 0 "#PWR06" H 5025 7175 50  0001 C CNN
-F 1 "GND" H 5030 7252 50  0000 C CNN
-F 2 "" H 5025 7425 50  0000 C CNN
-F 3 "" H 5025 7425 50  0000 C CNN
-	1    5025 7425
-	1    0    0    -1  
-$EndComp
-$Comp
-L thermostat:LP5024 U5
+L thermostat:LP5024 U2
 U 1 1 5FAD15CC
 P 5025 6250
-F 0 "U5" H 5025 7265 50  0000 C CNN
+F 0 "U2" H 5025 7265 50  0000 C CNN
 F 1 "LP5024" H 5025 7174 50  0000 C CNN
 F 2 "Package_DFN_QFN:QFN-32-1EP_4x4mm_P0.4mm_EP2.9x2.9mm" H 5025 7250 50  0001 C CNN
 F 3 "https://www.ti.com/lit/ds/symlink/lp5024.pdf?ts=1601824290425&ref_url=https%253A%252F%252Fwww.ti.com%252Fproduct%252FLP5024" H 5025 7250 50  0001 C CNN
@@ -1432,10 +1309,10 @@ F 4 "595-LP5024RSMR" H 5025 6250 50  0001 C CNN "Mouser"
 	1    0    0    -1  
 $EndComp
 $Comp
-L Device:R_Small_US R23
+L Device:R_Small_US R4
 U 1 1 5FAD15D3
 P 4625 7200
-F 0 "R23" H 4700 7175 50  0000 L CNN
+F 0 "R4" H 4700 7175 50  0000 L CNN
 F 1 "7.3k" H 4700 7100 50  0000 L CNN
 F 2 "Resistor_SMD:R_0805_2012Metric" H 4625 7200 50  0001 C CNN
 F 3 "~" H 4625 7200 50  0001 C CNN
@@ -1447,10 +1324,10 @@ Wire Wire Line
 	5025 7250 5025 7425
 Connection ~ 5025 7425
 $Comp
-L Device:C_Small C10
+L Device:C_Small C8
 U 1 1 5FAD15DC
 P 5425 7325
-F 0 "C10" H 5225 7400 50  0000 L CNN
+F 0 "C8" H 5225 7400 50  0000 L CNN
 F 1 "1uF" H 5200 7325 50  0000 L CNN
 F 2 "Capacitor_SMD:C_0805_2012Metric" H 5425 7325 50  0001 C CNN
 F 3 "~" H 5425 7325 50  0001 C CNN
@@ -1466,17 +1343,13 @@ Wire Wire Line
 	5425 7425 5025 7425
 Wire Wire Line
 	5550 7000 5425 7000
-Text Label 4025 5275 2    50   ~ 0
-PWR_5V
 Wire Wire Line
 	5425 7225 5425 7100
-Text Label 6025 5275 0    50   ~ 0
-PWR_5V
 $Comp
-L Device:R_Small_US R24
+L Device:R_Small_US R7
 U 1 1 5FAD15EA
 P 5650 7000
-F 0 "R24" V 5475 6925 50  0000 L CNN
+F 0 "R7" V 5475 6925 50  0000 L CNN
 F 1 "4.8k" V 5550 6900 50  0000 L CNN
 F 2 "Resistor_SMD:R_0805_2012Metric" H 5650 7000 50  0001 C CNN
 F 3 "~" H 5650 7000 50  0001 C CNN
@@ -1507,10 +1380,10 @@ Connection ~ 4550 7425
 Wire Wire Line
 	4550 7425 4625 7425
 $Comp
-L thermostat:LTRB-RASF D15
+L thermostat:LTRB-RASF D11
 U 1 1 5FAD1602
 P 4325 5600
-F 0 "D15" H 4325 5967 50  0000 C CNN
+F 0 "D11" H 4325 5967 50  0000 C CNN
 F 1 "LTRB-RASF" H 4325 5876 50  0000 C CNN
 F 2 "Package_TO_SOT_SMD:SOT-23-6" H 4125 5280 50  0001 L CNN
 F 3 "https://dammedia.osram.info/media/resource/hires/osram-dam-3950803/LTRB%20RASF_EN.pdf" H 4475 5600 50  0001 L CNN
@@ -1519,10 +1392,10 @@ F 4 "720-LTRBRASFA7231" H 4325 5600 50  0001 C CNN "Mouser"
 	1    0    0    -1  
 $EndComp
 $Comp
-L thermostat:LTRB-RASF D16
+L thermostat:LTRB-RASF D12
 U 1 1 5FAD1609
 P 4325 5900
-F 0 "D16" H 4325 6267 50  0000 C CNN
+F 0 "D12" H 4325 6267 50  0000 C CNN
 F 1 "LTRB-RASF" H 4325 6176 50  0000 C CNN
 F 2 "Package_TO_SOT_SMD:SOT-23-6" H 4125 5580 50  0001 L CNN
 F 3 "https://dammedia.osram.info/media/resource/hires/osram-dam-3950803/LTRB%20RASF_EN.pdf" H 4475 5900 50  0001 L CNN
@@ -1531,10 +1404,10 @@ F 4 "720-LTRBRASFA7231" H 4325 5900 50  0001 C CNN "Mouser"
 	1    0    0    -1  
 $EndComp
 $Comp
-L thermostat:LTRB-RASF D17
+L thermostat:LTRB-RASF D13
 U 1 1 5FAD1610
 P 4325 6200
-F 0 "D17" H 4325 6567 50  0000 C CNN
+F 0 "D13" H 4325 6567 50  0000 C CNN
 F 1 "LTRB-RASF" H 4325 6476 50  0000 C CNN
 F 2 "Package_TO_SOT_SMD:SOT-23-6" H 4125 5880 50  0001 L CNN
 F 3 "https://dammedia.osram.info/media/resource/hires/osram-dam-3950803/LTRB%20RASF_EN.pdf" H 4475 6200 50  0001 L CNN
@@ -1543,10 +1416,10 @@ F 4 "720-LTRBRASFA7231" H 4325 6200 50  0001 C CNN "Mouser"
 	1    0    0    -1  
 $EndComp
 $Comp
-L thermostat:LTRB-RASF D18
+L thermostat:LTRB-RASF D14
 U 1 1 5FAD1617
 P 4325 6500
-F 0 "D18" H 4325 6867 50  0000 C CNN
+F 0 "D14" H 4325 6867 50  0000 C CNN
 F 1 "LTRB-RASF" H 4325 6776 50  0000 C CNN
 F 2 "Package_TO_SOT_SMD:SOT-23-6" H 4125 6180 50  0001 L CNN
 F 3 "https://dammedia.osram.info/media/resource/hires/osram-dam-3950803/LTRB%20RASF_EN.pdf" H 4475 6500 50  0001 L CNN
@@ -1555,10 +1428,10 @@ F 4 "720-LTRBRASFA7231" H 4325 6500 50  0001 C CNN "Mouser"
 	1    0    0    -1  
 $EndComp
 $Comp
-L thermostat:LTRB-RASF D22
+L thermostat:LTRB-RASF D20
 U 1 1 5FAD161E
 P 5725 6500
-F 0 "D22" H 5725 6133 50  0000 C CNN
+F 0 "D20" H 5725 6133 50  0000 C CNN
 F 1 "LTRB-RASF" H 5725 6224 50  0000 C CNN
 F 2 "Package_TO_SOT_SMD:SOT-23-6" H 5525 6180 50  0001 L CNN
 F 3 "https://dammedia.osram.info/media/resource/hires/osram-dam-3950803/LTRB%20RASF_EN.pdf" H 5875 6500 50  0001 L CNN
@@ -1567,10 +1440,10 @@ F 4 "720-LTRBRASFA7231" H 5725 6500 50  0001 C CNN "Mouser"
 	-1   0    0    1   
 $EndComp
 $Comp
-L thermostat:LTRB-RASF D21
+L thermostat:LTRB-RASF D19
 U 1 1 5FAD1625
 P 5725 6200
-F 0 "D21" H 5725 5833 50  0000 C CNN
+F 0 "D19" H 5725 5833 50  0000 C CNN
 F 1 "LTRB-RASF" H 5725 5924 50  0000 C CNN
 F 2 "Package_TO_SOT_SMD:SOT-23-6" H 5525 5880 50  0001 L CNN
 F 3 "https://dammedia.osram.info/media/resource/hires/osram-dam-3950803/LTRB%20RASF_EN.pdf" H 5875 6200 50  0001 L CNN
@@ -1579,10 +1452,10 @@ F 4 "720-LTRBRASFA7231" H 5725 6200 50  0001 C CNN "Mouser"
 	-1   0    0    1   
 $EndComp
 $Comp
-L thermostat:LTRB-RASF D20
+L thermostat:LTRB-RASF D18
 U 1 1 5FAD162C
 P 5725 5900
-F 0 "D20" H 5725 5533 50  0000 C CNN
+F 0 "D18" H 5725 5533 50  0000 C CNN
 F 1 "LTRB-RASF" H 5725 5624 50  0000 C CNN
 F 2 "Package_TO_SOT_SMD:SOT-23-6" H 5525 5580 50  0001 L CNN
 F 3 "https://dammedia.osram.info/media/resource/hires/osram-dam-3950803/LTRB%20RASF_EN.pdf" H 5875 5900 50  0001 L CNN
@@ -1591,10 +1464,10 @@ F 4 "720-LTRBRASFA7231" H 5725 5900 50  0001 C CNN "Mouser"
 	-1   0    0    1   
 $EndComp
 $Comp
-L thermostat:LTRB-RASF D19
+L thermostat:LTRB-RASF D17
 U 1 1 5FAD1633
 P 5725 5600
-F 0 "D19" H 5725 5233 50  0000 C CNN
+F 0 "D17" H 5725 5233 50  0000 C CNN
 F 1 "LTRB-RASF" H 5725 5324 50  0000 C CNN
 F 2 "Package_TO_SOT_SMD:SOT-23-6" H 5525 5280 50  0001 L CNN
 F 3 "https://dammedia.osram.info/media/resource/hires/osram-dam-3950803/LTRB%20RASF_EN.pdf" H 5875 5600 50  0001 L CNN
@@ -1680,11 +1553,11 @@ Connection ~ 6025 6600
 Wire Wire Line
 	6025 6600 6025 7000
 $Comp
-L Device:R_US R22
+L Device:R_US R3
 U 1 1 5FAEB1F9
 P 4175 6800
-F 0 "R22" V 4075 6725 50  0000 L CNN
-F 1 "10k" V 4075 6575 50  0000 L CNN
+F 0 "R3" V 4075 6725 50  0000 L CNN
+F 1 "10k" V 4075 6550 50  0000 L CNN
 F 2 "Resistor_SMD:R_0805_2012Metric" V 4215 6790 50  0001 C CNN
 F 3 "~" H 4175 6800 50  0001 C CNN
 F 4 "1" H 4175 6800 50  0001 C CNN "Populate"
@@ -1700,33 +1573,7 @@ Wire Wire Line
 	4025 6800 4025 7000
 Wire Wire Line
 	4325 6800 4625 6800
-Wire Wire Line
-	5325 5100 5325 5150
-Wire Wire Line
-	5325 5150 5300 5150
 NoConn ~ 7175 4950
-$Comp
-L Connector_Generic:Conn_01x08 J?
-U 1 1 5FD85190
-P 10375 4325
-F 0 "J?" H 10455 4317 50  0000 L CNN
-F 1 "MAIN BOARD" H 10455 4226 50  0000 L CNN
-F 2 "Connector_Molex:Molex_MicroClasp_55935-0810_1x08_P2.00mm_Horizontal" H 10375 4325 50  0001 C CNN
-F 3 "https://www.molex.com/molex/products/part-detail/pcb_headers/0559350810" H 10375 4325 50  0001 C CNN
-	1    10375 4325
-	1    0    0    -1  
-$EndComp
-$Comp
-L Connector_Generic:Conn_01x08 J?
-U 1 1 5FD9F5EC
-P 9200 4425
-F 0 "J?" H 9280 4417 50  0000 L CNN
-F 1 "LED BOARD" H 9280 4326 50  0000 L CNN
-F 2 "Connector_Molex:Molex_MicroClasp_55935-0810_1x08_P2.00mm_Horizontal" H 9200 4425 50  0001 C CNN
-F 3 "https://www.molex.com/molex/products/part-detail/pcb_headers/0559350810" H 9200 4425 50  0001 C CNN
-	1    9200 4425
-	-1   0    0    1   
-$EndComp
 $Comp
 L Switch:SW_Push SW3
 U 1 1 5D6D34AF
@@ -1741,4 +1588,149 @@ F 6 "667-EVP-BFAC1A000" H 9600 5900 50  0001 C CNN "MPN"
 	1    9600 5900
 	1    0    0    -1  
 $EndComp
+$Comp
+L Connector_Generic:Conn_01x08 J4
+U 1 1 5FF603B7
+P 7725 5375
+F 0 "J4" H 7805 5367 50  0000 L CNN
+F 1 "E-PAPER DISPLAY" H 7805 5276 50  0000 L CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x08_P2.54mm_Vertical" H 7725 5375 50  0001 C CNN
+F 3 "~" H 7725 5375 50  0001 C CNN
+	1    7725 5375
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R_Small_US R5
+U 1 1 600E2AEF
+P 5625 1775
+F 0 "R5" H 5700 1750 50  0000 L CNN
+F 1 "7.3k" H 5700 1675 50  0000 L CNN
+F 2 "Resistor_SMD:R_0805_2012Metric" H 5625 1775 50  0001 C CNN
+F 3 "~" H 5625 1775 50  0001 C CNN
+F 4 "667-ERJ-PB6B7321V" H 5625 1775 50  0001 C CNN "Mouser"
+	1    5625 1775
+	1    0    0    -1  
+$EndComp
+$Comp
+L Memory_EEPROM:CAT24C256 U5
+U 1 1 6017B728
+P 9500 3125
+F 0 "U5" H 9500 3606 50  0000 C CNN
+F 1 "CAT24C256" H 9500 3515 50  0000 C CNN
+F 2 "Package_SO:SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.29x3mm" H 9500 3125 50  0001 C CNN
+F 3 "https://www.onsemi.cn/PowerSolutions/document/CAT24C256-D.PDF" H 9500 3125 50  0001 C CNN
+	1    9500 3125
+	1    0    0    -1  
+$EndComp
+Text Label 6100 5275 0    50   ~ 0
+RING_PWR_5V
+Text Label 6075 7425 0    50   ~ 0
+RING_GND
+Connection ~ 5425 7425
+Wire Wire Line
+	5425 7425 6075 7425
+Connection ~ 4025 7425
+Connection ~ 2500 7425
+Wire Wire Line
+	2500 7425 4025 7425
+Wire Wire Line
+	6100 5275 6025 5275
+Connection ~ 3100 5275
+Wire Wire Line
+	3100 5275 1100 5275
+Connection ~ 4025 5275
+Wire Wire Line
+	4025 5275 3100 5275
+Connection ~ 6025 5275
+Wire Wire Line
+	6025 5275 4025 5275
+Text Label 9000 4325 2    50   ~ 0
+RING_PWR_5V
+Text Label 9000 4425 2    50   ~ 0
+RING_GND
+Text Label 9000 4225 2    50   ~ 0
+RING_SDA
+Text Label 9000 4125 2    50   ~ 0
+RING_SCL
+Text Label 9900 3125 0    50   ~ 0
+GPIO3(SCL1)
+Text Label 9900 3025 0    50   ~ 0
+GPIO2(SDA1)
+Text Label 9100 3425 2    50   ~ 0
+GND
+Wire Wire Line
+	9100 3025 9100 3125
+Connection ~ 9100 3125
+Wire Wire Line
+	9100 3125 9100 3225
+Connection ~ 9100 3225
+Wire Wire Line
+	9100 3225 9100 3425
+Wire Wire Line
+	9500 3425 9100 3425
+Text Notes 8950 2525 0    50   ~ 0
+has on-chip pull-down resistors\naddress 80+3bit addr pins
+$Comp
+L Connector_Generic:Conn_01x08 J3
+U 1 1 6039E369
+P 9200 4425
+F 0 "J3" H 8950 4950 50  0000 L CNN
+F 1 "RING BOARD" H 8775 4875 50  0000 L CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x08_P2.54mm_Vertical" H 9200 4425 50  0001 C CNN
+F 3 "~" H 9200 4425 50  0001 C CNN
+	1    9200 4425
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector_Generic:Conn_01x08 J5
+U 1 1 603B06F4
+P 10275 4450
+F 0 "J5" H 10075 4975 50  0000 L CNN
+F 1 "MAIN BOARD" H 9875 4900 50  0000 L CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x08_P2.54mm_Vertical" H 10275 4450 50  0001 C CNN
+F 3 "~" H 10275 4450 50  0001 C CNN
+	1    10275 4450
+	1    0    0    -1  
+$EndComp
+Text Label 9000 4525 2    50   ~ 0
+RING_BTN1
+Text Label 9000 4625 2    50   ~ 0
+RING_BTN2
+Text Label 9000 4725 2    50   ~ 0
+RING_BTN3
+Text Label 10075 4350 2    50   ~ 0
+PWR_5V
+Text Label 10075 4450 2    50   ~ 0
+GND
+Text Label 10075 4250 2    50   ~ 0
+GPIO2(SDA1)
+Text Label 10075 4150 2    50   ~ 0
+GPIO3(SCL1)
+Text Label 10075 4550 2    50   ~ 0
+MAIN_BTN1
+Text Label 10075 4650 2    50   ~ 0
+MAIN_BTN2
+Text Label 10075 4750 2    50   ~ 0
+MAIN_BTN3
+NoConn ~ 10075 4850
+NoConn ~ 9000 4825
+Text Label 10050 5750 0    50   ~ 0
+RING_GND
+Text Label 9400 5600 2    50   ~ 0
+RING_BTN1
+Text Label 9400 5750 2    50   ~ 0
+RING_BTN2
+Text Label 9400 5900 2    50   ~ 0
+RING_BTN3
+Wire Wire Line
+	9800 5600 10050 5600
+Wire Wire Line
+	10050 5600 10050 5750
+Wire Wire Line
+	9800 5750 10050 5750
+Wire Wire Line
+	10050 5750 10050 5900
+Wire Wire Line
+	10050 5900 9800 5900
+Connection ~ 10050 5750
 $EndSCHEMATC

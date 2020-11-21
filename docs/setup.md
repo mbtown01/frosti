@@ -120,6 +120,9 @@ a need to update the images. When that time comes, we rely on regular
 ```bash
 # Build grafana on x86_64 (starting on the repository root)
 docker build --tag mbtowns/grafana:x86_64-latest -f docker/grafana/Dockerfile.x86_64 docker/
+
+# Build the x86 development environment
+docker build --build-arg RPT_DEV=true--no-cache -f docker/rpt/Dockerfile.x86_64 docker/
 ```
 
 ## QEMU / Build Raspberry Pi Images on x64

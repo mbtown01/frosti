@@ -90,3 +90,9 @@ Once the device is up and running, we assume it can reach out to the open
 internet to download updates and to check Griddy for current electricity
 cost information.  We also assume it can be reached on the local network
 to be seen by client browsers for remote configuration.
+
+## Future work
+
+Should look into running the PI w/o the SD card mounted
+
+https://mtyka.github.io/hardware/2018/10/09/read-only-pi.html#:~:text=One%20work%20around%20is%20to,makes%20it%20way%20less%20likely.

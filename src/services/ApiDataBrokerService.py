@@ -1,8 +1,10 @@
 from flask import Flask, Response, request, abort
+from flask_restx import Resource, Api, fields
 from flask_cors import CORS
 from functools import wraps
 from threading import Thread
 from random import getrandbits
+from logging import debug
 import uuid
 import json
 
@@ -17,6 +19,18 @@ from src.core.orm import OrmConfig, OrmProgram, OrmSchedule, \
 
 VALID_API_KEYS = list()
 
+FLASK_APP = Flask(__name__, static_url_path='')
+FLASK_RESTX_API = Api(FLASK_APP)
+FLASK_RESTX_NS = FLASK_RESTX_API.namespace(
+    "api/v2", description="Thermostat operations")
+
+# Some thoughts on how to do this well...
+# We could refactor service providers into a module-level thing similiar
+# to the way logging works.  All eyes can then point to a single service
+# provider and classes could either point requests for services there or
+# could "subscribe".  Not sure what that would look like, but it would clean
+# up the prob below of having ephemeral classes created that need services!
+
 
 def require_appkey(method):
     """ Decorator for identifying an API method that requets a key """
@@ -29,6 +43,24 @@ def require_appkey(method):
     return decoratedMethod
 
 
+@FLASK_RESTX_NS.route("/test/<string:resourceId>")
+@FLASK_RESTX_API.doc(
+    responses={404: "test not found"}, params={"resourceId": "test ID"})
+class Test(Resource):
+
+    def __init__(self, api=None, *args, **kwargs):
+        super().__init__(api, *args, **kwargs)
+
+    @FLASK_RESTX_API.doc(description="test description")
+    def get(self, resourceId):
+        debug('TEST get')
+        return [{'resourceId': 'test'}]
+
+    @FLASK_RESTX_API.doc(responses={204: "Todo deleted"})
+    def put(self, resource):
+        debug('PUT delete')
+
+
 class ApiDataBrokerService(ServiceConsumer):
     """ Dedicated to responding to the REST API for the thermostat and
     brokering any necessary data/events.
@@ -38,47 +70,45 @@ class ApiDataBrokerService(ServiceConsumer):
     """
 
     def __init__(self):
-        self.__app = Flask(__name__, static_url_path='')
-
-        self.__app.add_url_rule(
+        FLASK_APP.add_url_rule(
             '/api/v1/status', view_func=self.__apiStatus, methods=['GET'])
 
-        self.__app.add_url_rule(
+        FLASK_APP.add_url_rule(
             '/api/v1/config', view_func=self.__apiConfig,
             methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
-        self.__app.add_url_rule(
+        FLASK_APP.add_url_rule(
             '/api/v1/config/<name>', view_func=self.__apiConfig,
             methods=['GET', 'PUT', 'PATCH', 'DELETE'])
-        self.__app.add_url_rule(
+        FLASK_APP.add_url_rule(
             '/api/v1/programs', view_func=self.__apiPrograms,
             methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
-        self.__app.add_url_rule(
+        FLASK_APP.add_url_rule(
             '/api/v1/programs/<name>', view_func=self.__apiPrograms,
             methods=['GET', 'PUT', 'PATCH', 'DELETE'])
-        self.__app.add_url_rule(
+        FLASK_APP.add_url_rule(
             '/api/v1/schedules', view_func=self.__apiSchedules,
             methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
-        self.__app.add_url_rule(
+        FLASK_APP.add_url_rule(
             '/api/v1/schedules/<name>', view_func=self.__apiSchedules,
             methods=['GET', 'PUT', 'PATCH', 'DELETE'])
-        self.__app.add_url_rule(
+        FLASK_APP.add_url_rule(
             '/api/v1/actions', view_func=self.__apiActions,
             methods=['GET'])
-        self.__app.add_url_rule(
+        FLASK_APP.add_url_rule(
             '/api/v1/actions/<name>', view_func=self.__apiActions,
             methods=['POST'])
 
-        self.__app.add_url_rule(
+        FLASK_APP.add_url_rule(
             '/api/v1/action/stop',
             view_func=self.__apiActionStop, methods=['POST'])
-        self.__app.add_url_rule(
+        FLASK_APP.add_url_rule(
             '/api/v1/action/nextMode',
             view_func=self.__apiActionNextMode, methods=['POST'])
-        self.__app.add_url_rule(
+        FLASK_APP.add_url_rule(
             '/api/v1/action/changeComfort',
             view_func=self.__apiActionChangeComfort, methods=['POST'])
 
-        self.__cors = CORS(self.__app)
+        self.__cors = CORS(FLASK_APP)
 
         self.__flaskThread = Thread(
             target=self.__flaskEntryPoint,
@@ -357,7 +387,7 @@ class ApiDataBrokerService(ServiceConsumer):
 
     def __flaskEntryPoint(self):
         try:
-            self.__app.run("0.0.0.0", 5000)
+            FLASK_APP.run("0.0.0.0", 5000)
             log.error("Somehow we exited the Flask thread")
         except:
             handleException("starting flask")
