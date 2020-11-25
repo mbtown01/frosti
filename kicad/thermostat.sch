@@ -4,63 +4,63 @@ EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
-Title "PoE Thermostat"
-Date "2019-08-24"
+Title "Thermostat"
+Date "2020-11-25"
 Rev "1"
-Comp "Madllama Electronics"
+Comp ""
 Comment1 ""
 Comment2 ""
 Comment3 ""
 Comment4 ""
 $EndDescr
 Wire Wire Line
-	2600 1100 2400 1100
+	2200 1075 2000 1075
 Wire Wire Line
-	2600 1200 2400 1200
+	2200 1175 2000 1175
 Wire Wire Line
-	2500 2700 2400 2700
+	2100 2675 2000 2675
 Wire Wire Line
-	2500 2500 2400 2500
-Connection ~ 2500 2700
+	2100 2475 2000 2475
+Connection ~ 2100 2675
 Wire Wire Line
-	2500 2000 2400 2000
-Connection ~ 2500 2500
-Connection ~ 2500 2000
+	2100 1975 2000 1975
+Connection ~ 2100 2475
+Connection ~ 2100 1975
 Wire Wire Line
-	1800 3000 1900 3000
+	1400 2975 1500 2975
 Wire Wire Line
-	1800 2300 1900 2300
-Connection ~ 1800 3000
+	1400 2275 1500 2275
+Connection ~ 1400 2975
 Wire Wire Line
-	1700 1100 1900 1100
+	1300 1075 1500 1075
 Wire Wire Line
-	1800 1500 1900 1500
-Connection ~ 1800 2300
-Text Label 1900 1200 2    50   ~ 0
+	1400 1475 1500 1475
+Connection ~ 1400 2275
+Text Label 1500 1175 2    50   ~ 0
 MAIN_SDA
-Text Label 1900 1300 2    50   ~ 0
+Text Label 1500 1275 2    50   ~ 0
 MAIN_SCL
 Wire Wire Line
-	2500 1300 2400 1300
+	2100 1275 2000 1275
 Wire Wire Line
-	2600 1100 2600 1200
+	2200 1075 2200 1175
 Wire Wire Line
-	2500 2500 2500 2700
+	2100 2475 2100 2675
 Wire Wire Line
-	1800 2300 1800 3000
-Text Label 2600 750  0    50   ~ 0
+	1400 2275 1400 2975
+Text Label 2200 725  0    50   ~ 0
 PWR_5V
-Text Label 1700 750  0    50   ~ 0
+Text Label 1300 725  0    50   ~ 0
 PWR_3.3V
-Connection ~ 2600 1100
+Connection ~ 2200 1075
 Wire Wire Line
-	2600 1100 2600 750 
+	2200 1075 2200 725 
 Wire Wire Line
-	1700 1100 1700 750 
+	1300 1075 1300 725 
 Wire Wire Line
-	2500 2700 2500 3200
+	2100 2675 2100 3175
 Wire Wire Line
-	1800 3000 1800 3200
+	1400 2975 1400 3175
 Text Label 4975 1550 2    50   ~ 0
 HVAC_PWR(RED)
 Text Label 4975 1450 2    50   ~ 0
@@ -99,9 +99,9 @@ Text Label 4375 2325 0    50   ~ 0
 GND
 Text Label 4375 2225 0    50   ~ 0
 PWR_5V
-Text Label 4375 2125 0    50   ~ 0
-MAIN_SDA
 Text Label 4375 2025 0    50   ~ 0
+MAIN_SDA
+Text Label 4375 2125 0    50   ~ 0
 MAIN_SCL
 Wire Wire Line
 	4375 2325 4175 2325
@@ -1459,9 +1459,9 @@ Text Label 9000 4325 2    50   ~ 0
 RING_PWR_5V
 Text Label 9000 4425 2    50   ~ 0
 RING_GND
-Text Label 9000 4225 2    50   ~ 0
-RING_SDA
 Text Label 9000 4125 2    50   ~ 0
+RING_SDA
+Text Label 9000 4225 2    50   ~ 0
 RING_SCL
 Text Label 9900 3125 0    50   ~ 0
 MAIN_SCL
@@ -1513,9 +1513,9 @@ Text Label 10075 4350 2    50   ~ 0
 PWR_5V
 Text Label 10075 4450 2    50   ~ 0
 GND
-Text Label 10075 4250 2    50   ~ 0
-MAIN_SDA
 Text Label 10075 4150 2    50   ~ 0
+MAIN_SDA
+Text Label 10075 4250 2    50   ~ 0
 MAIN_SCL
 Text Label 10075 4550 2    50   ~ 0
 MAIN_BTN1
@@ -1546,15 +1546,15 @@ Text Label 9900 3225 0    50   ~ 0
 MAIN_STRG_WP
 Text Label 5625 1675 1    50   ~ 0
 GND
-Text Label 2150 3275 3    50   ~ 0
+Text Label 1750 3250 3    50   ~ 0
 GND
 Wire Wire Line
-	1800 3200 2150 3200
+	1400 3175 1750 3175
 Wire Wire Line
-	2150 3275 2150 3200
-Connection ~ 2150 3200
+	1750 3250 1750 3175
+Connection ~ 1750 3175
 Wire Wire Line
-	2150 3200 2500 3200
+	1750 3175 2100 3175
 Wire Wire Line
 	7875 1350 7875 1850
 Wire Wire Line
@@ -1569,17 +1569,17 @@ Text Label 9000 4825 2    50   ~ 0
 RING_GND
 Text Label 10075 4850 2    50   ~ 0
 GND
-Text Label 2400 1400 0    50   ~ 0
+Text Label 2000 1375 0    50   ~ 0
 MAIN_EINK_RST
-Text Label 1900 2000 2    50   ~ 0
+Text Label 1500 1975 2    50   ~ 0
 MAIN_EINK_MOSI
-Text Label 1900 2200 2    50   ~ 0
+Text Label 1500 2175 2    50   ~ 0
 MAIN_EINK_SCLK
-Text Label 1900 1600 2    50   ~ 0
+Text Label 1500 1575 2    50   ~ 0
 MAIN_EINK_DC
-Text Label 1900 1400 2    50   ~ 0
+Text Label 1500 1375 2    50   ~ 0
 MAIN_EINK_CS
-Text Label 2400 1500 0    50   ~ 0
+Text Label 2000 1475 0    50   ~ 0
 MAIN_EINK_BUSY
 Text Label 4175 2625 0    50   ~ 0
 PWR_3.3V
@@ -1597,52 +1597,61 @@ Text Label 4175 2825 0    50   ~ 0
 MAIN_EINK_MOSI
 Text Label 4175 2925 0    50   ~ 0
 MAIN_EINK_SCLK
-Text Label 1900 2900 2    50   ~ 0
+Text Label 1500 2875 2    50   ~ 0
 MAIN_FAN_RIGHT
-Text Label 1900 2600 2    50   ~ 0
+Text Label 1500 2575 2    50   ~ 0
 MAIN_HEAT_LEFT
-Text Label 1900 2700 2    50   ~ 0
+Text Label 1500 2675 2    50   ~ 0
 MAIN_HEAT_RIGHT
-Text Label 1900 2800 2    50   ~ 0
+Text Label 1500 2775 2    50   ~ 0
 MAIN_COOL_RIGHT
-Text Label 1900 2500 2    50   ~ 0
+Text Label 1500 2475 2    50   ~ 0
 MAIN_COOL_LEFT
 Wire Wire Line
-	1800 1500 1800 2300
+	1400 1475 1400 2275
 Wire Wire Line
-	2500 2000 2500 2500
+	2100 1975 2100 2475
 $Comp
 L Connector_Generic:Conn_02x20_Odd_Even CONN1
 U 1 1 59AD464A
-P 2100 2000
-F 0 "CONN1" H 2150 3117 50  0000 C CNN
-F 1 "Conn_02x20_Odd_Even" H 2150 3026 50  0000 C CNN
-F 2 "Connector_PinSocket_2.54mm:PinSocket_2x20_P2.54mm_Vertical" H -2750 1050 50  0001 C CNN
-F 3 "https://www.mouser.com/datasheet/2/445/61304021821-1626922.pdf" H -2750 1050 50  0001 C CNN
-F 4 "485-2243" H 2100 2000 50  0001 C CNN "Mouser"
-F 5 "1" H 2100 2000 50  0001 C CNN "Populate"
-F 6 "485-2243" H 2100 2000 50  0001 C CNN "MPN"
-	1    2100 2000
+P 1700 1975
+F 0 "CONN1" H 1750 3092 50  0000 C CNN
+F 1 "Conn_02x20_Odd_Even" H 1750 3001 50  0000 C CNN
+F 2 "Connector_PinSocket_2.54mm:PinSocket_2x20_P2.54mm_Vertical" H -3150 1025 50  0001 C CNN
+F 3 "https://www.mouser.com/datasheet/2/445/61304021821-1626922.pdf" H -3150 1025 50  0001 C CNN
+F 4 "485-2243" H 1700 1975 50  0001 C CNN "Mouser"
+F 5 "1" H 1700 1975 50  0001 C CNN "Populate"
+F 6 "485-2243" H 1700 1975 50  0001 C CNN "MPN"
+	1    1700 1975
 	1    0    0    -1  
 $EndComp
-Text Label 2400 2600 0    50   ~ 0
+Text Label 2000 2575 0    50   ~ 0
 MAIN_FAN_LEFT
-Text Label 2400 3000 0    50   ~ 0
+Text Label 2000 2975 0    50   ~ 0
 MAIN_HEAT_FDBK
-Text Label 2400 2900 0    50   ~ 0
+Text Label 2000 2875 0    50   ~ 0
 MAIN_COOL_FDBK
-Text Label 2400 2800 0    50   ~ 0
+Text Label 2000 2775 0    50   ~ 0
 MAIN_FAN_FDBK
-Text Label 2400 1800 0    50   ~ 0
+Text Label 2000 1775 0    50   ~ 0
 MAIN_BTN1
-Text Label 1900 1700 2    50   ~ 0
+Text Label 1500 1675 2    50   ~ 0
 MAIN_BTN2
-Text Label 1900 1800 2    50   ~ 0
+Text Label 1500 1775 2    50   ~ 0
 MAIN_BTN3
 Wire Wire Line
-	2500 1300 2500 2000
+	2100 1275 2100 1975
 Text Label 9500 2825 0    50   ~ 0
 PWR_5V
-Text Label 2400 2100 0    50   ~ 0
+Text Label 2000 2075 0    50   ~ 0
 MAIN_STRG_WP
+NoConn ~ 2000 1875
+NoConn ~ 2000 2175
+NoConn ~ 2000 2275
+NoConn ~ 2000 2375
+NoConn ~ 1500 2075
+NoConn ~ 1500 1875
+NoConn ~ 2000 1575
+NoConn ~ 2000 1675
+NoConn ~ 1500 2375
 $EndSCHEMATC
