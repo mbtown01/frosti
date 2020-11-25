@@ -18,8 +18,6 @@ Wire Wire Line
 Wire Wire Line
 	2600 1200 2400 1200
 Wire Wire Line
-	2500 1300 2500 1700
-Wire Wire Line
 	2500 2700 2400 2700
 Wire Wire Line
 	2500 2500 2400 2500
@@ -27,148 +25,29 @@ Connection ~ 2500 2700
 Wire Wire Line
 	2500 2000 2400 2000
 Connection ~ 2500 2500
-Wire Wire Line
-	2500 1700 2400 1700
 Connection ~ 2500 2000
 Wire Wire Line
 	1800 3000 1900 3000
 Wire Wire Line
-	1800 1500 1800 2300
-Wire Wire Line
 	1800 2300 1900 2300
 Connection ~ 1800 3000
-Wire Wire Line
-	1700 1900 1900 1900
 Wire Wire Line
 	1700 1100 1900 1100
 Wire Wire Line
 	1800 1500 1900 1500
 Connection ~ 1800 2300
-Wire Wire Line
-	1900 1200 750  1200
-Wire Wire Line
-	750  1300 1900 1300
-Wire Wire Line
-	750  1400 1900 1400
-Wire Wire Line
-	1900 1600 750  1600
-Wire Wire Line
-	750  1700 1900 1700
-Wire Wire Line
-	750  1800 1900 1800
-Wire Wire Line
-	1900 2000 750  2000
-Wire Wire Line
-	750  2100 1900 2100
-Wire Wire Line
-	750  2200 1900 2200
-Wire Wire Line
-	1900 2400 750  2400
-Wire Wire Line
-	750  2500 1900 2500
-Wire Wire Line
-	750  2600 1900 2600
-Wire Wire Line
-	1900 2700 750  2700
-Wire Wire Line
-	750  2800 1900 2800
-Wire Wire Line
-	750  2900 1900 2900
-Wire Wire Line
-	2400 2800 3450 2800
-Wire Wire Line
-	2400 2900 3450 2900
-Wire Wire Line
-	2400 2300 3450 2300
-Wire Wire Line
-	2400 2400 3450 2400
-Wire Wire Line
-	2400 2100 3450 2100
-Wire Wire Line
-	2400 2200 3450 2200
-Wire Wire Line
-	2400 1800 3450 1800
-Wire Wire Line
-	2400 1900 3450 1900
-Wire Wire Line
-	2400 1500 3450 1500
-Wire Wire Line
-	2400 1600 3450 1600
-Wire Wire Line
-	2400 1400 3450 1400
-Wire Wire Line
-	2400 2600 3450 2600
-Text Label 750  1200 0    50   ~ 0
-GPIO2(SDA1)
-Text Label 750  1300 0    50   ~ 0
-GPIO3(SCL1)
-Text Label 750  1400 0    50   ~ 0
-GPIO4(GCLK)
-Text Label 750  1600 0    50   ~ 0
-GPIO17(GEN0)
-Text Label 750  1700 0    50   ~ 0
-GPIO27(GEN2)
-Text Label 750  1800 0    50   ~ 0
-GPIO22(GEN3)
-Text Label 750  2000 0    50   ~ 0
-GPIO10(SPI0_MOSI)
-Text Label 750  2100 0    50   ~ 0
-GPIO9(SPI0_MISO)
-Text Label 750  2200 0    50   ~ 0
-GPIO11(SPI0_SCK)
-Text Label 750  2400 0    50   ~ 0
-ID_SD
-Text Label 750  2500 0    50   ~ 0
-GPIO5
-Text Label 750  2600 0    50   ~ 0
-GPIO6
-Text Label 750  2700 0    50   ~ 0
-GPIO13(PWM1)
-Text Label 750  2800 0    50   ~ 0
-GPIO19(SPI1_MISO)
-Text Label 750  2900 0    50   ~ 0
-GPIO26
-Text Label 3450 2900 2    50   ~ 0
-GPIO20(SPI1_MOSI)
-Text Label 3450 2800 2    50   ~ 0
-GPIO16
-Text Label 3450 2600 2    50   ~ 0
-GPIO12(PWM0)
-Text Label 3450 2400 2    50   ~ 0
-ID_SC
-Text Label 3450 2300 2    50   ~ 0
-GPIO7(SPI1_CE_N)
-Text Label 3450 2200 2    50   ~ 0
-GPIO8(SPI0_CE_N)
-Text Label 3450 2100 2    50   ~ 0
-GPIO25(GEN6)
-Text Label 3450 1900 2    50   ~ 0
-GPIO24(GEN5)
-Text Label 3450 1800 2    50   ~ 0
-GPIO23(GEN4)
-Text Label 3450 1600 2    50   ~ 0
-GPIO18(GEN1)(PWM0)
-Text Label 3450 1500 2    50   ~ 0
-GPIO15(RXD0)
-Text Label 3450 1400 2    50   ~ 0
-GPIO14(TXD0)
+Text Label 1900 1200 2    50   ~ 0
+MAIN_SDA
+Text Label 1900 1300 2    50   ~ 0
+MAIN_SCL
 Wire Wire Line
 	2500 1300 2400 1300
-Connection ~ 2500 1700
-Text Label 3450 3000 2    50   ~ 0
-GPIO21(SPI1_SCK)
 Wire Wire Line
 	2600 1100 2600 1200
 Wire Wire Line
 	2500 2500 2500 2700
 Wire Wire Line
-	2500 2000 2500 2500
-Wire Wire Line
-	1700 1100 1700 1900
-Wire Wire Line
 	1800 2300 1800 3000
-Wire Wire Line
-	2500 1700 2500 2000
 Text Label 2600 750  0    50   ~ 0
 PWR_5V
 Text Label 1700 750  0    50   ~ 0
@@ -178,29 +57,26 @@ Wire Wire Line
 	2600 1100 2600 750 
 Wire Wire Line
 	1700 1100 1700 750 
-Connection ~ 1700 1100
 Wire Wire Line
 	2500 2700 2500 3200
 Wire Wire Line
 	1800 3000 1800 3200
-Wire Wire Line
-	1800 3200 2150 3200
-Text Label 4750 1450 2    50   ~ 0
+Text Label 4975 1550 2    50   ~ 0
 HVAC_PWR(RED)
-Text Label 4750 1350 2    50   ~ 0
+Text Label 4975 1450 2    50   ~ 0
 HVAC_HEAT(WHITE)
-Text Label 4750 1250 2    50   ~ 0
+Text Label 4975 1350 2    50   ~ 0
 HVAC_COOL(YELLOW)
-Text Label 4750 1150 2    50   ~ 0
+Text Label 4975 1250 2    50   ~ 0
 HVAC_FAN(GREEN)
 Wire Wire Line
-	4750 1450 3950 1450
+	4975 1550 4175 1550
 Wire Wire Line
-	3950 1350 4750 1350
+	4175 1450 4975 1450
 Wire Wire Line
-	4750 1250 3950 1250
+	4975 1350 4175 1350
 Wire Wire Line
-	4750 1150 3950 1150
+	4975 1250 4175 1250
 $Comp
 L thermostat:AGQ210A03 RELAY2
 U 1 1 5D5EC4AE
@@ -219,20 +95,20 @@ Text Label 6825 1750 2    50   ~ 0
 HVAC_COOL(YELLOW)
 Text Label 6825 2250 2    50   ~ 0
 HVAC_HEAT(WHITE)
-Text Label 4150 2225 0    50   ~ 0
+Text Label 4375 2325 0    50   ~ 0
 GND
-Text Label 4150 2125 0    50   ~ 0
+Text Label 4375 2225 0    50   ~ 0
 PWR_5V
-Text Label 4150 2025 0    50   ~ 0
-GPIO2(SDA1)
-Text Label 4150 1925 0    50   ~ 0
-GPIO3(SCL1)
+Text Label 4375 2125 0    50   ~ 0
+MAIN_SDA
+Text Label 4375 2025 0    50   ~ 0
+MAIN_SCL
 Wire Wire Line
-	4150 2225 3950 2225
+	4375 2325 4175 2325
 Wire Wire Line
-	4150 2125 3950 2125
+	4375 2225 4175 2225
 Wire Wire Line
-	3950 2025 4150 2025
+	4175 2125 4375 2125
 $Comp
 L thermostat:LM2596S-12-RENUM IC1
 U 1 1 5D6B23A7
@@ -250,21 +126,21 @@ $EndComp
 $Comp
 L Connector:Screw_Terminal_01x05 J1
 U 1 1 5D6C475A
-P 3750 1250
-F 0 "J1" H 3300 825 50  0000 L CNN
-F 1 "Screw_Terminal_01x05" H 2950 900 50  0000 L CNN
-F 2 "project_footprints:CUI_TB004-508-05BE" H 3750 1250 50  0001 C CNN
-F 3 "https://www.mouser.com/datasheet/2/670/tb004-508-1550640.pdf" H 3750 1250 50  0001 C CNN
-F 4 "490-TB004-508-05BE" H 3750 1250 50  0001 C CNN "Mouser"
-F 5 "1" H 3750 1250 50  0001 C CNN "Populate"
-F 6 "490-TB004-508-05BE" H 3750 1250 50  0001 C CNN "MPN"
-	1    3750 1250
+P 3975 1350
+F 0 "J1" H 3525 925 50  0000 L CNN
+F 1 "Screw_Terminal_01x05" H 3175 1000 50  0000 L CNN
+F 2 "project_footprints:CUI_TB004-508-05BE" H 3975 1350 50  0001 C CNN
+F 3 "https://www.mouser.com/datasheet/2/670/tb004-508-1550640.pdf" H 3975 1350 50  0001 C CNN
+F 4 "490-TB004-508-05BE" H 3975 1350 50  0001 C CNN "Mouser"
+F 5 "1" H 3975 1350 50  0001 C CNN "Populate"
+F 6 "490-TB004-508-05BE" H 3975 1350 50  0001 C CNN "MPN"
+	1    3975 1350
 	-1   0    0    1   
 $EndComp
-Text Label 4750 1050 2    50   ~ 0
+Text Label 4975 1150 2    50   ~ 0
 HVAC_COMMON
 Wire Wire Line
-	4750 1050 3950 1050
+	4975 1150 4175 1150
 Text Label 1400 3875 2    50   ~ 0
 HVAC_PWR(RED)
 $Comp
@@ -359,8 +235,6 @@ F 6 "667-EVP-BFAC1A000" H 9600 5600 50  0001 C CNN "MPN"
 	1    9600 5600
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	2400 3000 3450 3000
 $Comp
 L Device:D_Small D5
 U 1 1 5D6DC8DD
@@ -413,20 +287,6 @@ Text Label 6825 1250 2    50   ~ 0
 HVAC_FAN(GREEN)
 Text Notes 8200 725  0    50   ~ 0
 Based on https://www.electroschematics.com/bmp280-diy-project-primer/
-$Comp
-L thermostat:GND #PWR02
-U 1 1 5E0DA227
-P 2150 3200
-F 0 "#PWR02" H 2150 2950 50  0001 C CNN
-F 1 "GND" H 2155 3027 50  0000 C CNN
-F 2 "" H 2150 3200 50  0000 C CNN
-F 3 "" H 2150 3200 50  0000 C CNN
-	1    2150 3200
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	2150 3200 2500 3200
-Connection ~ 2150 3200
 Text Label 3700 3875 0    50   ~ 0
 PWR_5V
 Text Label 3700 4575 0    50   ~ 0
@@ -453,17 +313,6 @@ F 6 "710-150080GS75000" H 5625 2025 50  0001 C CNN "MPN"
 $EndComp
 Text Label 5625 2175 3    50   ~ 0
 PWR_5V
-$Comp
-L thermostat:GND #PWR05
-U 1 1 5E32CA24
-P 5625 1675
-F 0 "#PWR05" H 5625 1425 50  0001 C CNN
-F 1 "GND" H 5630 1502 50  0000 C CNN
-F 2 "" H 5625 1675 50  0000 C CNN
-F 3 "" H 5625 1675 50  0000 C CNN
-	1    5625 1675
-	-1   0    0    1   
-$EndComp
 NoConn ~ 7325 1950
 Connection ~ 1700 3875
 Wire Wire Line
@@ -471,17 +320,17 @@ Wire Wire Line
 $Comp
 L Connector_Generic:Conn_01x04 J2
 U 1 1 5E5BDB33
-P 3750 2125
-F 0 "J2" H 3325 1575 50  0000 R CNN
-F 1 "Conn_01x04" H 3450 1675 50  0000 R CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical" H 3750 2125 50  0001 C CNN
-F 3 "~" H 3750 2125 50  0001 C CNN
-F 4 "0" H 3750 2125 50  0001 C CNN "Populate"
-	1    3750 2125
+P 3975 2225
+F 0 "J2" H 3550 1675 50  0000 R CNN
+F 1 "Conn_01x04" H 3675 1775 50  0000 R CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical" H 3975 2225 50  0001 C CNN
+F 3 "~" H 3975 2225 50  0001 C CNN
+F 4 "0" H 3975 2225 50  0001 C CNN "Populate"
+	1    3975 2225
 	-1   0    0    1   
 $EndComp
 Wire Wire Line
-	3950 1925 4150 1925
+	4175 2025 4375 2025
 Text Label 10475 1900 0    50   ~ 0
 GND
 Wire Wire Line
@@ -583,9 +432,9 @@ F 6 "667-ERJ-PB6B1002V" H 9375 1900 50  0001 C CNN "Mouser"
 	1    0    0    -1  
 $EndComp
 Text Label 9225 1750 3    50   ~ 0
-GPIO3(SCL1)
+MAIN_SCL
 Text Label 8925 1750 3    50   ~ 0
-GPIO2(SDA1)
+MAIN_SDA
 Text Label 9925 850  2    50   ~ 0
 PWR_3.3V
 Wire Wire Line
@@ -640,44 +489,11 @@ Wire Wire Line
 Wire Wire Line
 	10475 2050 10475 1900
 Connection ~ 10475 1900
-Text Notes 3850 1800 0    50   ~ 10
+Text Notes 4075 1900 0    50   ~ 10
 ## LCD addr=0x27 ##
 Text Notes 9175 950  0    50   ~ 10
 ## BME addr=0x76 ##
 NoConn ~ 6825 1950
-NoConn ~ 1900 1400
-NoConn ~ 2400 1400
-NoConn ~ 2400 1500
-NoConn ~ 2400 1600
-NoConn ~ 2400 1800
-NoConn ~ 2400 1900
-NoConn ~ 1900 2100
-NoConn ~ 1900 2200
-$Comp
-L Connector_Generic:Conn_02x20_Odd_Even CONN1
-U 1 1 59AD464A
-P 2100 2000
-F 0 "CONN1" H 2150 3117 50  0000 C CNN
-F 1 "Conn_02x20_Odd_Even" H 2150 3026 50  0000 C CNN
-F 2 "Connector_PinSocket_2.54mm:PinSocket_2x20_P2.54mm_Vertical" H -2750 1050 50  0001 C CNN
-F 3 "https://www.mouser.com/datasheet/2/445/61304021821-1626922.pdf" H -2750 1050 50  0001 C CNN
-F 4 "485-2243" H 2100 2000 50  0001 C CNN "Mouser"
-F 5 "1" H 2100 2000 50  0001 C CNN "Populate"
-F 6 "485-2243" H 2100 2000 50  0001 C CNN "MPN"
-	1    2100 2000
-	1    0    0    -1  
-$EndComp
-NoConn ~ 1900 2000
-NoConn ~ 2400 2200
-NoConn ~ 2400 2300
-NoConn ~ 2400 2400
-NoConn ~ 1900 2400
-NoConn ~ 1900 2500
-NoConn ~ 1900 2700
-NoConn ~ 1900 1600
-NoConn ~ 1900 1700
-NoConn ~ 1900 1800
-NoConn ~ 2400 2100
 $Comp
 L Device:R_US R14
 U 1 1 5E62AE45
@@ -706,13 +522,13 @@ F 3 "" H 7875 3150 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 Text Label 7025 3550 3    50   ~ 0
-GPIO16
+MAIN_HEAT_LEFT
 Text Label 7125 3550 3    50   ~ 0
-GPIO19(SPI1_MISO)
+MAIN_HEAT_RIGHT
 Text Label 7225 3550 3    50   ~ 0
-GPIO20(SPI1_MOSI)
+MAIN_COOL_RIGHT
 Text Label 6825 3550 3    50   ~ 0
-GPIO12(PWM0)
+MAIN_FAN_LEFT
 NoConn ~ 6825 1450
 NoConn ~ 7325 1450
 $Comp
@@ -746,9 +562,9 @@ F 6 "769-AGQ210A03Z" H 7075 2300 50  0001 C CNN "MPN"
 	1    0    0    -1  
 $EndComp
 Text Label 6925 3550 3    50   ~ 0
-GPIO21(SPI1_SCK)
+MAIN_COOL_LEFT
 Text Label 7325 3550 3    50   ~ 0
-GPIO6
+MAIN_FAN_RIGHT
 NoConn ~ 7425 3550
 Text Label 7825 775  2    50   ~ 0
 PWR_5V
@@ -954,14 +770,10 @@ Connection ~ 7825 875
 Wire Wire Line
 	7325 1350 7875 1350
 Wire Wire Line
-	7875 1350 7875 1850
-Wire Wire Line
 	7875 2350 7325 2350
 Wire Wire Line
 	7325 1850 7875 1850
 Connection ~ 7875 1850
-Wire Wire Line
-	7875 1850 7875 2350
 Wire Wire Line
 	7875 2350 7875 3150
 Connection ~ 7875 2350
@@ -1573,7 +1385,6 @@ Wire Wire Line
 	4025 6800 4025 7000
 Wire Wire Line
 	4325 6800 4625 6800
-NoConn ~ 7175 4950
 $Comp
 L Switch:SW_Push SW3
 U 1 1 5D6D34AF
@@ -1591,13 +1402,13 @@ $EndComp
 $Comp
 L Connector_Generic:Conn_01x08 J4
 U 1 1 5FF603B7
-P 7725 5375
-F 0 "J4" H 7805 5367 50  0000 L CNN
-F 1 "E-PAPER DISPLAY" H 7805 5276 50  0000 L CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x08_P2.54mm_Vertical" H 7725 5375 50  0001 C CNN
-F 3 "~" H 7725 5375 50  0001 C CNN
-	1    7725 5375
-	1    0    0    -1  
+P 3975 3025
+F 0 "J4" H 4055 3017 50  0000 L CNN
+F 1 "E-PAPER DISPLAY" H 4055 2926 50  0000 L CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x08_P2.54mm_Vertical" H 3975 3025 50  0001 C CNN
+F 3 "~" H 3975 3025 50  0001 C CNN
+	1    3975 3025
+	-1   0    0    1   
 $EndComp
 $Comp
 L Device:R_Small_US R5
@@ -1653,9 +1464,9 @@ RING_SDA
 Text Label 9000 4125 2    50   ~ 0
 RING_SCL
 Text Label 9900 3125 0    50   ~ 0
-GPIO3(SCL1)
+MAIN_SCL
 Text Label 9900 3025 0    50   ~ 0
-GPIO2(SDA1)
+MAIN_SDA
 Text Label 9100 3425 2    50   ~ 0
 GND
 Wire Wire Line
@@ -1703,17 +1514,15 @@ PWR_5V
 Text Label 10075 4450 2    50   ~ 0
 GND
 Text Label 10075 4250 2    50   ~ 0
-GPIO2(SDA1)
+MAIN_SDA
 Text Label 10075 4150 2    50   ~ 0
-GPIO3(SCL1)
+MAIN_SCL
 Text Label 10075 4550 2    50   ~ 0
 MAIN_BTN1
 Text Label 10075 4650 2    50   ~ 0
 MAIN_BTN2
 Text Label 10075 4750 2    50   ~ 0
 MAIN_BTN3
-NoConn ~ 10075 4850
-NoConn ~ 9000 4825
 Text Label 10050 5750 0    50   ~ 0
 RING_GND
 Text Label 9400 5600 2    50   ~ 0
@@ -1733,4 +1542,107 @@ Wire Wire Line
 Wire Wire Line
 	10050 5900 9800 5900
 Connection ~ 10050 5750
+Text Label 9900 3225 0    50   ~ 0
+MAIN_STRG_WP
+Text Label 5625 1675 1    50   ~ 0
+GND
+Text Label 2150 3275 3    50   ~ 0
+GND
+Wire Wire Line
+	1800 3200 2150 3200
+Wire Wire Line
+	2150 3275 2150 3200
+Connection ~ 2150 3200
+Wire Wire Line
+	2150 3200 2500 3200
+Wire Wire Line
+	7875 1350 7875 1850
+Wire Wire Line
+	7875 1850 7875 2350
+Text Label 7325 2250 0    50   ~ 0
+MAIN_HEAT_FDBK
+Text Label 7325 1750 0    50   ~ 0
+MAIN_COOL_FDBK
+Text Label 7325 1250 0    50   ~ 0
+MAIN_FAN_FDBK
+Text Label 9000 4825 2    50   ~ 0
+RING_GND
+Text Label 10075 4850 2    50   ~ 0
+GND
+Text Label 2400 1400 0    50   ~ 0
+MAIN_EINK_RST
+Text Label 1900 2000 2    50   ~ 0
+MAIN_EINK_MOSI
+Text Label 1900 2200 2    50   ~ 0
+MAIN_EINK_SCLK
+Text Label 1900 1600 2    50   ~ 0
+MAIN_EINK_DC
+Text Label 1900 1400 2    50   ~ 0
+MAIN_EINK_CS
+Text Label 2400 1500 0    50   ~ 0
+MAIN_EINK_BUSY
+Text Label 4175 2625 0    50   ~ 0
+PWR_3.3V
+Text Label 4175 2725 0    50   ~ 0
+GND
+Text Label 4175 3325 0    50   ~ 0
+MAIN_EINK_BUSY
+Text Label 4175 3025 0    50   ~ 0
+MAIN_EINK_CS
+Text Label 4175 3125 0    50   ~ 0
+MAIN_EINK_DC
+Text Label 4175 3225 0    50   ~ 0
+MAIN_EINK_RST
+Text Label 4175 2825 0    50   ~ 0
+MAIN_EINK_MOSI
+Text Label 4175 2925 0    50   ~ 0
+MAIN_EINK_SCLK
+Text Label 1900 2900 2    50   ~ 0
+MAIN_FAN_RIGHT
+Text Label 1900 2600 2    50   ~ 0
+MAIN_HEAT_LEFT
+Text Label 1900 2700 2    50   ~ 0
+MAIN_HEAT_RIGHT
+Text Label 1900 2800 2    50   ~ 0
+MAIN_COOL_RIGHT
+Text Label 1900 2500 2    50   ~ 0
+MAIN_COOL_LEFT
+Wire Wire Line
+	1800 1500 1800 2300
+Wire Wire Line
+	2500 2000 2500 2500
+$Comp
+L Connector_Generic:Conn_02x20_Odd_Even CONN1
+U 1 1 59AD464A
+P 2100 2000
+F 0 "CONN1" H 2150 3117 50  0000 C CNN
+F 1 "Conn_02x20_Odd_Even" H 2150 3026 50  0000 C CNN
+F 2 "Connector_PinSocket_2.54mm:PinSocket_2x20_P2.54mm_Vertical" H -2750 1050 50  0001 C CNN
+F 3 "https://www.mouser.com/datasheet/2/445/61304021821-1626922.pdf" H -2750 1050 50  0001 C CNN
+F 4 "485-2243" H 2100 2000 50  0001 C CNN "Mouser"
+F 5 "1" H 2100 2000 50  0001 C CNN "Populate"
+F 6 "485-2243" H 2100 2000 50  0001 C CNN "MPN"
+	1    2100 2000
+	1    0    0    -1  
+$EndComp
+Text Label 2400 2600 0    50   ~ 0
+MAIN_FAN_LEFT
+Text Label 2400 3000 0    50   ~ 0
+MAIN_HEAT_FDBK
+Text Label 2400 2900 0    50   ~ 0
+MAIN_COOL_FDBK
+Text Label 2400 2800 0    50   ~ 0
+MAIN_FAN_FDBK
+Text Label 2400 1800 0    50   ~ 0
+MAIN_BTN1
+Text Label 1900 1700 2    50   ~ 0
+MAIN_BTN2
+Text Label 1900 1800 2    50   ~ 0
+MAIN_BTN3
+Wire Wire Line
+	2500 1300 2500 2000
+Text Label 9500 2825 0    50   ~ 0
+PWR_5V
+Text Label 2400 2100 0    50   ~ 0
+MAIN_STRG_WP
 $EndSCHEMATC

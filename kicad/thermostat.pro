@@ -1,4 +1,4 @@
-update=Friday, November 20, 2020 at 01:38:37 PM
+update=Sunday, November 22, 2020 at 11:02:37 AM
 version=1
 last_client=kicad
 [cvpcb]
@@ -11,16 +11,6 @@ LibDir=
 NetType=0
 [cvpcb/libraries]
 EquName1=devcms
-[schematic_editor]
-version=1
-PageLayoutDescrFile=
-PlotDirectoryName=
-SubpartIdSeparator=0
-SubpartFirstId=65
-NetFmtName=
-SpiceForceRefPrefix=0
-SpiceUseNetNumbers=0
-LabSize=50
 [general]
 version=1
 [eeschema]
@@ -252,7 +242,7 @@ dPairGap=0.25
 dPairViaGap=0.25
 [pcbnew/Netclasses/1]
 Name=Power
-Clearance=0.254
+Clearance=0.127
 TrackWidth=0.508
 ViaDiameter=0.4572
 ViaDrill=0.254
@@ -261,3 +251,13 @@ uViaDrill=0.1016
 dPairWidth=0.2
 dPairGap=0.25
 dPairViaGap=0.25
+[schematic_editor]
+version=1
+PageLayoutDescrFile=
+PlotDirectoryName=
+SubpartIdSeparator=0
+SubpartFirstId=65
+NetFmtName=Pcbnew
+SpiceAjustPassiveValues=0
+LabSize=50
+ERC_TestSimilarLabels=1
