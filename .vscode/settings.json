@@ -24,7 +24,7 @@
     // }
     // For the MacBook, this is /usr/local/bin/python3
     // For the Linux, this is /usr/bin/python3
-    "python.pythonPath": "/bin/python3",
+    "python.pythonPath": "/usr/local/bin/python3",
     "python.autoComplete.extraPaths": [
         "${workspaceFolder}/src"
     ],
@@ -60,4 +60,7 @@
     "python.coverageView.highlight": "rgba(255,55,55,0)",
     "python.coverageView.highlightMode": "uncovered",
     "python.linting.flake8Enabled": true,
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/src"
+    ],
 }
