@@ -1,10 +1,12 @@
-# RPT (Raspberry Pi Thermostat)
+# FROSTI
 
-RaspberryPi-powered Griddy-enabled thermostat
+FROSTI (Financially Responsive Open-Source Thermostat Initiative) is a
+Raspberry Pi powered open source software + hardware thermostat that can
+respond to changes in power price with changes in temperature settings.
 
 ## Overview
 
-RPT is yet another Python-based, Raspberry Pi powered thermostat, with the
+FROSTI is yet another Python-based, Raspberry Pi powered thermostat, with the
 added twist that [GoGriddy](https://www.gogriddy.com/) customers can vary 
 temperature targets based on the current cost of electricity.
 

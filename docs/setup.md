@@ -1,9 +1,13 @@
-# Developer Setup
+---
+layout: page
+title: Developer Setup
+permalink: /setup/
+---
 
 ## Getting Started
 
 ```bash
-git clone https://github.com/mbtown01/rpt.git
+git clone https://github.com/mbtown01/frosti.git
 ```
 
 You'll need to install docker and docker-compose.
