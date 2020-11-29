@@ -29,7 +29,7 @@ github_username: mbtown01
 
 # Build settings
 theme: minima
-remote_theme: jekyll/minima
+remote_theme: minima
 plugins:
   - jekyll-feed
 # Exclude from processing.
