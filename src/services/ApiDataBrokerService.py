@@ -19,10 +19,10 @@ from src.core.orm import OrmConfig, OrmProgram, OrmSchedule, \
 
 VALID_API_KEYS = list()
 
-FLASK_APP = Flask(__name__, static_url_path='')
-FLASK_RESTX_API = Api(FLASK_APP)
-FLASK_RESTX_NS = FLASK_RESTX_API.namespace(
-    "api/v2", description="Thermostat operations")
+# FLASK_APP = Flask(__name__, static_url_path='')
+# FLASK_RESTX_API = Api(FLASK_APP)
+# FLASK_RESTX_NS = FLASK_RESTX_API.namespace(
+#     "api/v2", description="Thermostat operations")
 
 # Some thoughts on how to do this well...
 # We could refactor service providers into a module-level thing similiar
@@ -43,22 +43,22 @@ def require_appkey(method):
     return decoratedMethod
 
 
-@FLASK_RESTX_NS.route("/test/<string:resourceId>")
-@FLASK_RESTX_API.doc(
-    responses={404: "test not found"}, params={"resourceId": "test ID"})
-class Test(Resource):
+# @FLASK_RESTX_NS.route("/test/<string:resourceId>")
+# @FLASK_RESTX_API.doc(
+#     responses={404: "test not found"}, params={"resourceId": "test ID"})
+# class Test(Resource):
 
-    def __init__(self, api=None, *args, **kwargs):
-        super().__init__(api, *args, **kwargs)
+#     def __init__(self, api=None, *args, **kwargs):
+#         super().__init__(api, *args, **kwargs)
 
-    @FLASK_RESTX_API.doc(description="test description")
-    def get(self, resourceId):
-        debug('TEST get')
-        return [{'resourceId': 'test'}]
+#     @FLASK_RESTX_API.doc(description="test description")
+#     def get(self, resourceId):
+#         debug('TEST get')
+#         return [{'resourceId': 'test'}]
 
-    @FLASK_RESTX_API.doc(responses={204: "Todo deleted"})
-    def put(self, resource):
-        debug('PUT delete')
+#     @FLASK_RESTX_API.doc(responses={204: "Todo deleted"})
+#     def put(self, resource):
+#         debug('PUT delete')
 
 
 class ApiDataBrokerService(ServiceConsumer):
@@ -70,45 +70,46 @@ class ApiDataBrokerService(ServiceConsumer):
     """
 
     def __init__(self):
-        FLASK_APP.add_url_rule(
+        self.__flaskApp = Flask(__name__, static_url_path='')
+        self.__flaskApp.add_url_rule(
             '/api/v1/status', view_func=self.__apiStatus, methods=['GET'])
 
-        FLASK_APP.add_url_rule(
+        self.__flaskApp.add_url_rule(
             '/api/v1/config', view_func=self.__apiConfig,
             methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
-        FLASK_APP.add_url_rule(
+        self.__flaskApp.add_url_rule(
             '/api/v1/config/<name>', view_func=self.__apiConfig,
             methods=['GET', 'PUT', 'PATCH', 'DELETE'])
-        FLASK_APP.add_url_rule(
+        self.__flaskApp.add_url_rule(
             '/api/v1/programs', view_func=self.__apiPrograms,
             methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
-        FLASK_APP.add_url_rule(
+        self.__flaskApp.add_url_rule(
             '/api/v1/programs/<name>', view_func=self.__apiPrograms,
             methods=['GET', 'PUT', 'PATCH', 'DELETE'])
-        FLASK_APP.add_url_rule(
+        self.__flaskApp.add_url_rule(
             '/api/v1/schedules', view_func=self.__apiSchedules,
             methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
-        FLASK_APP.add_url_rule(
+        self.__flaskApp.add_url_rule(
             '/api/v1/schedules/<name>', view_func=self.__apiSchedules,
             methods=['GET', 'PUT', 'PATCH', 'DELETE'])
-        FLASK_APP.add_url_rule(
+        self.__flaskApp.add_url_rule(
             '/api/v1/actions', view_func=self.__apiActions,
             methods=['GET'])
-        FLASK_APP.add_url_rule(
+        self.__flaskApp.add_url_rule(
             '/api/v1/actions/<name>', view_func=self.__apiActions,
             methods=['POST'])
 
-        FLASK_APP.add_url_rule(
+        self.__flaskApp.add_url_rule(
             '/api/v1/action/stop',
             view_func=self.__apiActionStop, methods=['POST'])
-        FLASK_APP.add_url_rule(
+        self.__flaskApp.add_url_rule(
             '/api/v1/action/nextMode',
             view_func=self.__apiActionNextMode, methods=['POST'])
-        FLASK_APP.add_url_rule(
+        self.__flaskApp.add_url_rule(
             '/api/v1/action/changeComfort',
             view_func=self.__apiActionChangeComfort, methods=['POST'])
 
-        self.__cors = CORS(FLASK_APP)
+        self.__cors = CORS(self.__flaskApp)
 
         self.__flaskThread = Thread(
             target=self.__flaskEntryPoint,

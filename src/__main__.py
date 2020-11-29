@@ -20,7 +20,7 @@ class RootDriver(ServiceProvider):
         super().__init__()
 
         parser = argparse.ArgumentParser(
-            description='RPT main process')
+            description='FROSTI main process')
         parser.add_argument(
             '--hardware', choices=['term', 'daemon', 'v1', 'v2', 'auto'],
             default='term',
@@ -50,10 +50,10 @@ class RootDriver(ServiceProvider):
         localPath = path.realpath(__file__)
 
         searchOrder = (
-            path.expanduser('~/.rpt.yaml'),
-            '/etc/rpt.yaml',
+            path.expanduser('~/.frosti.yaml'),
+            '/etc/frosti.yaml',
             path.abspath(
-                path.dirname(localPath) + '/../etc/rpt.yaml')
+                path.dirname(localPath) + '/../etc/frosti.yaml')
         )
 
         for fileName in searchOrder:
@@ -62,7 +62,7 @@ class RootDriver(ServiceProvider):
                 with open(fileName) as configFile:
                     return yaml.load(configFile, Loader=yaml.FullLoader)
 
-        raise RuntimeError("Couldn't not find a rpt.yaml config file")
+        raise RuntimeError("Couldn't not find a frosti.yaml config file")
 
     def __setupCore(self):
         self.__eventBus = EventBus()
@@ -121,7 +121,7 @@ class RootDriver(ServiceProvider):
 
             if self.__args.hardware == 'auto':
                 self.__args.hardware = self.__detectHardware()
-                log.info(f"Starting RPT on hardware {self.__args.hardware}")
+                log.info(f"Starting FROSTI on hardware {self.__args.hardware}")
 
             if self.__args.hardware == 'v1':
                 from src.hardware.HardwareUserInterface_v1 \

@@ -5,18 +5,18 @@ from sqlalchemy.orm import sessionmaker
 from src.core import ServiceProvider, ServiceConsumer
 from src.core.orm import OrmConfig, Base
 
-DB_URL_TEMPLATE = 'postgresql://rpt:rpt@postgres/template1'
-DB_URL_RPT_RUN = 'postgresql://rpt:rpt@postgres/rpt'
-DB_URL_RPT_TEST = 'postgresql://rpt:rpt@postgres/rpt_test'
+DB_URL_TEMPLATE = 'postgresql://frosti:frosti@postgres/template1'
+DB_URL_RUN = 'postgresql://frosti:frosti@postgres/frosti'
+DB_URL_TEST = 'postgresql://frosti:frosti@postgres/frosti_test'
 DB_VERSION = 'v1.2'
 
 
 class OrmManagementService(ServiceConsumer):
 
     def __init__(self, isTestInstance: bool = False):
-        url = DB_URL_RPT_TEST if isTestInstance else DB_URL_RPT_RUN
+        url = DB_URL_TEST if isTestInstance else DB_URL_RUN
         if not database_exists(url):
-            name = 'rpt_test' if isTestInstance else 'rpt'
+            name = 'frosti_test' if isTestInstance else 'frosti'
             engine = create_engine(
                 DB_URL_TEMPLATE, isolation_level='AUTOCOMMIT')
             session = sessionmaker(bind=engine)()

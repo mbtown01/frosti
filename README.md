@@ -1,16 +1,11 @@
 # FROSTI
 
-FROSTI (Financially Responsive Open-Source Thermostat Initiative) is a
-Raspberry Pi powered open source software + hardware thermostat that can
-respond to changes in power price with changes in temperature settings.
+FROSTI (the Financially Responsive Open-Source Thermostat Initiative) is a
+Raspberry Pi-based thermostat that monitors the local spot market for power
+and changes temperature targets to minimize power usage during periods of
+high prices.
 
-## Overview
-
-FROSTI is yet another Python-based, Raspberry Pi powered thermostat, with the
-added twist that [GoGriddy](https://www.gogriddy.com/) customers can vary 
-temperature targets based on the current cost of electricity.
-
-![RPT board v4 rendering](docs/images/board_v4.png)
+![rendering](https://mbtown01.github.io/frosti/images/enclosure_v1.png)
 
 ## Features
 
@@ -18,8 +13,6 @@ temperature targets based on the current cost of electricity.
 * Simple web interface (hosted by the thermostat) for configuring from remote
 * API for getting current environmental data as well as changing settings
 
-## More Topics
+## Links
 
-* [Gettings started](docs/setup.md) with rpt
-* [Hardware](docs/hardware.md) overview
-* [Movations](docs/motivation.md) for yet another thermostat
+[FROSTI main site](https://mbtown01.github.io/frosti/)

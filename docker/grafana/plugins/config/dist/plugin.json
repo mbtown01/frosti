@@ -1,9 +1,9 @@
 {
   "type": "panel",
-  "name": "RPT Configuration Panel",
-  "id": "madllama-net-rpt-config-panel",
+  "name": "FROSTI Configuration Panel",
+  "id": "madllama-net-frosti-config-panel",
   "info": {
-    "description": "RPT Configuration Panel",
+    "description": "FROSTI Configuration Panel",
     "author": {
       "name": "Mike Townsley",
       "url": ""

@@ -8,10 +8,10 @@ datasources:
   - name: PostgreSQL
     type: postgres
     url: postgres
-    database: rpt
-    user: rpt
+    database: frosti
+    user: frosti
     secureJsonData:
-      password: "rpt"
+      password: "frosti"
     jsonData:
       sslmode: "disable" # disable/require/verify-ca/verify-full
       postgresVersion: 1200 # 903=9.3, 904=9.4, 905=9.5, 906=9.6, 1000=10

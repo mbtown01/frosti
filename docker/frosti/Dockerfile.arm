@@ -19,24 +19,24 @@ RUN python3 -m pip install pip && \
     adafruit-circuitpython-charlcd \
     adafruit-circuitpython-mcp230xx 
 
-ARG RPT_DEV=false
-ARG RPT_BRANCH=master
+ARG FROSTI_DEV=false
+ARG FROSTI_BRANCH=master
 
-# RUN if [ ${RPT_DEV} = 'false' ]; then \
+# RUN if [ ${FROSTI_DEV} = 'false' ]; then \
 #     cd /usr/local && \
-#     curl -LOk https://github.com/mbtown01/rpt/archive/${RPT_BRANCH}.zip && \
-#     unzip ${RPT_BRANCH}.zip && \
-#     mv rpt-${RPT_BRANCH} rpt && \
-#     rm ${RPT_BRANCH}.zip; \
+#     curl -LOk https://github.com/mbtown01/frosti/archive/${FROSTI_BRANCH}.zip && \
+#     unzip ${FROSTI_BRANCH}.zip && \
+#     mv frosti-${FROSTI_BRANCH} frosti && \
+#     rm ${FROSTI_BRANCH}.zip; \
 #     fi
 
-RUN if [ ${RPT_DEV} = 'true' ]; then \
+RUN if [ ${FROSTI_DEV} = 'true' ]; then \
     apt-get install -y \
     vim i2c-tools git postgresql-client libpq-dev tzdata; \
     python3 -m pip install ptvsd; \
     fi
 
-# RUN if [ ${RPT_DEV} = 'true' ]; then \
+# RUN if [ ${FROSTI_DEV} = 'true' ]; then \
 #     curl -sL https://deb.nodesource.com/setup_12.x | bash - && \
 #     apt-get remove cmdtest && apt-get install -y nodejs; \
 #     npm install -g yarn prettier; \
@@ -45,4 +45,4 @@ RUN if [ ${RPT_DEV} = 'true' ]; then \
 
 EXPOSE 5000
 
-WORKDIR /usr/local/rpt
+WORKDIR /usr/local/frosti

@@ -19,14 +19,14 @@ class DatabaseUpgrader(ServiceProvider):
         ormManagementService = OrmManagementService()
         session = ormManagementService.session
 
-        # Take the existing schema and rename it to rpt_old, but keep
+        # Take the existing schema and rename it to frosti_old, but keep
         # all the data so we can move it over
         query = text("SELECT schema_name FROM information_schema.schemata")
         result = session.connection().execute(query)
         nameList = list(row[0] for row in result.fetchall())
-        if 'rpt_old' not in nameList:
+        if 'frosti_old' not in nameList:
             session.connection().execute(
-                'ALTER SCHEMA public RENAME TO rpt_old')
+                'ALTER SCHEMA public RENAME TO frosti_old')
         else:
             session.connection().execute('DROP SCHEMA public CASCADE')
         session.connection().execute('CREATE SCHEMA public')
@@ -45,7 +45,7 @@ class DatabaseUpgrader(ServiceProvider):
             "    time, fan, cooling, heating) "
             "SELECT "
             "    time, fan, cooling, heating "
-            "FROM rpt_old.thermostat_state")
+            "FROM frosti_old.thermostat_state")
         result = session.connection().execute(query)
 
         query = text(
@@ -53,7 +53,7 @@ class DatabaseUpgrader(ServiceProvider):
             "    time, mode, comfort_min, comfort_max) "
             "SELECT "
             "    time, mode, comfort_min, comfort_max "
-            "FROM rpt_old.thermostat_targets")
+            "FROM frosti_old.thermostat_targets")
         result = session.connection().execute(query)
 
         query = text(
@@ -61,7 +61,7 @@ class DatabaseUpgrader(ServiceProvider):
             "    time, price) "
             "SELECT "
             "    time, price "
-            "FROM rpt_old.griddy_update")
+            "FROM frosti_old.griddy_update")
         result = session.connection().execute(query)
 
         query = text(
@@ -69,18 +69,18 @@ class DatabaseUpgrader(ServiceProvider):
             "    time, temperature, pressure, humidity) "
             "SELECT "
             "    time, temperature, pressure, humidity "
-            "FROM rpt_old.sensor_reading")
+            "FROM frosti_old.sensor_reading")
         result = session.connection().execute(query)
 
         session.commit()
 
         if finalize:
-            session.connection().execute('DROP SCHEMA rpt_old CASCADE')
+            session.connection().execute('DROP SCHEMA frosti_old CASCADE')
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-        description='RPT database upgrade tool')
+        description='FROSTI database upgrade tool')
     parser.add_argument(
         '--finalize', default=False, action='store_true',
         help='Drop the backup schema when complete')

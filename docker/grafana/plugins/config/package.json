@@ -1,7 +1,7 @@
 {
   "name": "madllama-net-config",
   "version": "1.0.0",
-  "description": "RPT Configuration Panel",
+  "description": "FROSTI Configuration Panel",
   "scripts": {
     "build": "grafana-toolkit plugin:build",
     "test": "grafana-toolkit plugin:test",

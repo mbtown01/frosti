@@ -14,4 +14,4 @@ docker-compose --file docker/docker-compose-arm.yaml pull
 You may want to backup the database as well
 
 sudo systemctl daemon-reload
-/etc/systemd/system/rpt.service
+/etc/systemd/system/frosti.service

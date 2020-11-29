@@ -26,7 +26,7 @@ dependency issue.  The only way I could make this work was to:
 ```bash
 npm install -g --unsafe-perm=true --allow-root @grafana/toolkit
 cd ${PROJECT_ROOT}/docker/grafana/plugins
-grafana-toolkit plugin:create rpt
+grafana-toolkit plugin:create frosti
 ```
 
 I realize that npx was created for this scenario -- you rarely if ever need
@@ -53,7 +53,7 @@ You do *not* want to run `yarn dev` every time you change your code. Use
 
 ## Optimizations
 
-For the rpt-dev container, we're using a bind-mounted volume to house the
+For the frosti-dev container, we're using a bind-mounted volume to house the
 source code.  By default, docker wants a consistent filesystem between the
 host and the container which artificially adds overhead we don't need.  To
 improve performance, be sure to [configure volumes as 'delegated'](

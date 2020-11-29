@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI/CD for building x86_64-based RPT images
+name: CI/CD for building x86_64-based FROSTI images
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the master branch
@@ -32,13 +32,13 @@ jobs:
           path: docker
           dockerfile: docker/grafana/Dockerfile.x86_64
 
-      - name: Build/push rpt
+      - name: Build/push frosti
         uses: docker/build-push-action@v1
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          repository: mbtowns/rpt
+          repository: mbtowns/frosti
           tags: x86_64-latest
           tags_with_ref: true
           path: docker
-          dockerfile: docker/rpt/Dockerfile.x86_64
+          dockerfile: docker/frosti/Dockerfile.x86_64

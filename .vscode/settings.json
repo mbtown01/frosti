@@ -14,7 +14,7 @@
     ".pytest_cache": true,
     "kicad": true
   },
-  "docker.host": "ssh://pi@raspberrypi",
+  // "docker.host": "ssh://pi@raspberrypi",
   "editor.rulers": [79],
   // "editor.defaultFormatter": "esbenp.prettier-vscode",
   // "[javascript]": {

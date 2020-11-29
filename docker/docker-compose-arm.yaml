@@ -1,8 +1,7 @@
 version: "3.7"
 
-x-rpt-2:
-  &rpt-defaults
-  labels: [rpt]
+x-frosti-2: &frosti-defaults
+  labels: [frosti]
   privileged: true
   ports:
     - "5000:5000"
@@ -13,27 +12,26 @@ x-rpt-2:
     - grafana
 
 services:
-
   postgres:
-    container_name: rpt-postgres
-    labels: [rpt]
+    container_name: frosti-postgres
+    labels: [frosti]
     image: arm32v6/postgres:12.2-alpine
     environment:
-      POSTGRES_USER: "rpt"
-      POSTGRES_PASSWORD: "rpt"
-      POSTGRES_DB: "rpt"
+      POSTGRES_USER: "frosti"
+      POSTGRES_PASSWORD: "frosti"
+      POSTGRES_DB: "frosti"
     ports:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data:delegated
-    
+
   grafana:
     image: mbtowns/grafana:arm-latest
     build:
       context: .
       dockerfile: ./grafana/Dockerfile.arm
-    container_name: rpt-grafana
-    labels: [rpt]
+    container_name: frosti-grafana
+    labels: [frosti]
     ports:
       - "3000:3000"
     depends_on:
@@ -42,33 +40,32 @@ services:
       - grafana-data:/var/lib/grafana:delegated
       - ./grafana:/etc/grafana:delegated
 
-  rpt-daemon:
-    <<: *rpt-defaults
-    image: mbtowns/rpt:arm-latest
+  frosti-daemon:
+    <<: *frosti-defaults
+    image: mbtowns/frosti:arm-latest
     build:
       context: .
-      dockerfile: ./rpt/Dockerfile.arm
-    container_name: rpt-daemon
+      dockerfile: ./frosti/Dockerfile.arm
+    container_name: frosti-daemon
     volumes:
-      - ../:/usr/local/rpt:delegated
-    entrypoint: ['python3', '-m', 'src', '--hardware', 'auto']
+      - ../:/usr/local/frosti:delegated
+    entrypoint: ["python3", "-m", "src", "--hardware", "auto"]
 
-  rpt-dev:
-    <<: *rpt-defaults
-    image: mbtowns/rpt-dev:arm-latest
+  frosti-dev:
+    <<: *frosti-defaults
+    image: mbtowns/frosti-dev:arm-latest
     build:
       context: .
-      dockerfile: ./rpt/Dockerfile.arm
+      dockerfile: ./frosti/Dockerfile.arm
       args:
-        RPT_DEV: 'true'
-    container_name: rpt-dev
+        FROSTI_DEV: "true"
+    container_name: frosti-dev
     volumes:
-      - ../:/usr/local/rpt:delegated
-    entrypoint: ['bash', '-c', 'while sleep 600; do /bin/false; done']
+      - ../:/usr/local/frosti:delegated
+    entrypoint: ["bash", "-c", "while sleep 600; do /bin/false; done"]
 
 volumes:
   postgres-data:
     external: true
   grafana-data:
     external: true
-

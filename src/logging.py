@@ -9,11 +9,11 @@ from logging.handlers import QueueHandler, RotatingFileHandler
 logging.basicConfig(
     level=logging.DEBUG,
     format='[%(asctime)s] %(module)s %(levelname)s - %(message)s',
-    handlers=[RotatingFileHandler('rpt.log')],
+    handlers=[RotatingFileHandler('frosti.log')],
 )
 
 # create logger
-log = logging.getLogger('rpt')
+log = logging.getLogger('frosti')
 
 logging.getLogger('chardet.charsetprober').setLevel(logging.INFO)
 logging.getLogger('requests').setLevel(logging.WARNING)
@@ -25,7 +25,7 @@ logging.getLogger('sqlalchemy.dialects').setLevel(logging.WARNING)
 logging.getLogger('sqlalchemy.orm').setLevel(logging.WARNING)
 
 
-def setupLogging(queue: Queue=None):
+def setupLogging(queue: Queue = None):
     if queue is None:
         handler = logging.StreamHandler()
     else:

@@ -6,7 +6,7 @@ The scenario is that you have a thermostat in production and want to grab some
 data from it to use locally. First, get a terminal in the postgres container:
 
 ```bash
-docker exec -ti rpt-daemon bash
+docker exec -ti frosti-daemon bash
 ```
 
 From there, grab the data from the running thermostat you're interested in and
@@ -14,17 +14,17 @@ place it in the local docker-compose postgres instance 'postgres':
 
 ```bash
 # Extract info from a specific thermostat
-pg_dump --host pi-rpt-h1.local.madllama.net \
-    --username rpt rpt \
+pg_dump --host pi-frosti-h1.local.madllama.net \
+    --username frosti frosti \
     --create --schema=public --clean  > /tmp/dump.dat
 # Drop the existing schema if it exists
 psql \
     --host postgres \
-    --command='drop schema public cascade' rpt rpt
+    --command='drop schema public cascade' frosti frosti
 # Import the data AND SCHEMA
 psql \
     --host postgres \
-    --file /tmp/dump.dat rpt rpt
+    --file /tmp/dump.dat frosti frosti
 ```
 
 ## Upgrading schemas

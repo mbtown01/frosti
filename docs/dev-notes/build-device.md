@@ -65,7 +65,7 @@ sudo apt install -y ansible git i2c-tools vim
 ```
 
 ```bash
-cd /usr/local && sudo git clone https://github.com/mbtown01/rpt.git
+cd /usr/local && sudo git clone https://github.com/mbtown01/frosti.git
 ```
 
 ```bash
@@ -77,12 +77,12 @@ The ansible playbook does the following
 * Configures the hardware watchdog to reboot if the CPU locks
 * Enables i2c
 * Installs docker, docker-compose, and adds use 'pi' to the docker group
-* Installs the rpt daemon as a service
+* Installs the frosti daemon as a service
 
 Once the play has completed successfully, a reboot is required.  If all went
 well, at reboot you'll wait a really long time while the Pi downloads and
-installs the containers that rpt depends on, then builds the container for
-rpt.  Once that's complete, it *should* just magically start.
+installs the containers that frosti depends on, then builds the container for
+frosti.  Once that's complete, it *should* just magically start.
 
 ## Assumptions
 

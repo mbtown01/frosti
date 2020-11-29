@@ -32,7 +32,7 @@ bring up the development environment for the first time:
 ```bash
 docker volume create grafana-data
 docker volume create postgres-data
-docker-compose --file docker/docker-compose-${ARCH}.yaml up -d rpt-dev
+docker-compose --file docker/docker-compose-${ARCH}.yaml up -d frosti-dev
 ```
 
 > _Fun fact -_ You can build and push your arm images from x86_64!
@@ -45,7 +45,7 @@ Once completed, we can test if it worked by running the thermostat simulator
 from a terminal inside the dev environment:
 
 ```bash
-docker exec -ti rpt-dev bash
+docker exec -ti frosti-dev bash
 python3 -m src --hardware term
 ```
 
@@ -67,16 +67,16 @@ the first time, install the following extensions:
 Next, start a development container on the local machine as we did above:
 
 ```bash
-docker-compose --file docker/docker-compose-${ARCH}.yaml up -d rpt-dev
+docker-compose --file docker/docker-compose-${ARCH}.yaml up -d frosti-dev
 ```
 
 Now, instead of opening the project directly from your local cloned workspace,
 click the bottom-left-hand corner in the IDE and chose "Remote-Containers:
-Attach to Running Container". From there, choose 'rpt-dev'. This should start
+Attach to Running Container". From there, choose 'frosti-dev'. This should start
 a new copy of VSCode that is now "inside" your running development container.
 
 Once in the container, it will take a minute or to do to its initial setup.
-You'll then want to open the folder '/usr/local/rpt' which is where the source
+You'll then want to open the folder '/usr/local/frosti' which is where the source
 code is. You will likley need to install/enable the Python module again in
 this copy of VSCode (beacuse it's in the container). I also recommend saying
 'yes' to all the prompts you'll get for installing a linter, the testing
@@ -106,7 +106,7 @@ rpi container, and you're off! If you want to debug your code interactively
 with VSCode, first open a local terminal and start python under the debugger:
 
 ```bash
-docker-compose --file docker/docker-compose-arm.yaml up rpt-debug
+docker-compose --file docker/docker-compose-arm.yaml up frosti-debug
 ```
 
 Once the above is complete, you should be able to choose the 'Python: Local
@@ -126,14 +126,14 @@ a need to update the images. When that time comes, we rely on regular
 docker build --tag mbtowns/grafana:x86_64-latest -f docker/grafana/Dockerfile.x86_64 docker/
 
 # Build the x86 development environment
-docker build --build-arg RPT_DEV=true--no-cache -f docker/rpt/Dockerfile.x86_64 docker/
+docker build --build-arg FROSTI_DEV=true--no-cache -f docker/frosti/Dockerfile.x86_64 docker/
 ```
 
 ## QEMU / Build Raspberry Pi Images on x64
 
 I followed [these
 instructions](https://matchboxdorry.gitbooks.io/matchboxblog/content/blogs/build_and_run_arm_images.html)
-and magically built the rpt container for arm on my local x64 linux box.
+and magically built the frosti container for arm on my local x64 linux box.
 Good in a pinch, but I think an RPi v4 is probably faster...
 
 In summary, when the base image coming from an arm-based container, docker

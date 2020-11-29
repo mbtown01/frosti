@@ -2,15 +2,15 @@
 # https://stackoverflow.com/questions/43671482/how-to-run-docker-compose-up-d-at-system-start-up
 
 [Unit]
-Description=RPT Thermostat Service
+Description=FROSTI Thermostat Service
 Requires=docker.service
 After=docker.service
 
 [Service]
 Type=oneshot
 RemainAfterExit=true
-WorkingDirectory=/usr/local/rpt
-ExecStart= /usr/local/bin/docker-compose --file docker/docker-compose-arm.yaml up -d rpt-daemon
+WorkingDirectory=/usr/local/frosti
+ExecStart= /usr/local/bin/docker-compose --file docker/docker-compose-arm.yaml up -d frosti-daemon
 ExecStop= /usr/local/bin/docker-compose --file docker/docker-compose-arm.yaml down
 
 [Install]

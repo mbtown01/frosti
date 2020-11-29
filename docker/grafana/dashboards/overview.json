@@ -1132,7 +1132,7 @@
       "timeFrom": null,
       "timeShift": null,
       "title": "",
-      "type": "madllama-net-rpt-control-panel"
+      "type": "madllama-net-frosti-control-panel"
     },
     {
       "datasource": "PostgreSQL",
