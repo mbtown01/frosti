@@ -22,9 +22,8 @@ title: FROSTI
 email: mike@madllama.net
 description: >- # this means to ignore newlines until "baseurl:"
   Financially Responsive Open Source Thermostat Initiative
-baseurl: "" # the subpath of your site, e.g. /blog
+baseurl: "/frosti" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
-# twitter_username: jekyllrb
 github_username: mbtown01
 
 # Build settings

@@ -13,7 +13,7 @@ technology choices (and how that choice panned out!)
 My main has recently been finalizing hardware v1.5 and an enclosure (latest
 rendering below)
 
-![enclosure v1 rendering](/images/enclosure_v1.png)
+![enclosure v1 rendering](/frosti/images/enclosure_v1.png)
 
 The main (gray) rectangle outlines the location of the e-paper display I'll
 be using for general status, and the three gray circles are buttons.  The
@@ -24,7 +24,7 @@ from the 16 LEDs (8 in each ring) used for status indication.
 The actual PCB I put together (which is as close to [OSHPark](http://oshpark.com)
 purple I could get!) is below
 
-![board v5 rendering](/images/board_v5.png)
+![board v5 rendering](/frosti/images/board_v5.png)
 
 Included in hardware v5 will be:
 

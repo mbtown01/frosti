@@ -6,7 +6,7 @@ title: Hardware
 At the heart of this project is the circuity that attaches to the
 Raspberry Pi and hosts the extra elements that make the thermostat work.
 
-![board v5 rendering](images/board_v5.png)
+![board v5 rendering](/frosti/images/board_v5.png)
 
 The board integrates the following components:
 

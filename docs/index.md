@@ -12,4 +12,4 @@ high prices.
 Today, FROSTI only works with [GoGriddy](https://www.gogriddy.com/), but can
 be extended in the future for other markets where end-users are billed.
 
-![rendering](/images/enclosure_v1.png)
+![rendering](/frosti/images/enclosure_v1.png)
