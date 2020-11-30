@@ -19,7 +19,17 @@ The board integrates the following components:
 * A CAT24C256 for i2c-based storage (a component I have some ideas for
   but honestly have no clue for sure what I'll do with!)
 
-## Thermostat connection
+The board is actually two boards, that after being assmebled are detached and
+installed in different locations.
+
+## Main Board
+
+Internally there are two PCBs -- the main board containing the power
+conversion circuit, thermostat relays, and the Raspberry Pi header.  It 
+also contains the environment sensor, which may need to be relocated depending
+on the thermals inside the case.
+
+### Thermostat connection
 
 FROSTI runs on the standard "5-wire" thermostat configuration, with the
 following connections:
@@ -35,7 +45,11 @@ color labeled for installation.
 
 ## Ring Board
 
-The
+The ring board is a breakout board containing all the LEDs for the UI.
+
+This transparent rendering will give a feel for what the insides look like.
+
+![rendering](/frosti/images/enclosure_v1_angle_trans.png)
 
 ## Credits
 

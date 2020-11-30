@@ -9,7 +9,7 @@ Raspberry Pi-based thermostat that monitors the local spot market for power
 and changes temperature targets to minimize power usage during periods of
 high prices.
 
-![rendering](/frosti/images/enclosure_v1.png)
+![rendering](/frosti/images/enclosure_v1_angle.png)
 
 ## Features
 
