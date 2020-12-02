@@ -579,6 +579,7 @@ F 0 "U3" V 7071 3679 50  0000 L CNN
 F 1 "ULN2003AD" V 6980 3679 50  0000 L CNN
 F 2 "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm" H 7075 2600 50  0001 L CNN
 F 3 "http://www.ti.com/lit/ds/symlink/uln2003a.pdf" H 7125 2950 50  0001 C CNN
+F 4 "595-ULN2003AD" H 7025 3150 50  0001 C CNN "Mouser"
 	1    7025 3150
 	0    -1   -1   0   
 $EndComp
@@ -1430,6 +1431,7 @@ F 0 "U4" H 9500 3606 50  0000 C CNN
 F 1 "CAT24C256" H 9500 3515 50  0000 C CNN
 F 2 "Package_SO:SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.29x3mm" H 9500 3125 50  0001 C CNN
 F 3 "https://www.onsemi.cn/PowerSolutions/document/CAT24C256-D.PDF" H 9500 3125 50  0001 C CNN
+F 4 "698-CAT24C256WI-GT3" H 9500 3125 50  0001 C CNN "Mouser"
 	1    9500 3125
 	1    0    0    -1  
 $EndComp
