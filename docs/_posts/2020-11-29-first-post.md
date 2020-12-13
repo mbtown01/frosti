@@ -6,7 +6,7 @@ categories: update
 ---
 
 This project has been going on in some form since the summer of 2019, and I'm
-now finally getting around to blogging about it some.  My goal here is to
+now finally getting around to blogging about it.  My goal here is to
 keep some kind of a history of issues encountered and overcome, as well as
 technology choices (and how that choice panned out!)
 
