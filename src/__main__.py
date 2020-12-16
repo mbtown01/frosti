@@ -8,6 +8,7 @@ from src.logging import log, setupLogging, handleException
 from src.core import EventBus, ThermostatState, ServiceProvider, \
     ServiceConsumer
 from src.core.generics import GenericEnvironmentSensor
+from src.core.generics.GenericUserInterfaceV2 import GenericUserInterfaceV2
 from src.services import ApiDataBrokerService, \
     GoGriddyPriceCheckService, OrmManagementService, ThermostatService, \
     EnvironmentSamplingService, RelayManagementService, OrmStateCaptureService
@@ -90,6 +91,11 @@ class RootDriver(ServiceProvider):
         thermostatService = ThermostatService()
         thermostatService.setServiceProvider(self)
         self.installService(ThermostatService, thermostatService)
+
+        newUserInterface = GenericUserInterfaceV2()
+        newUserInterface.setServiceProvider(self)
+        self.installService(
+            GenericUserInterfaceV2, newUserInterface)
 
     def __start(self, stdscr):
         if stdscr is not None or self.__args.hardware == 'daemon':
