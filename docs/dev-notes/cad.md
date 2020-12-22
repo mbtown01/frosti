@@ -10,7 +10,7 @@ case:
 Export a BOM for Mouser
 
 * Use the bom2grouped_csv plugin
-* cut -d, -f2,6 output | sed "s/\"//g" | grep -v "^[0-9],*$" | grep -v MPN | sed "s/\(.*\),\(.*\)/\2 \1/"
+* cut -d, -f2,7 thermostat | sed "s/\"//g" | grep -v "^[0-9],*$" | grep -v MPN | sed "s/\(.*\),\(.*\)/\2 \1/"
 * Use mouser's BOM import tool, paste in the text generated above
 
 ## Looking at both board and model simultaneously

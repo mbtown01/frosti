@@ -1,12 +1,12 @@
-from flask import Flask, Response, request, abort
+from flask import Flask, Response, request, abort, send_file
 from flask_restx import Resource, Api, fields
 from flask_cors import CORS
 from functools import wraps
 from threading import Thread
 from random import getrandbits
-from logging import debug
 import uuid
 import json
+from io import BytesIO
 
 from .ThermostatService import ThermostatService
 from .OrmManagementService import OrmManagementService
@@ -16,6 +16,7 @@ from frosti.core import ServiceProvider, ServiceConsumer, EventBus, \
 from frosti.core.events import ThermostatStateChangedEvent, SensorDataChangedEvent
 from frosti.core.orm import OrmConfig, OrmProgram, OrmSchedule, \
     OrmPriceOverride, OrmScheduleDay, OrmScheduleTime
+from src.core.generics.GenericUserInterfaceV2 import GenericUserInterfaceV2
 
 VALID_API_KEYS = list()
 
@@ -98,6 +99,9 @@ class ApiDataBrokerService(ServiceConsumer):
         self.__flaskApp.add_url_rule(
             '/api/v1/actions/<name>', view_func=self.__apiActions,
             methods=['POST'])
+        self.__flaskApp.add_url_rule(
+            '/api/v1/display', view_func=self.__apiCurrentDisplay,
+            methods=['GET'])
 
         self.__flaskApp.add_url_rule(
             '/api/v1/action/stop',
@@ -292,6 +296,13 @@ class ApiDataBrokerService(ServiceConsumer):
         data = self.__eventBus.safeInvoke(self.getStatus)
         return self.__apiResponse(data)
 
+    def __apiCurrentDisplay(self):
+        userInterfaceService = self._getService(GenericUserInterfaceV2)
+        img_io = BytesIO()
+        userInterfaceService.image.save(img_io, 'JPEG', quality=70)
+        img_io.seek(0)
+        return send_file(img_io, mimetype='image/jpeg')
+
     def __apiServiceNamedDictionaryRequest(self, name, getMethod, setMethod):
         """ If name is not null, use it as the dictionary key value,
         otherwise assume the request is the contents of the entire config
@@ -388,7 +399,7 @@ class ApiDataBrokerService(ServiceConsumer):
 
     def __flaskEntryPoint(self):
         try:
-            FLASK_APP.run("0.0.0.0", 5000)
+            self.__flaskApp.run("0.0.0.0", 5000)
             log.error("Somehow we exited the Flask thread")
         except:
             handleException("starting flask")

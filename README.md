@@ -1,9 +1,9 @@
 # FROSTI
 
 FROSTI (the Financially Responsive Open-Source Thermostat Initiative) is a
-Raspberry Pi-based thermostat that monitors the local spot market for power
-and changes temperature targets to minimize power usage during periods of
-high prices.
+Raspberry Pi-based thermostat that monitors the current price of power on
+the electric grid and changes temperature targets to minimize power usage 
+during periods of high prices.
 
 ![rendering](https://mbtown01.github.io/frosti/images/enclosure_v1_angle.png)
 
