@@ -50,7 +50,7 @@ services:
     container_name: frosti-daemon
     volumes:
       - ../:/usr/local/frosti:delegated
-    entrypoint: ["python3", "-m", "src", "--hardware", "term"]
+    entrypoint: ["python3", "-m", "frosti", "--hardware", "term"]
 
   frosti-dev:
     <<: *frosti-defaults

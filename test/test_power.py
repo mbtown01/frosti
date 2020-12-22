@@ -1,9 +1,9 @@
 import unittest
 from time import strptime, mktime
 
-from src.services import GoGriddyPriceCheckService
-from src.core.events import PowerPriceChangedEvent
-from src.core import EventBus, ServiceConsumer, ServiceProvider
+from frosti.services import GoGriddyPriceCheckService
+from frosti.core.events import PowerPriceChangedEvent
+from frosti.core import EventBus, ServiceConsumer, ServiceProvider
 
 
 class Test_GoGriddyInterface(unittest.TestCase):

@@ -2,11 +2,11 @@ import unittest
 import yaml
 from time import mktime, strptime
 
-from src.core import EventBus, ServiceConsumer, ServiceProvider, \
+from frosti.core import EventBus, ServiceConsumer, ServiceProvider, \
     ThermostatState, ThermostatMode
-from src.services import ThermostatService, RelayManagementService, \
+from frosti.services import ThermostatService, RelayManagementService, \
     OrmManagementService, ApiDataBrokerService
-from src.core.events import ThermostatStateChangedEvent, SensorDataChangedEvent
+from frosti.core.events import ThermostatStateChangedEvent, SensorDataChangedEvent
 
 
 yamlText = """

@@ -1,6 +1,6 @@
 import unittest
 
-from src.core.generics import GenericLcdDisplay
+from frosti.core.generics import GenericLcdDisplay
 
 
 class Test_GenericLcdDisplay(unittest.TestCase):

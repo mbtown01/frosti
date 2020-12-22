@@ -3,9 +3,9 @@
 from sqlalchemy import text
 import argparse
 
-from src.services import OrmManagementService
-from src.core import ServiceProvider, EventBus
-from src.logging import handleException, setupLogging
+from frosti.services import OrmManagementService
+from frosti.core import ServiceProvider, EventBus
+from frosti.logging import handleException, setupLogging
 
 
 class DatabaseUpgrader(ServiceProvider):

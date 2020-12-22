@@ -15,7 +15,9 @@
     "kicad": true
   },
   // "docker.host": "ssh://pi@raspberrypi",
-  "editor.rulers": [79],
+  "editor.rulers": [
+    79
+  ],
   // "editor.defaultFormatter": "esbenp.prettier-vscode",
   // "[javascript]": {
   //     "editor.defaultFormatter": "esbenp.prettier-vscode"
@@ -23,19 +25,31 @@
   // For the MacBook, this is /usr/local/bin/python3
   // For the Linux, this is /usr/bin/python3
   "python.pythonPath": "/usr/bin/python3",
-  "python.autoComplete.extraPaths": ["${workspaceFolder}/src"],
+  "python.autoComplete.extraPaths": [
+    "${workspaceFolder}/frosti"
+  ],
   "python.linting.pylintEnabled": false,
   "python.linting.enabled": true,
-  "python.linting.flake8Args": ["--ignore=E402,E226,E252,E722,W504"],
+  "python.linting.flake8Args": [
+    "--ignore=E402,E226,E252,E722,W504"
+  ],
   "python.linting.pycodestyleEnabled": false,
-  "python.linting.pycodestyleArgs": ["--ignore=E402,E226,E252,E722,W504"],
+  "python.linting.pycodestyleArgs": [
+    "--ignore=E402,E226,E252,E722,W504"
+  ],
   "python.testing.pytestArgs": [
     "test"
-    //"--cov=src",
+    //"--cov=frosti",
     // Uncomment the line below if you need to debug
     //"--no-cov",
   ],
-  "python.testing.unittestArgs": ["-v", "-s", "./test", "-p", "test_*.py"],
+  "python.testing.unittestArgs": [
+    "-v",
+    "-s",
+    "./test",
+    "-p",
+    "test_*.py"
+  ],
   "python.testing.pytestEnabled": true,
   "python.testing.nosetestsEnabled": false,
   "python.testing.unittestEnabled": true,
@@ -46,5 +60,7 @@
   "python.coverageView.highlight": "rgba(255,55,55,0)",
   "python.coverageView.highlightMode": "uncovered",
   "python.linting.flake8Enabled": true,
-  "python.analysis.extraPaths": ["${workspaceFolder}/src"]
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/frosti"
+  ]
 }

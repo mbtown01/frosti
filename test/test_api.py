@@ -4,10 +4,10 @@ import yaml
 from time import strptime, mktime
 from threading import Thread
 
-from src.services import ApiDataBrokerService
-from src.core import EventBus, ServiceProvider, ThermostatMode
-from src.services import ThermostatService, OrmManagementService
-from src.core.events import SensorDataChangedEvent
+from frosti.services import ApiDataBrokerService
+from frosti.core import EventBus, ServiceProvider, ThermostatMode
+from frosti.services import ThermostatService, OrmManagementService
+from frosti.core.events import SensorDataChangedEvent
 
 yamlText = """
 config:

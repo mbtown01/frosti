@@ -2,9 +2,9 @@ import unittest
 import yaml
 from time import mktime, strptime
 
-from src.core import EventBus, ServiceProvider
-from src.core.events import PowerPriceChangedEvent
-from src.services import OrmManagementService, ThermostatService, \
+from frosti.core import EventBus, ServiceProvider
+from frosti.core.events import PowerPriceChangedEvent
+from frosti.services import OrmManagementService, ThermostatService, \
     ApiDataBrokerService
 
 yamlText = """

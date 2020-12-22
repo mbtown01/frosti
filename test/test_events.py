@@ -2,7 +2,7 @@ import unittest
 from threading import Timer
 from time import time
 
-from src.core import Event, EventBus, ServiceConsumer, ServiceProvider
+from frosti.core import Event, EventBus, ServiceConsumer, ServiceProvider
 
 
 class Test_EventBus(unittest.TestCase):

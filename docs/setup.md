@@ -46,7 +46,7 @@ from a terminal inside the dev environment:
 
 ```bash
 docker exec -ti frosti-dev bash
-python3 -m src --hardware term
+python3 -m frosti --hardware term
 ```
 
 If the above worked, **congrats** -- you now have a local copy of the source
