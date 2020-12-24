@@ -14,7 +14,7 @@
             "stopOnEntry": false,
             "args": [
                 "--hardware",
-                "term"
+                "v5"
             ],
         },
         {

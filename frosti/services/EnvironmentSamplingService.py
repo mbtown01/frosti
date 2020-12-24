@@ -1,15 +1,11 @@
 from .OrmManagementService import OrmManagementService
 from frosti.core import ServiceConsumer, ServiceProvider, EventBus
-from frosti.core.generics import GenericEnvironmentSensor
 from frosti.core.events import SensorDataChangedEvent, SettingsChangedEvent
 
 
 class EnvironmentSamplingService(ServiceConsumer):
     """ Holds a GenericEnvironmentSensor and at a specified frequency
     takes a sampling and fires a SensorDataChangedEvent """
-
-    def __init__(self, sensor: GenericEnvironmentSensor):
-        self.__sensor = sensor
 
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
@@ -37,18 +33,27 @@ class EnvironmentSamplingService(ServiceConsumer):
 
     @property
     def temperature(self):
-        return self.__sensor.temperature * self.__temperatureScale + \
+        return self._getRawTemperature() * self.__temperatureScale + \
             self.__temperatureTranslate
 
     @property
     def pressure(self):
-        return self.__sensor.pressure * self.__pressureScale + \
+        return self._getRawPressure() * self.__pressureScale + \
             self.__pressureTranslate
 
     @property
     def humidity(self):
-        return self.__sensor.humidity * self.__humidityScale + \
+        return self._getRawHumidity() * self.__humidityScale + \
             self.__humidityTranslate
+
+    def _getRawTemperature(self):
+        raise NotImplementedError()
+
+    def _getRawPressure(self):
+        raise NotImplementedError()
+
+    def _getRawHumidity(self):
+        raise NotImplementedError()
 
     def __settingsChanged(self, event: SettingsChangedEvent):
         """ If any settings have changed, wait the full time before getting

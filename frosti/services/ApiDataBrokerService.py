@@ -16,7 +16,7 @@ from frosti.core import ServiceProvider, ServiceConsumer, EventBus, \
 from frosti.core.events import ThermostatStateChangedEvent, SensorDataChangedEvent
 from frosti.core.orm import OrmConfig, OrmProgram, OrmSchedule, \
     OrmPriceOverride, OrmScheduleDay, OrmScheduleTime
-from src.core.generics.GenericUserInterfaceV2 import GenericUserInterfaceV2
+from frosti.services.UserInterfaceService import UserInterfaceService
 
 VALID_API_KEYS = list()
 
@@ -297,7 +297,7 @@ class ApiDataBrokerService(ServiceConsumer):
         return self.__apiResponse(data)
 
     def __apiCurrentDisplay(self):
-        userInterfaceService = self._getService(GenericUserInterfaceV2)
+        userInterfaceService = self._getService(UserInterfaceService)
         img_io = BytesIO()
         userInterfaceService.image.save(img_io, 'JPEG', quality=70)
         img_io.seek(0)

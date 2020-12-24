@@ -8,3 +8,4 @@ from .ThermostatService import ThermostatService
 from .EnvironmentSamplingService import EnvironmentSamplingService
 from .RelayManagementService import RelayManagementService
 from .OrmStateCaptureService import OrmStateCaptureService
+from .UserInterfaceService import UserInterfaceService

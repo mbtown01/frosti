@@ -1,17 +1,13 @@
-from queue import Queue
 from os import path
 import yaml
 import argparse
-import curses
 
 from frosti.logging import log, setupLogging, handleException
-from frosti.core import EventBus, ThermostatState, ServiceProvider, \
-    ServiceConsumer
-from frosti.core.generics import GenericEnvironmentSensor
-from frosti.core.generics.GenericUserInterfaceV2 import GenericUserInterfaceV2
+from frosti.core import EventBus, ServiceProvider
 from frosti.services import ApiDataBrokerService, \
     GoGriddyPriceCheckService, OrmManagementService, ThermostatService, \
-    EnvironmentSamplingService, RelayManagementService, OrmStateCaptureService
+    OrmStateCaptureService, UserInterfaceService, EnvironmentSamplingService, \
+    RelayManagementService
 from frosti.core.events import SettingsChangedEvent
 
 
@@ -23,7 +19,7 @@ class RootDriver(ServiceProvider):
         parser = argparse.ArgumentParser(
             description='FROSTI main process')
         parser.add_argument(
-            '--hardware', choices=['term', 'daemon', 'v1', 'v2', 'auto'],
+            '--hardware', choices=['v5', 'auto'],
             default='term',
             help='Pick the underlying hardware supporting operations')
         parser.add_argument(
@@ -37,15 +33,11 @@ class RootDriver(ServiceProvider):
         i2c = I2C(SCL, SDA)
         results = i2c.scan()
 
-        # Only Hardware v2 has the MCP23017 at address 0x20
-        if 0x20 in results:
-            return "v2"
-        return "v1"
+        # Hardware v5 the two 5024 chips at 0x28 and 0x29
+        if 0x28 in results and 0x29 in results:
+            raise RuntimeError("We just don't support hardware older than v5")
 
-    def __installService(self, type, instance):
-        if isinstance(instance, ServiceConsumer):
-            instance.setServiceProvider(self)
-        self.installService(type, instance)
+        return "v5"
 
     def __getYamlConfigData(self):
         localPath = path.realpath(__file__)
@@ -65,13 +57,17 @@ class RootDriver(ServiceProvider):
 
         raise RuntimeError("Couldn't not find a frosti.yaml config file")
 
-    def __setupCore(self):
+    def start(self):
+        import RPi.GPIO as GPIO
+
+        GPIO.setmode(GPIO.BCM)
+        setupLogging()
+
         self.__eventBus = EventBus()
         self.installService(EventBus, self.__eventBus)
 
         ormManagementService = OrmManagementService()
         ormManagementService.setServiceProvider(self)
-        # ormManagementService.importFromDict(self.__getYamlConfigData())
         self.installService(
             OrmManagementService, ormManagementService)
 
@@ -92,72 +88,34 @@ class RootDriver(ServiceProvider):
         thermostatService.setServiceProvider(self)
         self.installService(ThermostatService, thermostatService)
 
-        newUserInterface = GenericUserInterfaceV2()
-        newUserInterface.setServiceProvider(self)
-        self.installService(
-            GenericUserInterfaceV2, newUserInterface)
+        if self.__args.hardware == 'auto':
+            self.__args.hardware = self.__detectHardware()
+            log.info(f"Starting FROSTI on hardware {self.__args.hardware}")
 
-    def __start(self, stdscr):
-        if stdscr is not None or self.__args.hardware == 'daemon':
-            from frosti.terminal import TerminalRelayManagementService, \
-                TerminalUserInterface
+        if self.__args.hardware == 'v5':
+            from frosti.hardware.v5.UserInterfaceService \
+                import UserInterfaceService as HardwareUserInterfaceService
+            from frosti.hardware.v5.RelayManagementService \
+                import RelayManagementService as HardwareRelayManagementService
+            from frosti.hardware.v5.EnvironmentSamplingService \
+                import EnvironmentSamplingService as \
+                HardwareEnvironmentSamplingService
 
-            messageQueue = Queue(128)
-            setupLogging(messageQueue)
-            self.__setupCore()
+            service = HardwareRelayManagementService()
+            service.setServiceProvider(self)
+            self.installService(RelayManagementService, service)
 
-            self.sensor = GenericEnvironmentSensor()
+            service = HardwareEnvironmentSamplingService()
+            service.setServiceProvider(self)
+            self.installService(EnvironmentSamplingService, service)
 
-            if self.__args.hardware != 'daemon':
-                self.__installService(
-                    RelayManagementService, TerminalRelayManagementService())
-                self.userInterface = \
-                    TerminalUserInterface(stdscr, self.sensor, messageQueue)
-                self.userInterface.setServiceProvider(self)
+            service = HardwareUserInterfaceService()
+            service.setServiceProvider(self)
+            self.installService(UserInterfaceService, service)
+
         else:
-            from frosti.hardware.PanasonicAgqRelay \
-                import PanasonicAgqRelay as HardwareRelay
-            from frosti.hardware.Bme280EnvironmentSensor \
-                import Bme280EnvironmentSensor as HardwareEnvironmentSensor
-            import RPi.GPIO as GPIO
-
-            GPIO.setmode(GPIO.BCM)
-            setupLogging()
-            self.__setupCore()
-
-            if self.__args.hardware == 'auto':
-                self.__args.hardware = self.__detectHardware()
-                log.info(f"Starting FROSTI on hardware {self.__args.hardware}")
-
-            if self.__args.hardware == 'v1':
-                from frosti.hardware.HardwareUserInterface_v1 \
-                    import HardwareUserInterface_v1 as HardwareUserInterface
-                relays = (
-                    HardwareRelay(ThermostatState.FAN, 5, 17, delay=0.5),
-                    HardwareRelay(ThermostatState.HEATING, 6, 27, delay=0.5),
-                    HardwareRelay(ThermostatState.COOLING, 13, 22, delay=0.5)
-                )
-            elif self.__args.hardware == 'v2':
-                from frosti.hardware.HardwareUserInterface_v2 \
-                    import HardwareUserInterface_v2 as HardwareUserInterface
-                relays = (
-                    HardwareRelay(ThermostatState.FAN, 12, 6),
-                    HardwareRelay(ThermostatState.HEATING, 21, 20),
-                    HardwareRelay(ThermostatState.COOLING, 16, 19)
-                )
-            else:
-                raise RuntimeError(
-                    f'Hardware option {self.__args.hardware} not supported')
-
-            self.sensor = HardwareEnvironmentSensor()
-            relayManagementService = RelayManagementService(relays=relays)
-            self.__installService(
-                RelayManagementService, relayManagementService)
-            if self.__args.diagnostics:
-                relayManagementService.runDiagnostics()
-
-            self.userInterface = HardwareUserInterface()
-            self.userInterface.setServiceProvider(self)
+            raise RuntimeError(
+                f'Hardware option {self.__args.hardware} not supported')
 
         # Setup the power price handler after the other services have
         # been created so they get the first power events
@@ -167,32 +125,12 @@ class RootDriver(ServiceProvider):
         except ConnectionError:
             log.warning("Unable to reach GoGriddy")
 
-        self.__installService(
-            EnvironmentSamplingService,
-            EnvironmentSamplingService(self.sensor))
-
-        log.info('Entering into standard operation')
-        self.__eventBus.fireEvent(SettingsChangedEvent())
-        self.__eventBus.exec()
-
-    def start(self):
-        if self.__args.hardware == 'term':
-            try:
-                stdscr = curses.initscr()
-                curses.noecho()
-                curses.cbreak()
-                curses.start_color()
-                stdscr.keypad(True)
-                self.__start(stdscr)
-            finally:
-                curses.nocbreak()
-                stdscr.keypad(False)
-                curses.echo()
-                curses.endwin()
-
-            # curses.wrapper(self.__start)
-        else:
-            self.__start(None)
+        try:
+            log.info('Entering into standard operation')
+            self.__eventBus.fireEvent(SettingsChangedEvent())
+            self.__eventBus.exec()
+        finally:
+            GPIO.cleanup()
 
 
 if __name__ == '__main__':
