@@ -1,6 +1,9 @@
+import qrcode
+import smbus
+
 from enum import Enum
 from PIL import ImageFont, ImageDraw, Image
-import qrcode
+from time import sleep
 
 from frosti.logging import log
 from frosti.core import ServiceConsumer, ServiceProvider, EventBus, \
@@ -8,8 +11,15 @@ from frosti.core import ServiceConsumer, ServiceProvider, EventBus, \
 from frosti.services.ThermostatService import ThermostatService
 from frosti.services.EnvironmentSamplingService \
     import EnvironmentSamplingService
+from frosti.services.OrmManagementService import OrmManagementService
 from frosti.core.events import ThermostatStateChangedEvent, \
     SensorDataChangedEvent, PowerPriceChangedEvent, SettingsChangedEvent
+from frosti.core.orm import OrmGriddyUpdate
+
+
+# sudo apt-get install liblcms1-dev libopenjp2-7 libtiff5 -y
+# sudo apt-get install libjpeg-dev zlib1g-dev libfreetype6-dev
+# pip install qrcode pillow
 
 
 class UserInterfaceService(ServiceConsumer):
@@ -32,6 +42,11 @@ class UserInterfaceService(ServiceConsumer):
         self._lastHumidity = None
         self._lastState = None
         self._lastPrice = None
+
+        self._menuStructure = {
+            'Mode': ['OFF', 'HEAT', 'COOL', 'FAN'],
+            'Setup': None
+        }
 
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
@@ -116,15 +131,15 @@ class UserInterfaceService(ServiceConsumer):
         # Draw the temperature with smaller fractional 10th in lower-right
         tempWhole, tempFrac = divmod(int(self._lastTemperature*2), 2)
         tempWholeStr, tempFracStr = str(tempWhole), f".{tempFrac*5}"
-        fontWhole = ImageFont.truetype(fontName, 86)
+        fontWhole = ImageFont.truetype(fontName, 96)
         fontWholeMetrics = getMetrics(tempWholeStr, fontWhole)
-        fontWholeLoc = (
-            pad, int(self._image.height/2 +
-                     (fontWholeMetrics[4]-fontWholeMetrics[3])/2))
+        tempTotalHeight = fontWholeMetrics[4]-fontWholeMetrics[3]
+        fontWholeLoc = (pad, int(self._image.height/2 + tempTotalHeight/2))
 
         fontFrac = ImageFont.truetype(fontName, 22)
         fontFracMetrics = getMetrics(tempFracStr, fontFrac)
         fontFracLoc = (fontWholeLoc[0]+fontWholeMetrics[0]-4, fontWholeLoc[1])
+        tempTotalWidth = fontWholeMetrics[0] + fontFracMetrics[0] - 4
 
         self._draw.text(
             fontWholeLoc, tempWholeStr, fill=0, anchor='ls', font=fontWhole)
@@ -138,8 +153,7 @@ class UserInterfaceService(ServiceConsumer):
         fontIndoorsMetrics = getMetrics(indoorsStr, fontIndoors)
         fontIndoorsBox = (
             (0, 0),
-            (fontWholeMetrics[0] + fontFracMetrics[0] - 4,
-             fontIndoorsMetrics[4]-fontIndoorsMetrics[3]+8)
+            (tempTotalWidth, fontIndoorsMetrics[4]-fontIndoorsMetrics[3]+8)
         )
         fontIndoorsLoc = (
             int((fontIndoorsBox[0][0]+fontIndoorsBox[1][0])/2),
@@ -157,8 +171,7 @@ class UserInterfaceService(ServiceConsumer):
         fontHumidBox = (
             (0, self._image.height -
              (fontHumidMetrics[4]-fontHumidMetrics[3]+8)),
-            (fontWholeMetrics[0] + fontFracMetrics[0] - 4,
-             self._image.height)
+            (tempTotalWidth, self._image.height)
         )
         fontHumidLoc = (
             int((fontHumidBox[0][0]+fontHumidBox[1][0])/2),
@@ -171,24 +184,70 @@ class UserInterfaceService(ServiceConsumer):
         #####################################################################
         # Draw the current temperature target and mode
         if ThermostatMode.COOL == thermostatService.mode:
-            targetStr = f"Cool to: {thermostatService.comfortMax}"
+            targetStr = f"Cool to: {int(round(thermostatService.comfortMax))}"
         elif ThermostatMode.HEAT == thermostatService.mode:
-            targetStr = f"Heat to: {thermostatService.comfortMin}"
+            targetStr = f"Heat to: {int(round(thermostatService.comfortMin))}"
         elif ThermostatMode.AUTO == thermostatService.mode:
             targetStr = "Auto"
         elif ThermostatMode.FAN == thermostatService.mode:
             targetStr = "Fan Only"
         else:
             targetStr = 'System Off'
+
         fontTarget = ImageFont.truetype(fontName, 14)
         fontTargetBox = (
-            self._image.width-160, 0,
-            self._image.width, fontIndoorsBox[1][1])
-        fontTargetLoc = (self._image.width - 80, fontIndoorsLoc[1])
+            (self._image.width-tempTotalWidth, 0),
+            (self._image.width, fontIndoorsBox[1][1]))
+        fontTargetLoc = (
+            int((fontTargetBox[0][0]+fontTargetBox[1][0])/2),
+            int((fontTargetBox[0][1]+fontTargetBox[1][1])/2))
 
-        self._draw.rectangle(fontTargetBox, fill=255, outline=0, width=1)
+        # self._draw.rectangle(fontTargetBox, fill=255, outline=0, width=1)
         self._draw.text(
             fontTargetLoc, targetStr, fill=0, anchor='mm', font=fontTarget)
+
+        #####################################################################
+        # Draw the current price
+        if self._lastPrice is not None:
+            priceStr = f"{self._lastPrice:.4f} $/kW*h"
+            fontPrice = ImageFont.truetype(fontName, 14)
+            fontPriceMetrics = getMetrics(priceStr, fontPrice)
+            fontPriceBox = (
+                (self._image.width-tempTotalWidth, self._image.height -
+                 (fontPriceMetrics[4]-fontPriceMetrics[3]+8)),
+                (self._image.width, self._image.height)
+            )
+            fontPriceLoc = (
+                int((fontPriceBox[0][0]+fontPriceBox[1][0])/2),
+                int((fontPriceBox[0][1]+fontPriceBox[1][1])/2))
+
+            self._draw.rectangle(fontPriceBox, fill=0)
+            self._draw.text(
+                fontPriceLoc, priceStr, fill=255, anchor='mm', font=fontPrice)
+
+        ormManagementService = self._getService(OrmManagementService)
+        priceList = list(
+            a.price for a in ormManagementService.session.query(
+                OrmGriddyUpdate).order_by(OrmGriddyUpdate.time))
+        if len(priceList) > 1:
+            priceList.reverse()
+
+            step = 4
+            maxY = self._image.height/2 + tempTotalHeight/2
+            minY = maxY-tempTotalHeight
+            minX, maxX = self._image.width-tempTotalWidth, self._image.width-1
+            maxSamples = int((maxX-minX+1)/step)
+            priceList = priceList[:maxSamples]
+
+            scale = 0.9*(tempTotalHeight / max(priceList))
+            lineDef = list(
+                (maxX-i*step, int(round(maxY-scale*p)))
+                for i, p in enumerate(priceList))
+
+            self._draw.line(
+                [(minX, minY), (minX, maxY), (maxX, maxY),
+                 (maxX, minY), (minX, minY)], fill=0, width=2)
+            self._draw.line(lineDef, fill=0, width=1)
 
     def _drawQrCode(self):
         qr = qrcode.QRCode(

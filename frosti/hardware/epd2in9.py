@@ -29,6 +29,7 @@
 
 import logging
 from . import epdconfig
+import time
 
 # Display resolution
 EPD_WIDTH = 128
@@ -85,18 +86,17 @@ class EPD:
         self.send_buffer([data])
 
     def ReadBusy(self):
+        start = time.time_ns()
         while(epdconfig.digital_read(self.busy_pin) == 1):  # 0: idle, 1: busy
-            epdconfig.delay_ms(200)
+            epdconfig.delay_ms(50)
+        logging.debug(f"e-Paper busy for {(time.time_ns()-start)/1e6} ms")
 
     def TurnOnDisplay(self):
         self.send_command(0x22)  # DISPLAY_UPDATE_CONTROL_2
         self.send_data(0xC4)
         self.send_command(0x20)  # MASTER_ACTIVATION
         self.send_command(0xFF)  # TERMINATE_FRAME_READ_WRITE
-
-        logging.debug("e-Paper busy")
         self.ReadBusy()
-        logging.debug("e-Paper busy release")
 
     def SetWindow(self, x_start, y_start, x_end, y_end):
         self.send_command(0x44)  # SET_RAM_X_ADDRESS_START_END_POSITION
@@ -116,7 +116,7 @@ class EPD:
         self.send_command(0x4F)  # SET_RAM_Y_ADDRESS_COUNTER
         self.send_data(y & 0xFF)
         self.send_data((y >> 8) & 0xFF)
-        self.ReadBusy()
+        # self.ReadBusy()
 
     def init(self, lut):
         if (epdconfig.module_init() != 0):
@@ -153,55 +153,52 @@ class EPD:
         return 0
 
     def getbuffer(self, image):
+        start = time.time_ns()
         buf = [0xFF] * (int(self.width/8) * self.height)
         image_monocolor = image.convert('1')
         imwidth, imheight = image_monocolor.size
         pixels = image_monocolor.load()
-        # logging.debug("imwidth = %d, imheight = %d",imwidth,imheight)
         if(imwidth == self.width and imheight == self.height):
-            logging.debug("getBuffer() Vertical")
             for y in range(imheight):
                 for x in range(imwidth):
-                    # Set the bits for the column of pixels at the current position.
                     if pixels[x, y] == 0:
                         buf[int((x + y * self.width) / 8)
                             ] &= ~(0x80 >> (x % 8))
         elif(imwidth == self.height and imheight == self.width):
-            logging.debug("getBuffer() Horizontal")
             for y in range(imheight):
                 mask = ~(0x80 >> (y % 8))
+                newx = y
                 for x in range(imwidth):
-                    newx = y
                     newy = self.height - x - 1
                     if pixels[x, y] == 0:
                         buf[(newx + newy*self.width) // 8] &= mask
-        logging.debug("DONE getBuffer()")
+        logging.debug(f"getBuffer() took {(time.time_ns()-start)/1e6} ms")
         return buf
 
     def display(self, image):
-        if (image is None):
-            return
-        self.SetWindow(0, 0, self.width - 1, self.height - 1)
-        for j in range(0, self.height):
-            self.SetCursor(0, j)
-            self.send_command(0x24)  # WRITE_RAM
-            for i in range(0, int(self.width / 8)):
-                self.send_data(image[i + j * int(self.width / 8)])
-        self.TurnOnDisplay()
+        if image is not None:
+            self.SetWindow(0, 0, self.width - 1, self.height - 1)
+            for j in range(0, self.height):
+                self.SetCursor(0, j)
+                self.send_command(0x24)  # WRITE_RAM
+                self.send_buffer(image[i + j * (self.width // 8)]
+                                 for i in range(self.width // 8))
 
-    def displayWin(self, x1, y1, x2, y2, image):
-        if (image is None):
-            return
-        self.SetWindow(x1, y1, x2, y2)
-        width = x2 - x1 + 1
-        for j in range(y1, y2+1):
-            self.SetCursor(x1, j)
-            self.send_command(0x24)  # WRITE_RAM
-            # for i in range(0, int(self.width / 8)):
-            #     self.send_data(image[i + j * int(self.width / 8)])
-            for i in range(width // 8):
-                self.send_data(image[x1//8 + i + j * int(self.width / 8)])
-        self.TurnOnDisplay()
+            self.TurnOnDisplay()
+
+    # def displayWin(self, x1, y1, x2, y2, image):
+    #     if (image is None):
+    #         return
+    #     self.SetWindow(x1, y1, x2, y2)
+    #     width = x2 - x1 + 1
+    #     for j in range(y1, y2+1):
+    #         self.SetCursor(x1, j)
+    #         self.send_command(0x24)  # WRITE_RAM
+    #         # for i in range(0, int(self.width / 8)):
+    #         #     self.send_data(image[i + j * int(self.width / 8)])
+    #         for i in range(width // 8):
+    #             self.send_data(image[x1//8 + i + j * int(self.width / 8)])
+    #     self.TurnOnDisplay()
 
     def Clear(self, color):
         self.SetWindow(0, 0, self.width - 1, self.height - 1)
@@ -212,14 +209,14 @@ class EPD:
                 self.send_data(color)
         self.TurnOnDisplay()
 
-    def ClearWin(self, x1, y1, x2, y2, color):
-        self.SetWindow(x1, y1, x2, y2)
-        width = x2 - x1 + 1
-        for j in range(y1, y2+1):
-            self.SetCursor(x1, j)
-            self.send_command(0x24)  # WRITE_RAM
-            self.send_buffer([color]*(width//8))
-        self.TurnOnDisplay()
+    # def ClearWin(self, x1, y1, x2, y2, color):
+    #     self.SetWindow(x1, y1, x2, y2)
+    #     width = x2 - x1 + 1
+    #     for j in range(y1, y2+1):
+    #         self.SetCursor(x1, j)
+    #         self.send_command(0x24)  # WRITE_RAM
+    #         self.send_buffer([color]*(width//8))
+    #     self.TurnOnDisplay()
 
     def sleep(self):
         self.send_command(0x10)  # DEEP_SLEEP_MODE
