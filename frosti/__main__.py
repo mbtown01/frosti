@@ -19,8 +19,7 @@ class RootDriver(ServiceProvider):
         parser = argparse.ArgumentParser(
             description='FROSTI main process')
         parser.add_argument(
-            '--hardware', choices=['v5', 'auto'],
-            default='term',
+            '--hardware', choices=['v5', 'auto'], default='auto',
             help='Pick the underlying hardware supporting operations')
         parser.add_argument(
             '--diagnostics', default=False, action='store_true',
@@ -35,9 +34,9 @@ class RootDriver(ServiceProvider):
 
         # Hardware v5 the two 5024 chips at 0x28 and 0x29
         if 0x28 in results and 0x29 in results:
-            raise RuntimeError("We just don't support hardware older than v5")
+            return "v5"
 
-        return "v5"
+        raise RuntimeError("We just don't support hardware older than v5")
 
     def __getYamlConfigData(self):
         localPath = path.realpath(__file__)

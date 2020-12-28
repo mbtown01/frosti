@@ -4,6 +4,7 @@ import smbus
 from enum import Enum
 from PIL import ImageFont, ImageDraw, Image
 from time import sleep
+from datetime import datetime, timedelta
 
 from frosti.logging import log
 from frosti.core import ServiceConsumer, ServiceProvider, EventBus, \
@@ -22,6 +23,15 @@ from frosti.core.orm import OrmGriddyUpdate
 # pip install qrcode pillow
 
 
+class Screen:
+
+    def __init__(self):
+        pass
+
+    def redraw(self):
+        pass
+
+
 class UserInterfaceService(ServiceConsumer):
     """ Hardware-agnostic implemention of the FROSTI user interface, intended
     to serve as the default implementation for testing but to be subclassed
@@ -33,8 +43,7 @@ class UserInterfaceService(ServiceConsumer):
         DOWN = 2
         ENTER = 3
 
-    def __init__(self):
-        width, height = 296, 128
+    def __init__(self, width, height):
         self._image = Image.new('1', (width, height), 255)
         self._draw = ImageDraw.Draw(self._image)
 
@@ -43,10 +52,17 @@ class UserInterfaceService(ServiceConsumer):
         self._lastState = None
         self._lastPrice = None
 
-        self._menuStructure = {
-            'Mode': ['OFF', 'HEAT', 'COOL', 'FAN'],
-            'Setup': None
-        }
+        # Stuff the user needs to do
+        # Change MODE
+        # See current program information
+        # See network configuration
+        # Change defaults
+
+        # BACK...
+        # MODE
+        # SETTINGS
+        # STATUS
+        # CONFIG
 
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
@@ -76,6 +92,12 @@ class UserInterfaceService(ServiceConsumer):
             mode = thermostatService.mode
             thermostatService.nextMode()
             log.debug(f"CHANGED MODE {mode} -> {thermostatService.mode}")
+        elif UserInterfaceService.Button.UP == button:
+            thermostatService.modifyComfortSettings(1)
+        elif UserInterfaceService.Button.DOWN == button:
+            thermostatService.modifyComfortSettings(-1)
+        else:
+            raise RuntimeError(f"Unknown button: {button}")
 
     def _sensorDataChanged(self, event: SensorDataChangedEvent):
         needsRedraw = False
@@ -183,12 +205,15 @@ class UserInterfaceService(ServiceConsumer):
 
         #####################################################################
         # Draw the current temperature target and mode
+        comfortMin = int(round(thermostatService.comfortMin))
+        comfortMax = int(round(thermostatService.comfortMax))
+
         if ThermostatMode.COOL == thermostatService.mode:
-            targetStr = f"Cool to: {int(round(thermostatService.comfortMax))}"
+            targetStr = f"Cool to: {comfortMax}"
         elif ThermostatMode.HEAT == thermostatService.mode:
-            targetStr = f"Heat to: {int(round(thermostatService.comfortMin))}"
+            targetStr = f"Heat to: {comfortMin}"
         elif ThermostatMode.AUTO == thermostatService.mode:
-            targetStr = "Auto"
+            targetStr = f"Auto: {comfortMin} / {comfortMax}"
         elif ThermostatMode.FAN == thermostatService.mode:
             targetStr = "Fan Only"
         else:
@@ -209,7 +234,7 @@ class UserInterfaceService(ServiceConsumer):
         #####################################################################
         # Draw the current price
         if self._lastPrice is not None:
-            priceStr = f"{self._lastPrice:.4f} $/kW*h"
+            priceStr = f"${self._lastPrice:.4f}/kW*h"
             fontPrice = ImageFont.truetype(fontName, 14)
             fontPriceMetrics = getMetrics(priceStr, fontPrice)
             fontPriceBox = (
@@ -225,29 +250,59 @@ class UserInterfaceService(ServiceConsumer):
             self._draw.text(
                 fontPriceLoc, priceStr, fill=255, anchor='mm', font=fontPrice)
 
+        #####################################################################
+        # Draw the price trend
         ormManagementService = self._getService(OrmManagementService)
+        minutesInChart = 6*60
+        minutesInSample = 15
+        now = datetime.now()
+        earliestTime = now - timedelta(minutes=minutesInChart)
+
+        vPad = 8
+        maxY = self._image.height/2 + tempTotalHeight/2
+        minY = maxY-tempTotalHeight
+        minX, maxX = self._image.width-tempTotalWidth, self._image.width-1
+        self._draw.rectangle(
+            [minX, minY, maxX, maxY], outline=0, fill=255, width=3)
+        minX, maxX = minX+2, maxX-2
+
         priceList = list(
-            a.price for a in ormManagementService.session.query(
-                OrmGriddyUpdate).order_by(OrmGriddyUpdate.time))
-        if len(priceList) > 1:
-            priceList.reverse()
+            (a.time, a.price) for a in ormManagementService.session
+            .query(OrmGriddyUpdate).order_by(OrmGriddyUpdate.time)
+            .filter(OrmGriddyUpdate.time > earliestTime))
+        # priceList = priceList[-10:]
+        if len(priceList):
+            totalSamples = minutesInChart // minutesInSample
+            priceRangeList = [(None, None)] * totalSamples
+            for time, price in priceList:
+                timeSpan = now.timestamp() - time.timestamp()
+                timeBin = int(timeSpan // (minutesInSample*60))
+                minPrice, maxPrice = priceRangeList[timeBin]
+                minPrice = price if minPrice is None else minPrice
+                minPrice = min(minPrice, price)
+                maxPrice = price if maxPrice is None else maxPrice
+                maxPrice = max(maxPrice, price)
+                priceRangeList[timeBin] = (minPrice, maxPrice)
 
-            step = 4
-            maxY = self._image.height/2 + tempTotalHeight/2
-            minY = maxY-tempTotalHeight
-            minX, maxX = self._image.width-tempTotalWidth, self._image.width-1
-            maxSamples = int((maxX-minX+1)/step)
-            priceList = priceList[:maxSamples]
+            absMinPrice = min(a[0] for a in priceRangeList if a[0] is not None)
+            absMinPrice = min(0, absMinPrice)
+            absMaxPrice = max(a[1] for a in priceRangeList if a[1] is not None)
+            absMinPriceAdj = absMinPrice + 0.05*(absMaxPrice-absMinPrice)
+            absMaxPriceAdj = absMaxPrice + 0.05*(absMaxPrice-absMinPrice)
+            scale = ((tempTotalHeight-vPad) / (absMaxPriceAdj-absMinPriceAdj))
 
-            scale = 0.9*(tempTotalHeight / max(priceList))
-            lineDef = list(
-                (maxX-i*step, int(round(maxY-scale*p)))
-                for i, p in enumerate(priceList))
+            def priceToY(price: float):
+                return int(round(maxY-(price-absMinPriceAdj)*scale)) - vPad/2
 
-            self._draw.line(
-                [(minX, minY), (minX, maxY), (maxX, maxY),
-                 (maxX, minY), (minX, minY)], fill=0, width=2)
-            self._draw.line(lineDef, fill=0, width=1)
+            if absMinPrice < 0.0:
+                self._draw.line([minX, priceToY(0), maxX, priceToY(0)], fill=0)
+
+            priceWidth = (maxX-minX) / totalSamples
+            for i, (minPrice, maxPrice) in enumerate(priceRangeList):
+                if minPrice is not None and maxPrice is not None:
+                    self._draw.rectangle(
+                        [maxX - int((i+1)*priceWidth), priceToY(minPrice),
+                         maxX - int(i*priceWidth), priceToY(maxPrice)], fill=0, width=1)
 
     def _drawQrCode(self):
         qr = qrcode.QRCode(

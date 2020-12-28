@@ -1,7 +1,6 @@
 import RPi.GPIO as GPIO
-import smbus
 
-from time import sleep
+from time import sleep, time_ns
 from PIL import ImageChops
 # from PIL import ImageFont, ImageDraw, Image
 
@@ -9,255 +8,45 @@ from frosti.services.UserInterfaceService \
     import UserInterfaceService as BaseUserInterfaceService
 from frosti.core import ServiceProvider, EventBus
 from frosti.hardware.epd2in9 import EPD
+from frosti.hardware.LedRingDriver import LedRingDriver
 from frosti.logging import log
-
-RING_ADDR_LEFT = 0x27
-RING_ADDR_RIGHT = 0x27
-RING_ADDR_BOTH = 0x3c
-
-
-class LP5024Driver:
-    """ Hardly a driver, this is just a wrapper over the I2C interface for the
-    LED controller to make it easier to work with
-
-    From the LP5024 datasheet https://www.ti.com/lit/ds/symlink/lp5024.pdf
-    """
-
-    # Addresses
-    DEVICE_CONFIG = 0x00
-    LED_CONFIG = 0x02
-    BANK_BRIGHTNESS = 0x03
-    BANK_COLOR = 0x04
-    LED_BRIGHTNESS = 0x07  # (there are 8 of these)
-    LED_COLOR = 0x0f  # (there are 24 of these)
-    RESET = 0x27
-
-    def __init__(self, addr: int, **setupArgs):
-        self._addr = addr
-        self._bus = smbus.SMBus(1)
-        self.setup(**setupArgs)
-
-    def setup(self, *,
-              enable: bool = False,
-              logScale: bool = True,
-              powerSave: bool = True,
-              autoIncrement: bool = True,
-              pwmDithering: bool = True,
-              maxCurrent: bool = False,
-              ledGlobalOff: bool = False
-              ):
-        """ Configure the driver with the provided options.  The default
-        values provided are the defaults from the datasheet after a reset
-
-            enable:
-                1 = LP50xx enabled
-                0 = LP50xx not enabled
-            logScale:
-                1 = Logarithmic scale dimming curve enabled
-                0 = Linear scale dimming curve enabled
-            powerSave:
-                1 = Automatic power-saving mode enabled
-                0 = Automatic power-saving mode not enabled
-            autoIncrement:
-                1 = Automatic increment mode enabled
-                0 = Automatic increment mode not enabled
-            pwmDitering:
-                1 = PWM dithering mode enabled
-                0 = PWM dithering mode not enabled
-            maxCurrent:
-                1 = Output maximum current IMAX = 35 mA.
-                0 = Output maximum current IMAX = 25.5 mA.
-            ledGlobalOff:
-                1 = Shut down all LEDs
-                0 = Normal operation
-        """
-
-        c0Config, c1Config = 0, 0
-        c0Config |= 0x40 if enable else 0
-        c1Config |= 0x20 if logScale else 0
-        c1Config |= 0x10 if powerSave else 0
-        c1Config |= 0x08 if autoIncrement else 0
-        c1Config |= 0x04 if pwmDithering else 0
-        c1Config |= 0x02 if maxCurrent else 0
-        c1Config |= 0x01 if ledGlobalOff else 0
-
-        self._bus.write_i2c_block_data(
-            self._addr, self.DEVICE_CONFIG, [c0Config, c1Config])
-
-    def setBankControlled(self, bitfield: int):
-        """ Takes the bitfield (8-bit) and uses it as a truth vector to
-        specify which LEDs are bank controlled """
-        self._bus.write_byte_data(self._addr, self.LED_CONFIG, bitfield)
-
-    def setBankColor(self, rgbColor: int):
-        """ Sets the bank color """
-        hardwareColor = self._buildHardwareColorList(rgbColor)
-        self._bus.write_i2c_block_data(
-            self._addr, self.BANK_COLOR, hardwareColor)
-
-    def setBankBrightness(self, brightness: int):
-        """ Sets the bank brightness level """
-        self._bus.write_byte_data(
-            self._addr, self.BANK_BRIGHTNESS, brightness)
-
-    def setLedColor(self, rgbColorList: list):
-        """ Sets the color for each of the 8 LEDs """
-        if len(rgbColorList) != 8:
-            raise RuntimeError("Expected 8 RGB color values")
-        hardwareColorList = list(
-            item for sublist in rgbColorList
-            for item in self._buildHardwareColorList(sublist))
-        self._bus.write_i2c_block_data(
-            self._addr, self.LED_COLOR, hardwareColorList)
-
-    def setLedBrightness(self, brightnessList: list):
-        """ Sets the brightness for each of the 8 LEDs """
-        if len(brightnessList) != 8:
-            raise RuntimeError("Expected 8 brightness values")
-        self._bus.write_i2c_block_data(
-            self._addr, self.LED_BRIGHTNESS, brightnessList)
-
-    def _buildHardwareColorList(self, rgbColor: int):
-        """ Convert a standard rgb integer to a 3-byte array destined for the
-        LED driver.  Note that our driver hardware is actually wired GRB """
-        red = (rgbColor & 0xff0000) >> 16
-        green = (rgbColor & 0x00ff00) >> 8
-        blue = (rgbColor & 0x0000ff)
-        return [green, red, blue]
-
-
-class LedRingDriver:
-
-    def __init__(self):
-        self._bothCircles = LP5024Driver(0x3c, enable=True)
-        self._leftCircle = LP5024Driver(0x28, enable=True)
-        self._rightCircle = LP5024Driver(0x29, enable=True)
-
-        incrementList = [
-            0x000100, -0x010000,
-            0x000001, -0x000100,
-            0x010000, -0x000001,
-        ]
-
-        color = 0xff0000
-        self._rainbowColorList = list()
-        for increment in incrementList:
-            for i in range(255):
-                self._rainbowColorList.append(color+increment*i)
-            color += increment*(255)
-
-    def breathe(self,
-                rgbColor: int,
-                *,
-                brightMin: int = 40,
-                brightMax: int = 250,
-                brightStep: int = 5,
-                cycles: int = 1,
-                rate: float = 0.05):
-        self._bothCircles.setBankColor(rgbColor)
-        self._bothCircles.setBankControlled(0b11111111)
-
-        for j in range(cycles):
-            for i in range(brightMin, brightMax, brightStep):
-                self._bothCircles.setBankBrightness(i)
-                sleep(rate)
-            for i in range(brightMax, brightMin, -brightStep):
-                self._bothCircles.setBankBrightness(i)
-                sleep(rate)
-
-        self._bothCircles.setBankBrightness(brightMin)
-
-    def breatheRainbow(self,
-                       *,
-                       cycles: int = 1,
-                       rate: float = 0.025):
-        self._bothCircles.setBankControlled(0b11111111)
-        self._bothCircles.setBankBrightness(230)
-
-        colorList = self._rainbowColorList
-        c = 0
-        for j in range(cycles):
-            for i in range(40, 250, 5):
-                self._bothCircles.setBankColor(colorList[c % len(colorList)])
-                self._bothCircles.setBankBrightness(i)
-                c += 16
-                sleep(rate)
-            for i in range(250, 40, -5):
-                self._bothCircles.setBankColor(colorList[c % len(colorList)])
-                self._bothCircles.setBankBrightness(i)
-                c += 16
-                sleep(rate)
-
-    def dance(self,
-              rgbColorList: list,
-              *,
-              brightness: int = 230,
-              cycles: int = 1,
-              rate: float = 0.05):
-        self._bothCircles.setBankControlled(0b00000000)
-        self._bothCircles.setLedBrightness([brightness]*8)
-
-        for j in range(cycles):
-            localColorList = list(
-                rgbColorList[(j+i) % len(rgbColorList)] for i in range(8))
-            self._bothCircles.setLedColor(localColorList)
-            sleep(rate)
-
-    def chase(self,
-              rgbColorList: list,
-              brightnessList: list,
-              *,
-              cycles: int = 1,
-              rate: float = 0.025):
-        self._bothCircles.setBankControlled(0x00)
-        self._bothCircles.setLedBrightness([0]*8)
-        self._bothCircles.setLedColor([0]*8)
-
-        if len(rgbColorList) != 16:
-            raise RuntimeError("Expected 16 RGB color values")
-        if len(brightnessList) != 16:
-            raise RuntimeError("Expected 16 brightness values")
-
-        for j in range(16*cycles):
-            leftCircleRgbColorList = list(
-                rgbColorList[(a+j) % 16] for a in range(8))
-            leftCircleBrightness = list(
-                brightnessList[(a+j) % 16] for a in range(8))
-            rightCircleRgbColorList = list(
-                rgbColorList[(a+j+8) % 16] for a in range(8))
-            rightCircleBrightness = list(
-                brightnessList[(a+j+8) % 16] for a in range(8))
-            self._leftCircle.setLedColor(leftCircleRgbColorList)
-            self._leftCircle.setLedBrightness(leftCircleBrightness)
-            self._rightCircle.setLedColor(rightCircleRgbColorList)
-            self._rightCircle.setLedBrightness(rightCircleBrightness)
-            sleep(rate)
 
 
 class UserInterfaceService(BaseUserInterfaceService):
 
     def __init__(self):
-        super().__init__()
-
-        self._ledRingDriver = LedRingDriver()
-        # self._ledRingDriver.breathe(
-        #     0x33ff33, cycles=2, rate=0.01, brightMin=0, brightMax=160)
-        # self._ledRingDriver.breatheRainbow(cycles=1)
-        # self._ledRingDriver.chase(
-        #     [0x11ff11] + [0]*15, [230]*16, cycles=16)
-        self._ledRingDriver.chase(
-            [0xff0000]*8 + [0x0000ff]*8, [230]*16, cycles=120)
-        self._ledRingDriver.dance(
-            [0xff0000, 0xff0000, 0x0000ff, 0x0000ff], cycles=40)
-        self._ledRingDriver.dance(
-            [0xff0000, 0xff0000, 0xff0000, 0xff0000,
-             0x0000ff, 0x0000ff, 0x0000ff, 0x0000ff], cycles=40)
-
         self._epd = EPD()
         self._epd.init(self._epd.lut_partial_update)
         self._epd.Clear(0xFF)
         self._epd.Clear(0x00)
         self._epd.Clear(0xFF)
+
+        self._ledRingDriver = LedRingDriver(enable=True)
+        # self._ledRingDriver.setup(enable=False)
+        self._ledRingDriver.breathe(
+            rgbColor=0x33ff33, cycles=2, rate=0.025, brightMin=0,
+            brightMax=160)
+        self._ledRingDriver.rainbow(cycles=2)
+        self._ledRingDriver.chase(
+            rgbColorList=[0x11ff11] + [0]*15,
+            brightnessList=[230]*16, rate=0.0125,
+            cycles=8)
+        self._ledRingDriver.chase(
+            rgbColorList=[0xff0000]*8 + [0x0000ff]*8,
+            brightnessList=[175]*16,
+            cycles=8)
+        self._ledRingDriver.dance(
+            rgbColorList=[0xff0000, 0xff0000, 0x0000ff, 0x0000ff],
+            cycles=8)
+        self._ledRingDriver.dance(
+            rgbColorList=[
+                0xff0000, 0xff0000, 0xff0000, 0xff0000,
+                0x0000ff, 0x0000ff, 0x0000ff, 0x0000ff],
+            cycles=8)
+
+        super().__init__(self._epd.height, self._epd.width)
+
+        self._displayBuf = [0xFF] * (int(self._epd.width/8) * self._epd.height)
 
         self._buttonMap = {
             23: BaseUserInterfaceService.Button.UP,
@@ -280,6 +69,21 @@ class UserInterfaceService(BaseUserInterfaceService):
 
     def buttonPressed(self, button):
         log.debug(f"Button press detected for {button}")
+        if UserInterfaceService.Button.ENTER == button:
+            self._ledRingDriver.breathe(
+                rgbColor=0xffffff, cycles=2, rate=0.005, brightMin=0,
+                brightMax=160)
+        elif UserInterfaceService.Button.UP == button:
+            self._ledRingDriver.breathe(
+                rgbColor=0x0000ff, cycles=2, rate=0.005, brightMin=0,
+                brightMax=160)
+        elif UserInterfaceService.Button.DOWN == button:
+            self._ledRingDriver.breathe(
+                rgbColor=0xff0000, cycles=2, rate=0.005, brightMin=0,
+                brightMax=160)
+        else:
+            raise RuntimeError(f"Unknown button: {button}")
+
         super().buttonPressed(button)
 
     def _epaperKeepAlive(self):
@@ -302,6 +106,21 @@ class UserInterfaceService(BaseUserInterfaceService):
             if button is not None:
                 self._eventBus.safeInvoke(self.buttonPressed, button)
 
+    def _updateDisplayBuf(self, bbox):
+        (x1, y1, x2, y2) = bbox
+        pixels = self.image.load()
+        for y in range(y1, y2):
+            mask = ~(0x80 >> (y % 8))
+            newx = y
+            for x in range(x1, x2):
+                newy = self._epd.height - x - 1
+                if pixels[x, y] == 0:
+                    self._displayBuf[
+                        (newx + newy*self._epd.width) // 8] &= mask
+                else:
+                    self._displayBuf[
+                        (newx + newy*self._epd.width) // 8] |= ~mask
+
     def redraw(self):
         origImage = self.image.copy()
         super().redraw()
@@ -310,10 +129,22 @@ class UserInterfaceService(BaseUserInterfaceService):
 
         if bbox is not None:
             self._epaperKeepAlive()
-            buffer = self._epd.getbuffer(self.image)
-            self._epd.display(buffer)
+            # buffer = self._epd.getbuffer(self.image)
+            # self._epd.display(buffer)
 
-        # self._epd.ClearWin(50, 50, 100, 60, 0)
-
-        # buffer = self._epd.getbuffer(self.image)
-        # self._epd.display(buffer)
+            start = time_ns()
+            self._updateDisplayBuf(bbox)
+            # pixels = self.image.load()
+            # for y in range(y1, y2):
+            #     mask = ~(0x80 >> (y % 8))
+            #     newx = y
+            #     for x in range(x1, x2):
+            #         newy = self._epd.height - x - 1
+            #         if pixels[x, y] == 0:
+            #             self._displayBuf[
+            #                 (newx + newy*self._epd.width) // 8] &= mask
+            #         else:
+            #             self._displayBuf[
+            #                 (newx + newy*self._epd.width) // 8] |= ~mask
+            log.debug(f"_updateDisplayBuf() took {(time_ns()-start)/1e6} ms")
+            self._epd.display(self._displayBuf)

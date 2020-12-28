@@ -27,6 +27,12 @@
 # THE SOFTWARE.
 #
 
+# Found the spec sheet...
+# https://www.waveshare.com/w/upload/e/e6/2.9inch_e-Paper_Datasheet.pdf
+# Also this??
+# https://download.mikroe.com/documents/datasheets/e-paper-display-2%2C9-296x128-n.pdf
+# Is this chip the SSD1608??
+
 import logging
 from . import epdconfig
 import time
@@ -152,28 +158,28 @@ class EPD:
         # EPD hardware init end
         return 0
 
-    def getbuffer(self, image):
-        start = time.time_ns()
-        buf = [0xFF] * (int(self.width/8) * self.height)
-        image_monocolor = image.convert('1')
-        imwidth, imheight = image_monocolor.size
-        pixels = image_monocolor.load()
-        if(imwidth == self.width and imheight == self.height):
-            for y in range(imheight):
-                for x in range(imwidth):
-                    if pixels[x, y] == 0:
-                        buf[int((x + y * self.width) / 8)
-                            ] &= ~(0x80 >> (x % 8))
-        elif(imwidth == self.height and imheight == self.width):
-            for y in range(imheight):
-                mask = ~(0x80 >> (y % 8))
-                newx = y
-                for x in range(imwidth):
-                    newy = self.height - x - 1
-                    if pixels[x, y] == 0:
-                        buf[(newx + newy*self.width) // 8] &= mask
-        logging.debug(f"getBuffer() took {(time.time_ns()-start)/1e6} ms")
-        return buf
+    # def getbuffer(self, image):
+    #     start = time.time_ns()
+    #     buf = [0xFF] * (int(self.width/8) * self.height)
+    #     image_monocolor = image.convert('1')
+    #     imwidth, imheight = image_monocolor.size
+    #     pixels = image_monocolor.load()
+    #     if(imwidth == self.width and imheight == self.height):
+    #         for y in range(imheight):
+    #             for x in range(imwidth):
+    #                 if pixels[x, y] == 0:
+    #                     buf[int((x + y * self.width) / 8)
+    #                         ] &= ~(0x80 >> (x % 8))
+    #     elif(imwidth == self.height and imheight == self.width):
+    #         for y in range(imheight):
+    #             mask = ~(0x80 >> (y % 8))
+    #             newx = y
+    #             for x in range(imwidth):
+    #                 newy = self.height - x - 1
+    #                 if pixels[x, y] == 0:
+    #                     buf[(newx + newy*self.width) // 8] &= mask
+    #     logging.debug(f"getBuffer() took {(time.time_ns()-start)/1e6} ms")
+    #     return buf
 
     def display(self, image):
         if image is not None:
@@ -186,27 +192,25 @@ class EPD:
 
             self.TurnOnDisplay()
 
-    # def displayWin(self, x1, y1, x2, y2, image):
-    #     if (image is None):
-    #         return
-    #     self.SetWindow(x1, y1, x2, y2)
-    #     width = x2 - x1 + 1
-    #     for j in range(y1, y2+1):
-    #         self.SetCursor(x1, j)
-    #         self.send_command(0x24)  # WRITE_RAM
-    #         # for i in range(0, int(self.width / 8)):
-    #         #     self.send_data(image[i + j * int(self.width / 8)])
-    #         for i in range(width // 8):
-    #             self.send_data(image[x1//8 + i + j * int(self.width / 8)])
-    #     self.TurnOnDisplay()
+    def displayWin(self, x1, y1, x2, y2, image):
+        if image is not None:
+            self.SetWindow(x1, y1, x2-1, y2-1)
+            for j in range(y1, y2):
+                self.SetCursor(x1, j)
+                self.send_command(0x24)  # WRITE_RAM
+                self.send_buffer(image[i//8 + j * (self.width // 8)]
+                                 for i in range(x1, x2, 8))
+
+            self.TurnOnDisplay()
 
     def Clear(self, color):
         self.SetWindow(0, 0, self.width - 1, self.height - 1)
         for j in range(0, self.height):
             self.SetCursor(0, j)
             self.send_command(0x24)  # WRITE_RAM
-            for i in range(0, int(self.width / 8)):
-                self.send_data(color)
+            self.send_buffer([color]*int(self.width // 8))
+            # for i in range(0, int(self.width / 8)):
+            #     self.send_data(color)
         self.TurnOnDisplay()
 
     # def ClearWin(self, x1, y1, x2, y2, color):
