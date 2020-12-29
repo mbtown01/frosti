@@ -1,3 +1,5 @@
+from frosti.core.orm import OrmGriddyUpdate
+from frosti.core.Event import Event
 import qrcode
 import smbus
 
@@ -15,7 +17,7 @@ from frosti.services.EnvironmentSamplingService \
 from frosti.services.OrmManagementService import OrmManagementService
 from frosti.core.events import ThermostatStateChangedEvent, \
     SensorDataChangedEvent, PowerPriceChangedEvent, SettingsChangedEvent
-from frosti.core.orm import OrmGriddyUpdate
+from frosti.core.Event import Event
 
 
 # sudo apt-get install liblcms1-dev libopenjp2-7 libtiff5 -y
@@ -23,46 +25,108 @@ from frosti.core.orm import OrmGriddyUpdate
 # pip install qrcode pillow
 
 
-class Screen:
-
-    def __init__(self):
-        pass
-
-    def redraw(self):
-        pass
+class HardwareButton(Enum):
+    UP = 1
+    DOWN = 2
+    ENTER = 3
 
 
-class UserInterfaceService(ServiceConsumer):
-    """ Hardware-agnostic implemention of the FROSTI user interface, intended
-    to serve as the default implementation for testing but to be subclassed
-    to specialize for specific hardware
-    """
+class ScreenInvalidatedEvent(Event):
+    def __init__(self, screen):
+        super().__init__(data={
+            'screen': screen,
+        })
 
-    class Button(Enum):
-        UP = 1
-        DOWN = 2
-        ENTER = 3
+    @property
+    def screen(self):
+        return self._data['screen']
+
+
+class Screen(ServiceConsumer):
+
+    def __init__(self, width: int, height: int):
+        self.width = width
+        self.height = height
+        self.isActive = False
+
+    def buttonPressed(self, button: HardwareButton):
+        raise NotImplementedError()
+
+    def redraw(self, draw: ImageDraw.Draw):
+        raise NotImplementedError()
+
+    def invalidate(self):
+        if self.isActive:
+            eventBus = self._getService(EventBus)
+            eventBus.fireEvent(
+                ScreenInvalidatedEvent(self), immediately=True)
+
+
+class OptionsScreen(Screen):
 
     def __init__(self, width, height):
-        self._image = Image.new('1', (width, height), 255)
-        self._draw = ImageDraw.Draw(self._image)
+        super().__init__(width, height)
 
         self._lastTemperature = None
         self._lastHumidity = None
         self._lastState = None
         self._lastPrice = None
 
-        # Stuff the user needs to do
-        # Change MODE
-        # See current program information
-        # See network configuration
-        # Change defaults
+        self._options = ['Mode', 'Settings', 'Network', 'Reset']
+        self._selectedIndex = 0
 
-        # BACK...
-        # MODE
-        # SETTINGS
-        # STATUS
-        # CONFIG
+    def buttonPressed(self, button: HardwareButton):
+        if HardwareButton.ENTER == button:
+            self.invalidate()
+        elif HardwareButton.UP == button:
+            self._selectedIndex = \
+                (self._selectedIndex - 1) % len(self._options)
+            self.invalidate()
+        elif HardwareButton.DOWN == button:
+            self._selectedIndex = \
+                (self._selectedIndex + 1) % len(self._options)
+            self.invalidate()
+        else:
+            raise RuntimeError(f"Unknown button: {button}")
+
+    def redraw(self, draw: ImageDraw.Draw):
+
+        def getMetrics(text, font):
+            ascent, descent = font.getmetrics()
+            (width, baseline), (offset_x, offset_y) = \
+                font.font.getsize(str(text))
+            return (width, baseline, offset_x, offset_y, ascent, descent)
+
+        # fontName = 'Hack-Bold.ttf'
+        # font = ImageFont.truetype(fontName, 16)
+        # fontMetrics = getMetrics('Arugula', font)
+        # for i, text in enumerate(self._options):
+        #     fontIndoorsBox = (
+        #         (0, 0),
+        #         (tempTotalWidth, fontMetrics[4]-fontMetrics[3]+8)
+        #     )
+        #     fontIndoorsLoc = (
+        #         int((fontMetrics[0][0]+fontMetrics[1][0])/2),
+        #         int((fontMetrics[0][1]+fontMetrics[1][1])/2))
+
+        #     # self.draw.rectangle(fontIndoorsBox, fill=0)
+        #     self.draw.text(
+        #         fontIndoorsLoc, indoorsStr, fill=0, anchor='mm', font=fontIndoors)
+
+
+class HomeScreen(Screen):
+    """ Hardware-agnostic implemention of the FROSTI user interface, intended
+    to serve as the default implementation for testing but to be subclassed
+    to specialize for specific hardware
+    """
+
+    def __init__(self, width, height):
+        super().__init__(width, height)
+
+        self._lastTemperature = None
+        self._lastHumidity = None
+        self._lastState = None
+        self._lastPrice = None
 
     def setServiceProvider(self, provider: ServiceProvider):
         super().setServiceProvider(provider)
@@ -82,19 +146,15 @@ class UserInterfaceService(ServiceConsumer):
         eventBus.installEventHandler(
             SettingsChangedEvent, self._settingsChanged)
 
-    @property
-    def image(self):
-        return self._image
-
-    def buttonPressed(self, button):
+    def buttonPressed(self, button: HardwareButton):
         thermostatService = self._getService(ThermostatService)
-        if UserInterfaceService.Button.ENTER == button:
+        if HardwareButton.ENTER == button:
             mode = thermostatService.mode
             thermostatService.nextMode()
             log.debug(f"CHANGED MODE {mode} -> {thermostatService.mode}")
-        elif UserInterfaceService.Button.UP == button:
+        elif HardwareButton.UP == button:
             thermostatService.modifyComfortSettings(1)
-        elif UserInterfaceService.Button.DOWN == button:
+        elif HardwareButton.DOWN == button:
             thermostatService.modifyComfortSettings(-1)
         else:
             raise RuntimeError(f"Unknown button: {button}")
@@ -115,22 +175,22 @@ class UserInterfaceService(ServiceConsumer):
             needsRedraw = True
 
         if needsRedraw:
-            self.redraw()
+            self.invalidate()
 
     def _settingsChanged(self, event: SettingsChangedEvent):
-        self.redraw()
+        self.invalidate()
 
     def _stateChanged(self, event: ThermostatStateChangedEvent):
         if self._lastState != event.state:
             self._lastState = event.state
-            self.redraw()
+            self.invalidate()
 
     def _powerPriceChanged(self, event: PowerPriceChangedEvent):
         if self._lastPrice != event.price:
             self._lastPrice = event.price
-            self.redraw()
+            self.invalidate()
 
-    def redraw(self):
+    def redraw(self, draw: ImageDraw.Draw):
         # https://pillow.readthedocs.io/en/stable/handbook/text-anchors.html
         # Draw a bounding box that I'm expecting resembles the inset for
         # the rectangle port in the case
@@ -146,8 +206,8 @@ class UserInterfaceService(ServiceConsumer):
 
         #####################################################################
         # Clear the image
-        self._draw.rectangle(
-            [0, 0, self._image.width, self._image.height], fill=255)
+        draw.rectangle(
+            [0, 0, self.width, self.height], fill=255)
 
         #####################################################################
         # Draw the temperature with smaller fractional 10th in lower-right
@@ -156,16 +216,16 @@ class UserInterfaceService(ServiceConsumer):
         fontWhole = ImageFont.truetype(fontName, 96)
         fontWholeMetrics = getMetrics(tempWholeStr, fontWhole)
         tempTotalHeight = fontWholeMetrics[4]-fontWholeMetrics[3]
-        fontWholeLoc = (pad, int(self._image.height/2 + tempTotalHeight/2))
+        fontWholeLoc = (pad, int(self.height/2 + tempTotalHeight/2))
 
         fontFrac = ImageFont.truetype(fontName, 22)
         fontFracMetrics = getMetrics(tempFracStr, fontFrac)
         fontFracLoc = (fontWholeLoc[0]+fontWholeMetrics[0]-4, fontWholeLoc[1])
         tempTotalWidth = fontWholeMetrics[0] + fontFracMetrics[0] - 4
 
-        self._draw.text(
+        draw.text(
             fontWholeLoc, tempWholeStr, fill=0, anchor='ls', font=fontWhole)
-        self._draw.text(
+        draw.text(
             fontFracLoc, tempFracStr, fill=0, anchor='ls', font=fontFrac)
 
         #####################################################################
@@ -181,8 +241,8 @@ class UserInterfaceService(ServiceConsumer):
             int((fontIndoorsBox[0][0]+fontIndoorsBox[1][0])/2),
             int((fontIndoorsBox[0][1]+fontIndoorsBox[1][1])/2))
 
-        # self._draw.rectangle(fontIndoorsBox, fill=0)
-        self._draw.text(
+        # draw.rectangle(fontIndoorsBox, fill=0)
+        draw.text(
             fontIndoorsLoc, indoorsStr, fill=0, anchor='mm', font=fontIndoors)
 
         #####################################################################
@@ -191,16 +251,16 @@ class UserInterfaceService(ServiceConsumer):
         fontHumid = ImageFont.truetype(fontName, 14)
         fontHumidMetrics = getMetrics(humidityStr, fontHumid)
         fontHumidBox = (
-            (0, self._image.height -
+            (0, self.height -
              (fontHumidMetrics[4]-fontHumidMetrics[3]+8)),
-            (tempTotalWidth, self._image.height)
+            (tempTotalWidth, self.height)
         )
         fontHumidLoc = (
             int((fontHumidBox[0][0]+fontHumidBox[1][0])/2),
             int((fontHumidBox[0][1]+fontHumidBox[1][1])/2))
 
-        self._draw.rectangle(fontHumidBox, fill=0)
-        self._draw.text(
+        draw.rectangle(fontHumidBox, fill=0)
+        draw.text(
             fontHumidLoc, humidityStr, fill=255, anchor='mm', font=fontHumid)
 
         #####################################################################
@@ -221,14 +281,14 @@ class UserInterfaceService(ServiceConsumer):
 
         fontTarget = ImageFont.truetype(fontName, 14)
         fontTargetBox = (
-            (self._image.width-tempTotalWidth, 0),
-            (self._image.width, fontIndoorsBox[1][1]))
+            (self.width-tempTotalWidth, 0),
+            (self.width, fontIndoorsBox[1][1]))
         fontTargetLoc = (
             int((fontTargetBox[0][0]+fontTargetBox[1][0])/2),
             int((fontTargetBox[0][1]+fontTargetBox[1][1])/2))
 
-        # self._draw.rectangle(fontTargetBox, fill=255, outline=0, width=1)
-        self._draw.text(
+        # draw.rectangle(fontTargetBox, fill=255, outline=0, width=1)
+        draw.text(
             fontTargetLoc, targetStr, fill=0, anchor='mm', font=fontTarget)
 
         #####################################################################
@@ -238,16 +298,16 @@ class UserInterfaceService(ServiceConsumer):
             fontPrice = ImageFont.truetype(fontName, 14)
             fontPriceMetrics = getMetrics(priceStr, fontPrice)
             fontPriceBox = (
-                (self._image.width-tempTotalWidth, self._image.height -
+                (self.width-tempTotalWidth, self.height -
                  (fontPriceMetrics[4]-fontPriceMetrics[3]+8)),
-                (self._image.width, self._image.height)
+                (self.width, self.height)
             )
             fontPriceLoc = (
                 int((fontPriceBox[0][0]+fontPriceBox[1][0])/2),
                 int((fontPriceBox[0][1]+fontPriceBox[1][1])/2))
 
-            self._draw.rectangle(fontPriceBox, fill=0)
-            self._draw.text(
+            draw.rectangle(fontPriceBox, fill=0)
+            draw.text(
                 fontPriceLoc, priceStr, fill=255, anchor='mm', font=fontPrice)
 
         #####################################################################
@@ -259,10 +319,10 @@ class UserInterfaceService(ServiceConsumer):
         earliestTime = now - timedelta(minutes=minutesInChart)
 
         vPad = 8
-        maxY = self._image.height/2 + tempTotalHeight/2
+        maxY = self.height/2 + tempTotalHeight/2
         minY = maxY-tempTotalHeight
-        minX, maxX = self._image.width-tempTotalWidth, self._image.width-1
-        self._draw.rectangle(
+        minX, maxX = self.width-tempTotalWidth, self.width-1
+        draw.rectangle(
             [minX, minY, maxX, maxY], outline=0, fill=255, width=3)
         minX, maxX = minX+2, maxX-2
 
@@ -295,14 +355,62 @@ class UserInterfaceService(ServiceConsumer):
                 return int(round(maxY-(price-absMinPriceAdj)*scale)) - vPad/2
 
             if absMinPrice < 0.0:
-                self._draw.line([minX, priceToY(0), maxX, priceToY(0)], fill=0)
+                draw.line([minX, priceToY(0), maxX, priceToY(0)], fill=0)
 
             priceWidth = (maxX-minX) / totalSamples
             for i, (minPrice, maxPrice) in enumerate(priceRangeList):
                 if minPrice is not None and maxPrice is not None:
-                    self._draw.rectangle(
+                    draw.rectangle(
                         [maxX - int((i+1)*priceWidth), priceToY(minPrice),
-                         maxX - int(i*priceWidth), priceToY(maxPrice)], fill=0, width=1)
+                         maxX - int(i*priceWidth), priceToY(maxPrice)],
+                        fill=0, width=1)
+
+
+class UserInterfaceService(ServiceConsumer):
+    """ Hardware-agnostic implemention of the FROSTI user interface, intended
+    to serve as the default implementation for testing but to be subclassed
+    to specialize for specific hardware
+    """
+
+    def __init__(self, width, height):
+        self.image = Image.new('1', (width, height), 255)
+        self.draw = ImageDraw.Draw(self.image)
+
+        self._lastTemperature = None
+        self._lastHumidity = None
+        self._lastState = None
+        self._lastPrice = None
+        self._currentScreen = HomeScreen(width, height)
+        self._currentScreen.isActive = True
+
+        # Stuff the user needs to do
+        # Change MODE
+        # See current program information
+        # See network configuration
+        # Change defaults
+
+        # BACK...
+        # MODE
+        # SETTINGS
+        # STATUS
+        # CONFIG
+
+    def setServiceProvider(self, provider: ServiceProvider):
+        super().setServiceProvider(provider)
+        self._currentScreen.setServiceProvider(provider)
+
+        eventBus = self._getService(EventBus)
+        eventBus.installEventHandler(
+            ScreenInvalidatedEvent, self._screenInvalidated)
+
+    def _screenInvalidated(self, event: ScreenInvalidatedEvent):
+        self.redraw()
+
+    def buttonPressed(self, button: HardwareButton):
+        self._currentScreen.buttonPressed(button)
+
+    def redraw(self):
+        self._currentScreen.redraw(self.draw)
 
     def _drawQrCode(self):
         qr = qrcode.QRCode(
@@ -313,6 +421,6 @@ class UserInterfaceService(ServiceConsumer):
         qr.make(fit=True)
         img = qr.make_image(
             fill_color="black", back_color="white").get_image()
-        self._image.paste(img, (self._image.width-img.size[0], 0))
+        self.image.paste(img, (self.image.width-img.size[0], 0))
 
-        # epd.display(epd.getbuffer(self._image))
+        # epd.display(epd.getbuffer(self.image))

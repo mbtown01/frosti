@@ -24,6 +24,10 @@ def animation(func):
 
 
 class LedRingDriver:
+    """
+    Left circle LED 0 is at top-right and increments counter-clockwise.
+    Right circle LED 0 is at bottom-left and increments counter-clockwise.
+    """
 
     class ThreadExitException(Exception):
         pass
@@ -37,10 +41,10 @@ class LedRingDriver:
             0x000100, -0x010000, 0x000001, -0x000100, 0x010000, -0x000001]
 
         color = 0xff0000
-        self._rainbowColorList = list()
+        self.rgbRainbowList = list()
         for increment in incrementList:
             for i in range(255):
-                self._rainbowColorList.append(color+increment*i)
+                self.rgbRainbowList.append(color+increment*i)
             color += increment*(255)
 
         self._animationQueue = Queue(32)
@@ -89,81 +93,42 @@ class LedRingDriver:
 
     @animation
     def breathe(self, *,
-                rgbColor: int = 0x00ff00,
+                rgbColorList: int = [0x00ff00],
                 brightMin: int = 40,
                 brightMax: int = 250,
                 brightStep: int = 5,
                 cycles: int = 1,
                 rate: float = 0.05):
-        self._bothCircles.setBankColor(rgbColor)
         self._bothCircles.setBankControlled(0b11111111)
 
+        brightnessRange = list(range(brightMin, brightMax, brightStep))
+        brightnessRange += list(range(brightMax, brightMin, -brightStep))
         for j in range(cycles):
-            for i in range(brightMin, brightMax, brightStep):
-                self._bothCircles.setBankBrightness(i)
-                self._sleepOrThrow(rate)
-            for i in range(brightMax, brightMin, -brightStep):
+            for i in brightnessRange:
+                self._bothCircles.setBankColor(
+                    rgbColorList[j % len(rgbColorList)])
                 self._bothCircles.setBankBrightness(i)
                 self._sleepOrThrow(rate)
 
         self._bothCircles.setBankBrightness(brightMin)
 
     @animation
-    def rainbow(self, *,
-                colorStep: int = 16,
-                brightness: int = 230,
-                cycles: int = 1,
-                rate: float = 0.025):
-        self._bothCircles.setBankControlled(0b11111111)
-        self._bothCircles.setBankBrightness(brightness)
-
-        colorList = self._rainbowColorList
-        for j in range(cycles):
-            for c in range(0, len(colorList), colorStep):
-                self._bothCircles.setBankColor(colorList[c % len(colorList)])
-                self._sleepOrThrow(rate)
-
-    @animation
-    def dance(self, *,
-              rgbColorList: list = [0xff0000, 0xff0000],
-              brightness: int = 230,
-              cycles: int = 1,
-              rate: float = 0.05):
-        self._bothCircles.setBankControlled(0b00000000)
-        self._bothCircles.setLedBrightness([brightness]*8)
-
-        for j in range(cycles):
-            localColorList = list(
-                rgbColorList[(j+i) % len(rgbColorList)] for i in range(8))
-            self._bothCircles.setLedColor(localColorList)
-            self._sleepOrThrow(rate)
-
-    @animation
     def chase(self, *,
-              rgbColorList: list = [0x00ff00]*16,
-              brightnessList: list = [200]*16,
+              rgbColorList: list = [0x00ff00],
+              brightnessList: list = [200],
               cycles: int = 1,
               rate: float = 0.025):
         self._bothCircles.setBankControlled(0x00)
         self._bothCircles.setLedBrightness([0]*8)
         self._bothCircles.setLedColor([0]*8)
 
-        if len(rgbColorList) != 16:
-            raise RuntimeError("Expected 16 RGB color values")
-        if len(brightnessList) != 16:
-            raise RuntimeError("Expected 16 brightness values")
-
         for j in range(16*cycles):
-            leftCircleRgbColorList = list(
-                rgbColorList[(a+j) % 16] for a in range(8))
-            leftCircleBrightness = list(
-                brightnessList[(a+j) % 16] for a in range(8))
-            rightCircleRgbColorList = list(
-                rgbColorList[(a+j+8) % 16] for a in range(8))
-            rightCircleBrightness = list(
-                brightnessList[(a+j+8) % 16] for a in range(8))
-            self._leftCircle.setLedColor(leftCircleRgbColorList)
-            self._leftCircle.setLedBrightness(leftCircleBrightness)
-            self._rightCircle.setLedColor(rightCircleRgbColorList)
-            self._rightCircle.setLedBrightness(rightCircleBrightness)
+            bothRgbColorList = list(
+                rgbColorList[(a+j) % len(rgbColorList)] for a in range(16))
+            bothBrightnessList = list(
+                brightnessList[(a+j) % len(brightnessList)] for a in range(16))
+            self._leftCircle.setLedColor(bothRgbColorList[:8])
+            self._leftCircle.setLedBrightness(bothBrightnessList[:8])
+            self._rightCircle.setLedColor(bothRgbColorList[-8:])
+            self._rightCircle.setLedBrightness(bothBrightnessList[-8:])
             self._sleepOrThrow(rate)
