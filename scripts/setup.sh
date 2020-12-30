@@ -1,12 +1,101 @@
 #!/bin/bash
 
-
 # This is the universal setup script for FROSTI.  The intent is for this to
-# configure both container-land and a stock Raspberry Pi OS instance
+# configure both container-land and a stock Raspberry Pi OS instance.  Ideally
+# the package lists would be in their own files, but the goal is to enable
+# curl'ing this file and execute it stand-alone.
 
 FROSTI_HOME=/usr/local/frosti
 FROSTI_STATUS_DIR=/var/spool/frosti
 FROSTI_HOSTNAME=pi-frosti-dev
+
+read -r -d '' FROSTI_PACKAGES <<-EOLIST
+	curl
+	fonts-hack-ttf
+	fonts-mplus
+	libfreetype6-dev
+	libfribidi-dev
+	libharfbuzz-dev
+	libjpeg-dev
+	liblcms2-dev
+	libopenjp2-7-dev
+	libpq-dev
+	libtiff-dev
+	libwebp-dev
+	libxcb1-dev
+	python3
+	python3-dev
+	python3-pil
+	python3-pip
+	python3-setuptools
+	python3-smbus
+	python3-tk
+	tcl8.6-dev
+	tk8.6-dev
+	unzip
+	zlib1g-dev
+EOLIST
+
+
+read -r -d '' FROSTI_REQUIREMENTS <<-EOLIST
+	Adafruit-Blinka==5.9.1
+	adafruit-circuitpython-74hc595==1.2.1
+	adafruit-circuitpython-bme280==2.5.1
+	adafruit-circuitpython-bmp280==3.2.3
+	adafruit-circuitpython-busdevice==5.0.1
+	adafruit-circuitpython-charlcd==3.3.4
+	adafruit-circuitpython-mcp230xx==2.4.2
+	Adafruit-PlatformDetect==2.23.0
+	Adafruit-PureIO==1.1.8
+	aniso8601==8.1.0
+	attrs==20.3.0
+	autopep8==1.5.4
+	certifi==2020.12.5
+	chardet==4.0.0
+	click==7.1.2
+	flake8==3.8.4
+	Flask==1.1.2
+	Flask-Cors==3.0.9
+	flask-restx==0.2.0
+	idna==2.10
+	importlib-metadata==3.3.0
+	iniconfig==1.1.1
+	itsdangerous==1.1.0
+	Jinja2==2.11.2
+	jsonschema==3.2.0
+	MarkupSafe==1.1.1
+	mccabe==0.6.1
+	packaging==20.8
+	Pillow==8.0.1
+	pluggy==0.13.1
+	psycopg2-binary==2.8.6
+	ptvsd==4.3.2
+	py==1.10.0
+	pycodestyle==2.6.0
+	pyflakes==2.2.0
+	pyftdi==0.52.0
+	pyparsing==2.4.7
+	pyrsistent==0.17.3
+	pyserial==3.5
+	pytest==6.2.1
+	pytz==2020.4
+	pyusb==1.1.0
+	PyYAML==5.3.1
+	qrcode==6.1
+	requests==2.25.1
+	rpi-ws281x==4.2.5
+	RPi.GPIO==0.7.0
+	six==1.15.0
+	spidev==3.5
+	SQLAlchemy==1.3.22
+	SQLAlchemy-Utils==0.36.8
+	sysv-ipc==1.0.1
+	toml==0.10.2
+	typing-extensions==3.7.4.3
+	urllib3==1.26.2
+	Werkzeug==1.0.1
+	zipp==3.4.0
+EOLIST
 
 is_pi () {
   # Taken directly from raspi-config
@@ -49,10 +138,11 @@ run_and_mark_completed() {
   zz_task=${1}
 
   if is_not_completed ${zz_task}; then
+    echo "EXECUTING task '${zz_task}'"
     ${zz_task} || die "Failed task '${zz_task}'"
     mark_completed ${zz_task}
   else
-    echo "Skipping completed task '${zz_task}'"
+    echo "SKIPPING completed task '${zz_task}'"
   fi
 }
 
@@ -90,8 +180,8 @@ do_install_frosti_source() {
 
 do_install_packages() {
   cd ${FROSTI_HOME}
-  xargs sudo apt install -y < packages.txt
-  xargs sudo python3 -m pip install < requirements.txt
+  sudo apt install -y ${FROSTI_PACKAGES}
+  sudo python3 -m pip install ${FROSTI_REQUIREMENTS}
 }
 
 do_install_docker() {
