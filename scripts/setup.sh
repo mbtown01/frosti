@@ -226,7 +226,10 @@ do_install_docker() {
 
   # Install Docker
   apt update
-  apt install -y --no-install-recommends docker-ce cgroupfs-mount
+  apt install -y --no-install-recommends docker-ce cgroupfs-mount libffi-dev
+
+  # Install Docker Compose from pip (using Python3)
+  python3 -m pip install docker-compose
 }
 
 for i in $*; do
