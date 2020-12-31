@@ -7,7 +7,12 @@
 
 FROSTI_HOME=/usr/local/frosti
 FROSTI_STATUS_DIR=/var/spool/frosti
-FROSTI_HOSTNAME=pi-frosti-dev
+
+OPT_HOSTNAME=''
+OPT_SSID=''
+OPT_PASSPHRASE=''
+OPT_WIFI_COUNTRY='US'
+
 
 read -r -d '' FROSTI_PACKAGES <<-EOLIST
 	curl
@@ -146,42 +151,61 @@ run_and_mark_completed() {
   fi
 }
 
+do_setup_wifi() {
+  sudo raspi-config nonint do_wifi_country ${OPT_WIFI_COUNTRY}
+  sudo raspi-config nonint do_wifi_ssid_passphrase ${OPT_SSID} ${OPT_PASSPHRASE}
+}
+
+do_setup_file_systems() {
+  zz_rootsize=3002
+  zz_localdev=/dev/mmcblk0
+  zz_newdir=/data
+
+  parted ${zz_localdev} resizepart 2 ${zz_rootsize} || return 1
+  resize2fs "${zz_localdev}p2"
+  parted ${zz_localdev} mkpart primary ext4 ${zz_rootsize} '100%' || return 1
+  mkfs.ext4 -F "${zz_localdev}p3" || return 1
+  mkdir -p /data || return 1
+  newline="${zz_localdev}p3	 ${zz_newdir}   ext4    defaults,noatime  0    1"
+  echo ${newline} >> /etc/fstab || return 1
+  mount /data || return 1
+}
+
+do_setup_services() {
+  sudo raspi-config nonint do_spi 1
+  sudo raspi-config nonint do_i2c 1
+  sudo raspi-config nonint do_ssh 1
+  sudo service ssh restart
+}
+
 do_localize_us() {
-  if [ "${RPI_STATUS}" = '0' ]; then
-      # Setup locale preferences
-      sudo raspi-config nonint do_configure_keyboard 'us'
-      sudo raspi-config nonint do_change_locale 'en_US.UTF-8'
-      sudo raspi-config nonint do_change_timezone 'US/Central'
-      sudo raspi-config nonint do_wifi_country 'US'
+  sudo raspi-config nonint do_configure_keyboard 'us'
+  sudo raspi-config nonint do_change_locale 'en_US.UTF-8'
+  sudo raspi-config nonint do_change_timezone 'US/Central'
+}
 
-      # Setup Wifi and hostname
-      sudo raspi-config nonint do_hostname 'pi-frosti-dev'
-
-      # Setup the interfaces we want to use
-      sudo raspi-config nonint do_spi 1
-      sudo raspi-config nonint do_i2c 1
-      sudo raspi-config nonint do_ssh 1
-      sudo service ssh restart
-  fi
+do_setup_hostname() {
+  sudo raspi-config nonint do_hostname ${OPT_HOSTNAME}
 }
 
 do_install_packages_core() {
   # Install the core packages we need to get things going
   sudo apt update && sudo apt upgrade -y
-  sudo apt install -y git
+  sudo apt update && sudo apt upgrade -y || return 1
+  sudo apt install -y git || return 1
 }
 
 do_install_frosti_source() {
   # Once things are setup, can now pull down frosti and start configuring
   # the environment
-  mkdir -p ${FROSTI_HOME}
+  mkdir -pf ${FROSTI_HOME}
   sudo git clone https://github.com/mbtown01/frosti.git ${FROSTI_HOME}
 }
 
 do_install_packages() {
   cd ${FROSTI_HOME}
-  sudo apt install -y ${FROSTI_PACKAGES}
-  sudo python3 -m pip install ${FROSTI_REQUIREMENTS}
+  sudo apt install -y ${FROSTI_PACKAGES} || return 1
+  sudo python3 -m pip install ${FROSTI_REQUIREMENTS} || return 1
 }
 
 do_install_docker() {
@@ -206,14 +230,62 @@ do_install_docker() {
   sudo apt install -y --no-install-recommends docker-ce cgroupfs-mount
 }
 
+for i in $*; do
+  case $i in
+  --wifi_country=*)
+    OPT_WIFI_COUNTRY=`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
+    ;;
+  --ssid=*)
+    OPT_SSID=`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
+    ;;
+  --passphrase=*)
+    OPT_PASSPHRASE=`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
+    ;;
+  --hostname=*)
+    OPT_HOSTNAME=`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
+    ;;
+  --wait=*)
+    OPT_WAIT=`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
+    sleep ${OPT_WAIT}
+    ;;
+  *)
+    # unknown option
+    ;;
+  esac
+done
+
+if is_pi; then
+  if [ '' != "${OPT_SSID}" -a '' != "${OPT_PASSPHRASE}" ]; then
+    run_and_mark_completed do_setup_wifi
+
+    # Always wait for the wifi to be active
+    zzc=0
+    while [ '1' == $(ifconfig wlan0 | grep -q broadcast; echo $?) ]; do
+      echo WAITING ON wlan0 $zzc
+      zzc=$(($zzc+1))
+      if [ 30 == ${zzc} ]; then return 1; fi
+      sleep 1
+    done
+  fi
+
+  if [ '' != "${OPT_HOSTNAME}" ]; then
+    run_and_mark_completed do_setup_hostname
+  fi
+
+  run_and_mark_completed do_setup_services
+  run_and_mark_completed do_localize_us
+  run_and_mark_completed do_setup_file_systems
+fi
+
 run_and_mark_completed do_install_packages_core
 run_and_mark_completed do_install_frosti_source
 run_and_mark_completed do_install_packages
 
 if is_pi; then
-  run_and_mark_completed do_localize_us
   run_and_mark_completed do_install_docker
 fi
+
+echo SETUP COMPLETE
 
 # TODO for a production installation:
 #   - Setup the watchdog timer, but I think we want OUR software to 'pet'
@@ -232,38 +304,3 @@ fi
 # TODO for a container/development installation:
 #   - Bring in extra packages for developemt time (packages-dev.txt)
 #   - Run 
-
-# Command line options
-# for i in $*; do
-#   case $i in
-#   --setup=wif)
-#     OPT_MEMORY_SPLIT=GET
-#     printf "Not currently supported\n"
-#     exit 1
-#     ;;
-#   --memory-split=*)
-#     OPT_MEMORY_SPLIT=`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
-#     printf "Not currently supported\n"
-#     exit 1
-#     ;;
-#   --expand-rootfs)
-#     INTERACTIVE=False
-#     do_expand_rootfs
-#     printf "Please reboot\n"
-#     exit 0
-#     ;;
-#   --apply-os-config)
-#     INTERACTIVE=False
-#     do_apply_os_config
-#     exit $?
-#     ;;
-#   nonint)
-#     INTERACTIVE=False
-#     "$@"
-#     exit $?
-#     ;;
-#   *)
-#     # unknown option
-#     ;;
-#   esac
-# done

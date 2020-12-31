@@ -5,6 +5,24 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: Build Image",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "scripts/build-image.py",
+            "console": "integratedTerminal",
+            "stopOnEntry": false,
+            "args": [
+                "--input",
+                "/home/mbtowns/2020-12-02-raspios-buster-armhf-lite.img",
+                "--output",
+                "/home/mbtowns/test.img",
+                "--debug",
+                "--wifi",
+                "umbatu/umbatu5c7cbfee",
+            ],
+        },
+        {
             "name": "Python: Local Terminal",
             "type": "python",
             "request": "launch",

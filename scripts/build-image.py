@@ -2,27 +2,9 @@
 
 import os
 import stat
-import re
 import argparse
 import subprocess
 from io import StringIO
-
-
-"""
-Some testing I did...
-
-zz_orig=2020-12-02-raspios-buster-armhf-lite.img
-zz_image=test.img
-
-dd if=/dev/zero of=${zz_image} bs=4096k count=1k
-dd if=${zz_orig} of=${zz_image} bs=1M conv=notrunc
-sudo parted ${zz_image}
-resizepart 2 4000
-mkpart extended 4000 4096
-quit
-
-
-"""
 
 
 class ImageBuilder:
@@ -74,54 +56,27 @@ class ImageBuilder:
 
         return deviceMap
 
-    def build_image(self):
-        # Create the base image with a larger size
-        self.shell(['dd', 'if=/dev/zero', f'of={self.args.output}', 'bs=1M',
-                    'count=4096'])
-
-        # Bring the original image into the front of the new image
-        self.shell(['dd', f'if={self.args.input}', f'of={self.args.output}',
-                    'bs=4096k', 'conv=notrunc'])
+    def finalize_partitions(self):
+        rootSize, totalSize = 3002, '100%'
+        localDevice = '/dev/mmcblk0'
 
         # Resize the original root file system to ~4GB
-        self.shell(['parted', self.args.output, 'resizepart', '2', '4000'])
+        self.shell(['parted', localDevice, 'resizepart', '2', rootSize])
 
         # Create a new partition at the end of the root partition to be our
         # R/W partition later
-        self.shell(['parted', self.args.output,
-                    'mkpart', 'primary', 'ext4', '4000', '4096'])
+        self.shell(['sudo' 'parted', 'mkpart', 'primary',
+                    'ext4', rootSize, totalSize])
 
-        deviceMap = self.build_device_map()
-        deviceInfo = deviceMap.get('3')
-        if deviceInfo is None:
-            raise Exception(
-                f"Couldn't find the new device in {self.args.output}")
+        # Format the new file system to ext4
+        self.shell(['sudo', 'mkfs.ext4', '-F', f"{localDevice}p3"])
 
-        name, size, offset, end = deviceInfo
+        # TODO: STill neeed to mount this and add it to fstab
 
-        # This is overly complete, but we'll for sure get the next available
-        # loop device by seeing which ones already exist and taking the
-        # next available
-        loopFileList = list(f"/dev/loop{i}" for i in range(21, 50))
-        loopDevList = list()
-        for loopFile in loopFileList:
-            try:
-                if not stat.S_ISBLK(os.stat(loopFile).st_mode):
-                    loopDevList.append(loopFile)
-            except:
-                loopDevList.append(loopFile)
-
-        if not len(loopDevList):
-            raise RuntimeError(
-                "For some reason, there are no /dev/loop devices available")
-
-        # Loopback the new partition and create the file system
-        loopDev = loopDevList[0]
-        self.shell(['sudo', 'losetup', '-o', str(offset), '--sizelimit',
-                    size, loopDev, self.args.output])
-        self.shell(['sudo', 'mkfs.ext4', '-F', loopDev])
-        self.shell(['sudo', 'losetup', '-d', loopDev])
-        # self.shell(['sudo', 'rm', loopDev]
+    def build_image(self):
+        # Simply make a copy of the original image
+        self.shell(['dd', f'if={self.args.input}', f'of={self.args.output}',
+                    'bs=1M'])
 
     def mount(self, device: str, mountpoint: str):
         deviceMap = self.build_device_map()
@@ -139,15 +94,13 @@ class ImageBuilder:
     def execute(self):
         mount_root = '/tmp/frosti-root'
         mount_boot = '/tmp/frosti-boot'
-        mount_data = '/tmp/frosti-data'
+        # mount_data = '/tmp/frosti-data'
 
-        # self.build_image()
+        self.build_image()
 
         self.mount(1, mount_boot)
         self.mount(2, mount_root)
-        self.mount(3, mount_data)
-
-        return
+        # self.mount(3, mount_data)
 
         # If the current user has an id_rsa.pub file, use it
         id_rsa_file = os.path.expanduser("~/.ssh/id_rsa.pub")
@@ -164,42 +117,41 @@ class ImageBuilder:
             self.shell(['chown', '--reference',
                         pi_home, '-R', pi_home+'/.ssh'])
 
-        # if self.args.ssid is not None:
-        #     with open(mount_boot+'/wpa_supplicant.conf', "w") as outfile:
-        #         outfile.write(
-        #             'country=US\n'
-        #             'ctrl_interface=DIR=/var/run/wpa_supplicant '
-        #             'GROUP=netdev\n'
-        #             'update_config=1\n\n'
-        #             'network={\n'
-        #             f'    ssid="{self.args.ssid}"\n'
-        #             f'    psk="{self.args.passwd}"\n'
-        #             '    key_mgmt=WPA-PSK\n'
-        #             '}\n'
-        #         )
-
-        # # Enable ssh on the pi
-        # if self.args.hostname is not None:
-        #     self.shell([
-        #         'bash', '-c',
-        #         f'echo {self.args.hostname} > {mount_root}/etc/hostname'
-        #     ])
-
         self.shell(['sudo', 'cp', 'scripts/setup.sh', f"{mount_root}/etc"])
         self.shell(['sudo', 'chmod', '755', f"{mount_root}/etc/setup.sh"])
 
-        rcLocalFile = f"{mount_root}/etc/rc.local"
-        with open(rcLocalFile, "r") as f:
-            contents = f.readlines()
+        def modFile(fileName: str, modifier, permissions: str = '755'):
+            tmpFile = '/tmp/modfile'
+            with open(fileName, "r") as f:
+                contents = f.readlines()
 
-        contents.insert(-1, '/etc/setup.sh || exit 1\n')
-        with open('/tmp/rc.local', "w") as f:
-            f.writelines(contents)
+            modifier(contents)
+            with open(tmpFile, "w") as f:
+                f.writelines(contents)
 
-        self.shell(['sudo', 'cp', '/tmp/rc.local', f"{mount_root}/etc"])
-        self.shell(['sudo', 'chmod', '755', f"{mount_root}/etc/rc.local"])
+            self.shell(['sudo', 'cp', tmpFile, fileName])
+            if permissions is not None:
+                self.shell(['sudo', 'chmod', permissions, fileName])
+
+        setupArgs = ''
+        if self.args.wifi is not None:
+            ssid, passphrase = self.args.wifi.split('/')
+            setupArgs = \
+                f"'--wait 90 --ssid={ssid}' '--passphrase={passphrase}'"
+        setupCmd = f"/etc/setup.sh {setupArgs} || exit 1"
+
+        modFile(
+            f"{mount_root}/etc/rc.local",
+            lambda contents: contents.insert(-1, f"{setupCmd} &\n"))
+
+        def modCmndline(contents):
+            contents[0] = contents[0].replace(
+                ' init=/usr/lib/raspi-config/init_resize.sh', '')
+
+        modFile(f"{mount_boot}/cmdline.txt", modCmndline)
+
         self.shell(['sudo', 'touch', mount_boot+'/ssh'])
-        self.shell(['sudo', 'umount', mount_root, mount_boot, mount_data])
+        self.shell(['sudo', 'umount', mount_root, mount_boot])
 
 
 if __name__ == "__main__":
@@ -221,11 +173,8 @@ if __name__ == "__main__":
         '--debug', dest='debug', action='store_true',
         help='Add debugging output')
     parser.add_argument(
-        '--ssid', type=str, default=None,
-        help='SSID of a wifi network to add')
-    parser.add_argument(
-        '--passwd', type=str, default=None,
-        help='Password of a wifi network to add')
+        '--wifi', type=str, default=None,
+        help='WIFI credentials as "ssid/passphrase"')
     parser.set_defaults(debug=False)
 
     args = parser.parse_args()
