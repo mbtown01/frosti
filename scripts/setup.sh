@@ -69,7 +69,7 @@ read -r -d '' FROSTI_REQUIREMENTS <<-EOLIST
 	MarkupSafe
 	mccabe
 	packaging
-	Pillow
+	Pillow==8.0.1
 	pluggy
 	psycopg2-binary
 	ptvsd

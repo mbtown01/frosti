@@ -5,9 +5,9 @@ from sqlalchemy.orm import sessionmaker
 from frosti.core import ServiceProvider, ServiceConsumer
 from frosti.core.orm import OrmConfig, Base
 
-DB_URL_TEMPLATE = 'postgresql://frosti:frosti@postgres/template1'
-DB_URL_RUN = 'postgresql://frosti:frosti@postgres/frosti'
-DB_URL_TEST = 'postgresql://frosti:frosti@postgres/frosti_test'
+DB_URL_TEMPLATE = 'postgresql://frosti:frosti@localhost/template1'
+DB_URL_RUN = 'postgresql://frosti:frosti@localhost/frosti'
+DB_URL_TEST = 'postgresql://frosti:frosti@localhost/frosti_test'
 DB_VERSION = 'v1.2'
 
 

@@ -194,6 +194,10 @@ class HomeScreen(Screen):
         # https://pillow.readthedocs.io/en/stable/handbook/text-anchors.html
         # Draw a bounding box that I'm expecting resembles the inset for
         # the rectangle port in the case
+        #
+        # NOTE that I had a heck of a time getting the align='*' features to
+        # work until I forced the RPi to upgrade Pillow, which seems to
+        # default to v5.x but v8.x works for me
         pad = 2
         fontName = 'Hack-Bold.ttf'
         thermostatService = self._getService(ThermostatService)

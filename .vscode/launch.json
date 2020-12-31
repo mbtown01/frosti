@@ -5,48 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Build Image",
-            "type": "python",
-            "request": "launch",
-            "cwd": "${workspaceFolder}",
-            "program": "scripts/build-image.py",
-            "console": "integratedTerminal",
-            "stopOnEntry": false,
-            "args": [
-                "--input",
-                "/home/mbtowns/2020-12-02-raspios-buster-armhf-lite.img",
-                "--output",
-                "/home/mbtowns/test.img",
-                "--debug",
-                "--wifi",
-                "umbatu/umbatu5c7cbfee",
-            ],
-        },
-        {
-            "name": "Python: Local Terminal",
+            "name": "Python: Local Hardware",
             "type": "python",
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "module": "frosti",
             "console": "integratedTerminal",
             "stopOnEntry": false,
-            "args": [
-                "--hardware",
-                "auto"
-            ],
-        },
-        {
-            "name": "Python: Local Hardware v2",
-            "type": "python",
-            "request": "launch",
-            "cwd": "${workspaceFolder}",
-            "module": "frosti",
-            "console": "integratedTerminal",
-            "stopOnEntry": false,
-            "args": [
-                "--hardware",
-                "term"
-            ],
+            "args": [],
         },
         {
             "name": "Python: Database upgrade",
@@ -71,6 +37,24 @@
             "args": [
                 "--debug",
                 "--dev"
+            ],
+        },
+        {
+            "name": "Python: Build Image",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "scripts/build-image.py",
+            "console": "integratedTerminal",
+            "stopOnEntry": false,
+            "args": [
+                "--input",
+                "/home/mbtowns/2020-12-02-raspios-buster-armhf-lite.img",
+                "--output",
+                "/home/mbtowns/test.img",
+                "--debug",
+                "--wifi",
+                "umbatu/umbatu5c7cbfee",
             ],
         },
         {
