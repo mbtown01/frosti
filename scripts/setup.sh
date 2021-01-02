@@ -6,7 +6,7 @@
 # curl'ing this file and execute it stand-alone.
 
 FROSTI_HOME=/usr/local/frosti
-FROSTI_STATUS_DIR=/var/spool/frosti
+FROSTI_STATUS_FILE=/var/log/frosti-install-status
 
 OPT_HOSTNAME=''
 OPT_SSID=''
@@ -113,15 +113,11 @@ is_pi () {
 is_not_completed() {
   # Returns 0 if the task has been completed, 1 otherwise which is only
   # reasonable because we're using it in shell logic
-  if [ ! -d "${FROSTI_STATUS_DIR}" ]; then 
-    mkdir -p "${FROSTI_STATUS_DIR}"
+  if [ ! -f "${FROSTI_STATUS_FILE}" ]; then 
+    touch "${FROSTI_STATUS_FILE}"
   fi
 
-  if [ ! -f "${FROSTI_STATUS_DIR}/setup_status" ]; then 
-    touch "${FROSTI_STATUS_DIR}/setup_status"
-  fi
-
-  if grep -q "^${1}$" "${FROSTI_STATUS_DIR}/setup_status"; then
+  if grep -q "^${1}$" "${FROSTI_STATUS_FILE}"; then
     return 1
   else
     return 0
@@ -129,7 +125,7 @@ is_not_completed() {
 }
 
 mark_completed() {
-  echo "${1}" >> "${FROSTI_STATUS_DIR}/setup_status"
+  echo "${1}" >> "${FROSTI_STATUS_FILE}"
 }
 
 die() {
@@ -155,18 +151,25 @@ do_setup_wifi() {
 }
 
 do_setup_file_systems() {
-  zz_rootsize=4096
+  zz_rootsize=3002
   zz_localdev=/dev/mmcblk0
-  zz_newdir=/data
 
   parted ${zz_localdev} resizepart 2 ${zz_rootsize} || return 1
   resize2fs "${zz_localdev}p2"
   parted ${zz_localdev} mkpart primary ext4 ${zz_rootsize} '100%' || return 1
   mkfs.ext4 -F "${zz_localdev}p3" || return 1
-  mkdir -p /data || return 1
-  newline="${zz_localdev}p3	 ${zz_newdir}   ext4    defaults,noatime  0    1"
+
+  # Must permanently disable swap file before we mess w/ /var
+  dphys-swapfile swapoff || return 1
+  dphys-swapfile uninstall || return 1
+  systemctl disable dphys-swapfile || return 1
+
+  # Backup /var and then restore it into the new mount
+  tar cfzP /tmp/var.tar.gz /var  || return 1
+  newline="${zz_localdev}p3	 /var  ext4    defaults,noatime  0    1"
   echo ${newline} >> /etc/fstab || return 1
-  mount /data || return 1
+  mount /var || return 1
+  tar xfzP /tmp/var.tar.gz || return 1
 }
 
 do_setup_services() {
@@ -180,6 +183,7 @@ do_setup_services() {
 do_localize_us() {
   raspi-config nonint do_configure_keyboard 'us'
   raspi-config nonint do_change_locale 'en_US.UTF-8'
+  locale-gen
   raspi-config nonint do_change_timezone 'US/Central'
 }
 
@@ -199,6 +203,7 @@ do_install_frosti_source() {
   # the environment
   mkdir -pf ${FROSTI_HOME}
   git clone https://github.com/mbtown01/frosti.git ${FROSTI_HOME}
+  chown frosti:frosti -R ${FROSTI_HOME}
 }
 
 do_install_packages() {
@@ -232,6 +237,67 @@ do_install_docker() {
   python3 -m pip install docker-compose
 }
 
+do_set_readonly_filesystems() {
+  # Steps taken from
+  # https://medium.com/swlh/make-your-raspberry-pi-file-system-read-only-raspbian-buster-c558694de79
+
+  # Looks like we can take /var/lib and just move it to the rw partition /data
+  # or whatever we end up naming it.  We'll still need to move files into 
+  # RAM as the article points out, but this will help
+  #
+  # Before we actually create the RO root, we should snapshot what a base
+  # /var/lib looks like so if we have to re-create /data after an fsck fails
+  # we can likley do that
+  apt remove --purge -y triggerhappy logrotate || return 1
+  apt install -y busybox-syslogd || return 1
+  apt remove --purge -y rsyslog || return 1
+
+  # Make the file-systems read-only and add the temporary storage
+  cat /etc/fstab | \
+    sed "s/\(^PARTUUID=.*\)defaults\(.*$\)/\1defaults,ro\2/" \
+    > /tmp/fstab
+  cp /tmp/fstab /etc/fstab || return 1
+
+  cat >>/etc/fstab <<EOF
+tmpfs        /tmp            tmpfs   nosuid,nodev         0       0
+tmpfs        /var/log        tmpfs   nosuid,nodev         0       0
+tmpfs        /var/tmp        tmpfs   nosuid,nodev         0       0
+EOF
+
+  # Move some system files to temp filesystem
+  rm -rf /var/lib/dhcp /var/lib/dhcpcd5 /var/spool /etc/resolv.conf || return 1
+  ln -s /tmp /var/lib/dhcp || return 1
+  ln -s /tmp /var/lib/dhcpcd5 || return 1
+  ln -s /tmp /var/spool || return 1
+  touch /tmp/dhcpcd.resolv.conf || return 1
+  ln -s /tmp/dhcpcd.resolv.conf /etc/resolv.conf || return 1
+
+  # Update the systemd random seed
+  rm /var/lib/systemd/random-seed || return 1
+  ln -s /tmp/random-seed /var/lib/systemd/random-seed || return 1
+
+  cat /lib/systemd/system/systemd-random-seed.service | \
+    sed "s#\(^Remain.*$\)#\1\nExecStartPre=/bin/echo \"\" >/tmp/random-seed#" \
+    > /tmp/seed
+  cp /tmp/seed /lib/systemd/system/systemd-random-seed.service || return 1
+}
+
+do_setup_users() {
+  # Create a frosti account
+  # Add frosti to docker
+  # remove the password on the 'pi' account so only SSH works
+  useradd --create-home frosti || return 1
+  cp -R /home/pi/.ssh /home/frosti || return 1
+  chown -R frosti:frosti /home/frosti/.ssh || return 1
+  passwd -l pi || return 1
+
+  return 0
+}
+
+############################################################################
+## Start script execution
+############################################################################
+
 for i in $*; do
   case $i in
   --wifi_country=*)
@@ -250,6 +316,11 @@ for i in $*; do
     OPT_WAIT=`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
     sleep ${OPT_WAIT}
     ;;
+  nonint)
+    shift
+    "$@"
+    exit $?
+    ;;
   *)
     # unknown option
     ;;
@@ -260,12 +331,11 @@ if is_pi; then
   if [ '' != "${OPT_SSID}" -a '' != "${OPT_PASSPHRASE}" ]; then
     run_and_mark_completed do_setup_wifi
 
-    # Always wait for the wifi to be active
-    zzc=0
+    zz_counter=0
+    echo "Waiting on wlan0 interface to connect to '${OPT_SSID}'..."
     while [ '1' == $(ifconfig wlan0 | grep -q broadcast; echo $?) ]; do
-      echo WAITING ON wlan0 $zzc
-      zzc=$(($zzc+1))
-      if [ 30 == ${zzc} ]; then return 1; fi
+      zz_counter=$(($zz_counter+1))
+      if [ 30 == ${zz_counter} ]; then return 1; fi
       sleep 1
     done
   fi
@@ -274,28 +344,60 @@ if is_pi; then
     run_and_mark_completed do_setup_hostname
   fi
 
+  set -x
   run_and_mark_completed do_setup_services
+  run_and_mark_completed do_setup_users
   run_and_mark_completed do_localize_us
   run_and_mark_completed do_setup_file_systems
 fi
 
-run_and_mark_completed do_install_packages_core
-run_and_mark_completed do_install_frosti_source
-run_and_mark_completed do_install_packages
+# run_and_mark_completed do_install_packages_core
+# run_and_mark_completed do_install_frosti_source
+# run_and_mark_completed do_install_packages
+
+# if is_pi; then
+#   run_and_mark_completed do_install_docker
+# fi
 
 if is_pi; then
-  run_and_mark_completed do_install_docker
+  run_and_mark_completed do_set_readonly_filesystems
 fi
 
-echo SETUP COMPLETE
+
+zz_hostname=$(ifconfig wlan0 | grep 'inet ' | awk '{ print $2 }')
+cat <<EOF
+                 @@@@@@@@@@@@@@@@,             @@@@@@@@@@@@@@@@                 
+            @@@@@@@@@@@@@@@@@@@@@@@@@@,   @@@@@@@@@@@@@@@@@@@@@@@@@@            
+         @@@@@@@                   @@@@@@@@@@@                   @@@@@@.        
+       @@@@@                          &@@@                          @@@@@@      
+     @@@@@                                                             @@@@%    
+    @@@@                                                                @@@@@   
+   @@@@                                                                   @@@@  
+  @@@@                                                                    &@@@& 
+ (@@@#                                                                     @@@@ 
+ @@@@                                                                      @@@@ 
+ %@@@/                                                                     @@@@ 
+  @@@@                                                                    (@@@@ 
+  ,@@@@                                                                   @@@@  
+   #@@@@                                                                #@@@@   
+     @@@@@                                                             @@@@@    
+      ,@@@@@                           @@@                          &@@@@@      
+         @@@@@@/                   @@@@@@@@@@                    @@@@@@@        
+            @@@@@@@@@@@/. ,#@@@@@@@@@@@   @@@@@@@@@@@*. ,&@@@@@@@@@@(           
+                 @@@@@@@@@@@@@@@@@            *@@@@@@@@@@@@@@@@@                
+
+FROSTI has been installed successfully!
+API CONNECT at http://${zz_hostname}:5000
+
+EOF
 
 # TODO for a production installation:
-#   - Setup the watchdog timer, but I think we want OUR software to 'pet'
-#     the dog this time and not a service
 #   - Add a frosti/frosti user/group and give it docker access and enough
 #     sudo access to reboot and do some simple network config
-#   - Setup the actual FROSTI service to run on start-up
-#   - Create a 2nd partition to store docker volumes on
+
+
+#   - Setup the watchdog timer, but I think we want OUR software to 'pet'
+#     the dog this time and not a service
 #   - Setup / as 'read-only' (think we need a 'lock.sh' and 'unlock.sh' here)
 #   - Move /var to a tmpfs and update the log intervals (I've seen this 
 #     somewhere before, didn't look too hard!)
@@ -303,6 +405,9 @@ echo SETUP COMPLETE
 #     credentials, but we still need to suppor the creation of a temporary
 #     local SSID to accept config changes
 #   - Reset the default pi password
+
+#   - Setup the actual FROSTI service to run on start-up
+
 
 # FOr every boot
 #   - Need to fdisk the data volume and check for errors and if they exist

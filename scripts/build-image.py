@@ -142,11 +142,13 @@ class ImageBuilder:
 
         modFile(
             f"{mount_root}/etc/rc.local",
-            lambda contents: contents.insert(-1, f"{setupCmd} &\n"))
+            lambda contents: contents.insert(-1, f"{setupCmd} &\n"),
+            permissions=700)
 
         def modCmndline(contents):
             contents[0] = contents[0].replace(
-                ' init=/usr/lib/raspi-config/init_resize.sh', '')
+                ' init=/usr/lib/raspi-config/init_resize.sh',
+                ' fastboot noswap ro')
 
         modFile(f"{mount_boot}/cmdline.txt", modCmndline)
 
