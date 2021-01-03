@@ -12,6 +12,9 @@ OPT_HOSTNAME=''
 OPT_SSID=''
 OPT_PASSPHRASE=''
 OPT_WIFI_COUNTRY='US'
+OPT_ROOT_END=3002
+OPT_DEVICE=/dev/mmcblk0
+
 
 read -r -d '' FROSTI_PACKAGES <<-EOLIST
 	curl
@@ -27,10 +30,8 @@ read -r -d '' FROSTI_PACKAGES <<-EOLIST
 	libtiff-dev
 	libwebp-dev
 	libxcb1-dev
-	python3
 	python3-dev
 	python3-pil
-	python3-pip
 	python3-setuptools
 	python3-smbus
 	python3-tk
@@ -124,10 +125,6 @@ is_not_completed() {
   fi
 }
 
-mark_completed() {
-  echo "${1}" >> "${FROSTI_STATUS_FILE}"
-}
-
 die() {
   echo "${1}"
   exit 1
@@ -135,10 +132,25 @@ die() {
 
 run_and_mark_completed() {
   zz_reboot='NO'
-  if [ '--reboot' == "${1}" ]; then
-    zz_reboot='YES'
-    shift
-  fi
+  zz_reboot_flag=''
+
+  for i in $*; do
+    case $i in
+    --reboot)
+      zz_reboot='YES'
+      zz_reboot_flag='-r'
+      shift
+      ;;
+    --shutdown)
+      zz_reboot='YES'
+      zz_reboot_flag='-h'
+      shift
+      ;;
+    *)
+      # unknown option
+      ;;
+    esac
+  done  
 
   zz_task=${1}
   if is_not_completed ${zz_task}; then
@@ -146,11 +158,11 @@ run_and_mark_completed() {
     set -x
     "${@}" || die "Failed task '${zz_task}'"
     set +x
-    mark_completed ${zz_task}
+    echo "${zz_task}" >> "${FROSTI_STATUS_FILE}"
     if [ 'YES' == "${zz_reboot}" ]; then
       echo "REBOOTING in 5 seconds..."
       sleep 5
-      shutdown -r now
+      shutdown ${zz_reboot_flag} now
       exit 0
     fi
   else
@@ -163,31 +175,9 @@ do_setup_wifi() {
   raspi-config nonint do_wifi_ssid_passphrase ${OPT_SSID} ${OPT_PASSPHRASE}
 }
 
-do_setup_root_expand() {
-  zz_rootsize=3002
-  zz_localdev=/dev/mmcblk0
-
-  parted ${zz_localdev} resizepart 2 ${zz_rootsize} || return 1
-  resize2fs "${zz_localdev}p2"
-  parted ${zz_localdev} mkpart primary ext4 ${zz_rootsize} '100%' || return 1
-  mkfs.ext4 -F "${zz_localdev}p3" || return 1
-}
-
-do_setup_var() {
-  zz_localdev=/dev/mmcblk0
-  zz_backup=/usr/local/etc/var-backup.tar.gz
-
-  # Must permanently disable swap file before we mess w/ /var
-  dphys-swapfile swapoff || return 1
-  dphys-swapfile uninstall || return 1
-  systemctl disable dphys-swapfile || return 1
-
-  # Backup /var and then restore it into the new mount
-  tar cfzP ${zz_backup} /var  || return 1
-  newline="${zz_localdev}p3	 /var  ext4    defaults,noatime  0    1"
-  echo ${newline} >> /etc/fstab || return 1
-  mount /var || return 1
-  tar xfzP ${zz_backup} || return 1
+do_setup_root() {
+  parted ${OPT_DEVICE} resizepart 2 ${OPT_ROOT_END} || return 1
+  resize2fs "${OPT_DEVICE}p2"
 }
 
 do_setup_services() {
@@ -196,6 +186,19 @@ do_setup_services() {
   raspi-config nonint do_ssh 0
   systemctl enable ssh
   service ssh restart
+}
+
+do_setup_users() {
+  # Create a frosti account
+  # Add frosti to docker
+  # remove the password on the 'pi' account so only SSH works
+  useradd --create-home frosti || return 1
+  usermod --groups frosti,i2c,gpio,spi frosti || return 1
+  cp -R /home/pi/.ssh /home/frosti || return 1
+  chown -R frosti:frosti /home/frosti/.ssh || return 1
+  passwd -l pi || return 1
+
+  return 0
 }
 
 do_localize_us() {
@@ -213,7 +216,7 @@ do_install_packages_core() {
   # Install the core packages we need to get things going
   apt update && apt upgrade -y
   apt update && apt upgrade -y || return 1
-  apt install -y git || return 1
+  apt install -y git python3 python3-pip || return 1
 }
 
 do_install_frosti_source() {
@@ -301,21 +304,42 @@ EOF
     > /tmp/seed
   cp /tmp/seed /lib/systemd/system/systemd-random-seed.service || return 1
 
-  echo "alias remount-ro='sudo mount -o remount,ro /'" >> /home/pi/.bashrc
-  echo "alias remount-rw='sudo mount -o remount,rw /'" >> /home/pi/.bashrc
+  PROMPT_COMMAND=set_bash_prompt
+  cat >>/home/pi/.bashrc <<EOF
+set_bash_prompt() {
+    fs_mode=$(mount | sed -n -e "s/^\/dev\/.* on \/ .*(\(r[w|o]\).*/\1/p")
+    PS1='\033[01;32m\]\u@\h${fs_mode:+($fs_mode)}\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m \$ '
 }
 
-do_setup_users() {
-  # Create a frosti account
-  # Add frosti to docker
-  # remove the password on the 'pi' account so only SSH works
-  useradd --create-home frosti || return 1
-  usermod --groups frosti,i2c,gpio,spi frosti || return 1
-  cp -R /home/pi/.ssh /home/frosti || return 1
-  chown -R frosti:frosti /home/frosti/.ssh || return 1
-  passwd -l pi || return 1
+PROMPT_COMMAND=set_bash_prompt
+alias remount-ro='sudo mount -o remount,ro /'
+alias remount-rw='sudo mount -o remount,rw /'
+EOF
 
-  return 0
+}
+
+do_disable_swap() {
+  # Must permanently disable swap file before we mess w/ /var
+  dphys-swapfile swapoff || return 1
+  dphys-swapfile uninstall || return 1
+  systemctl disable dphys-swapfile || return 1  
+}
+
+do_setup_var() {
+  # Create and expand a new /var partition but mount it temporarily so we
+  # can populate it first
+  parted ${OPT_DEVICE} mkpart primary ext4 ${OPT_ROOT_END} '100%' || return 1
+  mkfs.ext4 -F "${OPT_DEVICE}p3" || return 1
+  mkdir /var-new || return 1
+  mount "${OPT_DEVICE}p3" /var-new || return 1
+  rsync -avu /var/* /var-new || return 1
+  umount /var-new || return 1
+
+  # Backup /var and then restore it into the new mount
+  # tar cfzP ${zz_backup} /var  || return 1
+  newline="${OPT_DEVICE}p3	 /var  ext4    defaults,noatime  0    1"
+  echo ${newline} >> /etc/fstab || return 1
+  mount /var || return 1
 }
 
 do_build_containers() {
@@ -330,7 +354,6 @@ do_start_containers() {
   # (e.g. restart policy)
   docker-compose --file docker/docker-compose-arm.yaml up -d grafana || return 1
 }
-
 
 ############################################################################
 ## Start script execution
@@ -385,7 +408,7 @@ if is_pi; then
   run_and_mark_completed do_setup_services
   run_and_mark_completed do_setup_users
   run_and_mark_completed do_localize_us
-  run_and_mark_completed do_setup_root_expand
+  run_and_mark_completed do_setup_root
 fi
 
 run_and_mark_completed do_install_packages_core
@@ -393,10 +416,14 @@ run_and_mark_completed do_install_frosti_source
 run_and_mark_completed do_install_packages
 
 if is_pi; then
-  run_and_mark_completed do_install_docker
-fi
-
-if is_pi; then
+  # At this point, a clean image has been created that can be written to an 
+  # IMG file and used later!!  At first boot, this script will continue
+  # to the lines after
+  run_and_mark_completed --shutdown do_install_docker
+  
+  # At this point, we'll need to expand /var to fill the card since 
+  # we've likely started from an image!!
+  run_and_mark_completed do_disable_swap
   run_and_mark_completed do_setup_var
   run_and_mark_completed --reboot do_set_readonly_filesystems
   # run_and_mark_completed do_build_containers
@@ -435,6 +462,24 @@ API CONNECT at http://${zz_hostname}:5000
 
 EOF
 
+# To backup this image on the Mac
+# - diskutil list
+# - diskutil unmountDisk /dev/disk2
+# The following should get the entire image based on the size we specified 
+# when creating the 3rd (/var) partition
+# - sudo dd if=/dev/disk2 of=frosti-base.img bs=3350k count=1k
+
+# Disk /dev/mmcblk0: 14.8 GiB, 15833497600 bytes, 30924800 sectors
+# Units: sectors of 1 * 512 = 512 bytes
+# Sector size (logical/physical): 512 bytes / 512 bytes
+# I/O size (minimum/optimal): 512 bytes / 512 bytes
+# Disklabel type: dos
+# Disk identifier: 0x067e19d7
+
+# Device         Boot   Start      End  Sectors  Size Id Type
+# /dev/mmcblk0p1         8192   532479   524288  256M  c W95 FAT32 (LBA)
+# /dev/mmcblk0p2       532480  5863281  5330802  2.6G 83 Linux
+# /dev/mmcblk0p3      5863424 30924799 25061376   12G 83 Linux
 
 
 
