@@ -6,7 +6,7 @@
 # curl'ing this file and execute it stand-alone.
 
 FROSTI_HOME=/usr/local/frosti
-FROSTI_STATUS_FILE=/var/log/frosti-install-status
+FROSTI_STATUS_FILE=/var/cache/frosti-install
 
 OPT_HOSTNAME=''
 OPT_SSID=''
@@ -134,12 +134,25 @@ die() {
 }
 
 run_and_mark_completed() {
-  zz_task=${1}
+  zz_reboot='NO'
+  if [ '--reboot' == "${1}" ]; then
+    zz_reboot='YES'
+    shift
+  fi
 
+  zz_task=${1}
   if is_not_completed ${zz_task}; then
     echo "EXECUTING task '${zz_task}'"
-    ${zz_task} || die "Failed task '${zz_task}'"
+    set -x
+    "${@}" || die "Failed task '${zz_task}'"
+    set +x
     mark_completed ${zz_task}
+    if [ 'YES' == "${zz_reboot}" ]; then
+      echo "REBOOTING in 5 seconds..."
+      sleep 5
+      shutdown -r now
+      exit 0
+    fi
   else
     echo "SKIPPING completed task '${zz_task}'"
   fi
@@ -150,7 +163,7 @@ do_setup_wifi() {
   raspi-config nonint do_wifi_ssid_passphrase ${OPT_SSID} ${OPT_PASSPHRASE}
 }
 
-do_setup_file_systems() {
+do_setup_root_expand() {
   zz_rootsize=3002
   zz_localdev=/dev/mmcblk0
 
@@ -158,6 +171,11 @@ do_setup_file_systems() {
   resize2fs "${zz_localdev}p2"
   parted ${zz_localdev} mkpart primary ext4 ${zz_rootsize} '100%' || return 1
   mkfs.ext4 -F "${zz_localdev}p3" || return 1
+}
+
+do_setup_var() {
+  zz_localdev=/dev/mmcblk0
+  zz_backup=/usr/local/etc/var-backup.tar.gz
 
   # Must permanently disable swap file before we mess w/ /var
   dphys-swapfile swapoff || return 1
@@ -165,11 +183,11 @@ do_setup_file_systems() {
   systemctl disable dphys-swapfile || return 1
 
   # Backup /var and then restore it into the new mount
-  tar cfzP /tmp/var.tar.gz /var  || return 1
+  tar cfzP ${zz_backup} /var  || return 1
   newline="${zz_localdev}p3	 /var  ext4    defaults,noatime  0    1"
   echo ${newline} >> /etc/fstab || return 1
   mount /var || return 1
-  tar xfzP /tmp/var.tar.gz || return 1
+  tar xfzP ${zz_backup} || return 1
 }
 
 do_setup_services() {
@@ -280,19 +298,38 @@ EOF
     sed "s#\(^Remain.*$\)#\1\nExecStartPre=/bin/echo \"\" >/tmp/random-seed#" \
     > /tmp/seed
   cp /tmp/seed /lib/systemd/system/systemd-random-seed.service || return 1
+
+  echo "alias remount-ro='sudo mount -o remount,ro /'" >> /home/pi/.bashrc
+  echo "alias remount-rw='sudo mount -o remount,rw /'" >> /home/pi/.bashrc
 }
 
 do_setup_users() {
   # Create a frosti account
   # Add frosti to docker
   # remove the password on the 'pi' account so only SSH works
+  usermod --groups docker --append pi || return 1
   useradd --create-home frosti || return 1
+  usermod --groups frosti,i2c,gpio,spi frosti || return 1
   cp -R /home/pi/.ssh /home/frosti || return 1
   chown -R frosti:frosti /home/frosti/.ssh || return 1
   passwd -l pi || return 1
 
   return 0
 }
+
+do_build_containers() {
+  docker volume create grafana-data || return 1
+  docker volume create postgres-data || return 1
+  docker-compose --file docker/docker-compose-arm.yaml build grafana || return 1
+}
+
+do_start_containers() {
+  ## TODO: How do we start these so they re-start at boot time?  It could
+  # be an actual option in the docker-config section for each service 
+  # (e.g. restart policy)
+  docker-compose --file docker/docker-compose-arm.yaml up -d grafana || return 1
+}
+
 
 ############################################################################
 ## Start script execution
@@ -344,28 +381,34 @@ if is_pi; then
     run_and_mark_completed do_setup_hostname
   fi
 
-  set -x
   run_and_mark_completed do_setup_services
   run_and_mark_completed do_setup_users
   run_and_mark_completed do_localize_us
-  run_and_mark_completed do_setup_file_systems
+  run_and_mark_completed do_setup_root_expand
 fi
 
-# run_and_mark_completed do_install_packages_core
-# run_and_mark_completed do_install_frosti_source
-# run_and_mark_completed do_install_packages
-
-# if is_pi; then
-#   run_and_mark_completed do_install_docker
-# fi
+run_and_mark_completed do_install_packages_core
+run_and_mark_completed do_install_frosti_source
+run_and_mark_completed do_install_packages
 
 if is_pi; then
-  run_and_mark_completed do_set_readonly_filesystems
+  run_and_mark_completed do_install_docker
 fi
 
+if is_pi; then
+  run_and_mark_completed do_setup_var
+  run_and_mark_completed --reboot do_set_readonly_filesystems
+  run_and_mark_completed do_build_containers
+  run_and_mark_completed do_start_containers
+fi
+
+
+# Thanks for the ASCII art!!
+# https://manytools.org/hacker-tools/convert-images-to-ascii-art/go/
 
 zz_hostname=$(ifconfig wlan0 | grep 'inet ' | awk '{ print $2 }')
 cat <<EOF
+
                  @@@@@@@@@@@@@@@@,             @@@@@@@@@@@@@@@@                 
             @@@@@@@@@@@@@@@@@@@@@@@@@@,   @@@@@@@@@@@@@@@@@@@@@@@@@@            
          @@@@@@@                   @@@@@@@@@@@                   @@@@@@.        
