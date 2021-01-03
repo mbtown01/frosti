@@ -221,7 +221,7 @@ do_install_frosti_source() {
   # the environment
   mkdir -pf ${FROSTI_HOME}
   git clone https://github.com/mbtown01/frosti.git ${FROSTI_HOME}
-  chown frosti:frosti -R ${FROSTI_HOME}
+  # chown frosti:frosti -R ${FROSTI_HOME}
 }
 
 do_install_packages() {
@@ -235,7 +235,7 @@ do_install_docker() {
   # https://withblue.ink/2020/06/24/docker-and-docker-compose-on-raspberry-pi-os.html
   # Install some required packages first
   apt install -y apt-transport-https ca-certificates curl gnupg2 \
-      software-properties-common
+      software-properties-common || return 1
 
   # Get the Docker signing key for packages
   curl -fsSL \
@@ -248,11 +248,13 @@ do_install_docker() {
       tee /etc/apt/sources.list.d/docker.list
 
   # Install Docker
-  apt update
-  apt install -y --no-install-recommends docker-ce cgroupfs-mount libffi-dev
+  apt update || return 1
+  apt install -y --no-install-recommends docker-ce cgroupfs-mount libffi-dev || return 1
 
   # Install Docker Compose from pip (using Python3)
-  python3 -m pip install docker-compose
+  python3 -m pip install docker-compose || return 1
+  usermod --groups docker --append pi || return 1
+
 }
 
 do_set_readonly_filesystems() {
@@ -307,7 +309,6 @@ do_setup_users() {
   # Create a frosti account
   # Add frosti to docker
   # remove the password on the 'pi' account so only SSH works
-  usermod --groups docker --append pi || return 1
   useradd --create-home frosti || return 1
   usermod --groups frosti,i2c,gpio,spi frosti || return 1
   cp -R /home/pi/.ssh /home/frosti || return 1
@@ -398,8 +399,8 @@ fi
 if is_pi; then
   run_and_mark_completed do_setup_var
   run_and_mark_completed --reboot do_set_readonly_filesystems
-  run_and_mark_completed do_build_containers
-  run_and_mark_completed do_start_containers
+  # run_and_mark_completed do_build_containers
+  # run_and_mark_completed do_start_containers
 fi
 
 
@@ -434,28 +435,22 @@ API CONNECT at http://${zz_hostname}:5000
 
 EOF
 
+
+
+
 # TODO for a production installation:
-#   - Add a frosti/frosti user/group and give it docker access and enough
-#     sudo access to reboot and do some simple network config
-
-
+#   - Not sure if frosti source needs to actually be owned by frosti??
 #   - Setup the watchdog timer, but I think we want OUR software to 'pet'
 #     the dog this time and not a service
-#   - Setup / as 'read-only' (think we need a 'lock.sh' and 'unlock.sh' here)
-#   - Move /var to a tmpfs and update the log intervals (I've seen this 
-#     somewhere before, didn't look too hard!)
-#   - Add an option to let the installation script configure the wifi
-#     credentials, but we still need to suppor the creation of a temporary
-#     local SSID to accept config changes
-#   - Reset the default pi password
-
 #   - Setup the actual FROSTI service to run on start-up
+#   - Deal with /var failure
+#     * A full backup is created right after docker is installed but before
+#       any images have been create
+#     * Need to check if /var is healthy at reboot and if it isn't, simply
+#       blow it away and start a fresh partition and then restore it.  
 
+# /var disk failur 
 
-# FOr every boot
-#   - Need to fdisk the data volume and check for errors and if they exist
-#     maybe we just blow it away and start over??  Need to do some testing
-#     with docker on whether that works or not (and )
 
 # TODO for a container/development installation:
 #   - Bring in extra packages for developemt time (packages-dev.txt)
