@@ -224,7 +224,8 @@ do_install_frosti_source() {
   # the environment
   mkdir -pf ${FROSTI_HOME}
   git clone https://github.com/mbtown01/frosti.git ${FROSTI_HOME}
-  # chown frosti:frosti -R ${FROSTI_HOME}
+  ln -s /dev/null frosti.log
+  chown frosti:frosti -R ${FROSTI_HOME}
 }
 
 do_install_packages() {
@@ -332,6 +333,8 @@ do_setup_var() {
   mkfs.ext4 -F "${OPT_DEVICE}p3" || return 1
   mkdir /var-new || return 1
   mount "${OPT_DEVICE}p3" /var-new || return 1
+  # this failed in testing with a file changed, maybe we should repeat this
+  # until it works?  Or shutdown all services???
   rsync -avu /var/* /var-new || return 1
   umount /var-new || return 1
 
@@ -345,14 +348,8 @@ do_setup_var() {
 do_build_containers() {
   docker volume create grafana-data || return 1
   docker volume create postgres-data || return 1
+  cd /usr/local/frosti || return 1  
   docker-compose --file docker/docker-compose-arm.yaml build grafana || return 1
-}
-
-do_start_containers() {
-  ## TODO: How do we start these so they re-start at boot time?  It could
-  # be an actual option in the docker-config section for each service 
-  # (e.g. restart policy)
-  docker-compose --file docker/docker-compose-arm.yaml up -d grafana || return 1
 }
 
 ############################################################################
@@ -389,6 +386,10 @@ for i in $*; do
 done
 
 if is_pi; then
+
+  # Since this is actually where we create the base image, I'm not sure we
+  # need to have network credentials here... maybe we should just assume a
+  # wired connection so we don't get in the ssid/passphrase business??
   if [ '' != "${OPT_SSID}" -a '' != "${OPT_PASSPHRASE}" ]; then
     run_and_mark_completed do_setup_wifi
 
@@ -419,15 +420,17 @@ if is_pi; then
   # At this point, a clean image has been created that can be written to an 
   # IMG file and used later!!  At first boot, this script will continue
   # to the lines after
-  run_and_mark_completed --shutdown do_install_docker
+  run_and_mark_completed --reboot do_install_docker
   
   # At this point, we'll need to expand /var to fill the card since 
   # we've likely started from an image!!
   run_and_mark_completed do_disable_swap
   run_and_mark_completed do_setup_var
   run_and_mark_completed --reboot do_set_readonly_filesystems
-  # run_and_mark_completed do_build_containers
-  # run_and_mark_completed do_start_containers
+
+  # Do we need to re-connect to the internet now?  We at now use the display
+  # so we could throw a link up and have someone connect!  
+  run_and_mark_completed do_build_containers
 fi
 
 
@@ -462,12 +465,15 @@ API CONNECT at http://${zz_hostname}:5000
 
 EOF
 
-# To backup this image on the Mac
-# - diskutil list
-# - diskutil unmountDisk /dev/disk2
-# The following should get the entire image based on the size we specified 
-# when creating the 3rd (/var) partition
-# - sudo dd if=/dev/disk2 of=frosti-base.img bs=3350k count=1k
+if is_pi; then
+  ## TODO: How do we start these so they re-start at boot time?  It could
+  # be an actual option in the docker-config section for each service 
+  # (e.g. restart policy)
+  cd /usr/local/frosti || return 1
+  docker-compose --file docker/docker-compose-arm.yaml up -d grafana || return 1
+  sudo --user frosti python3 -m frosti
+fi
+
 
 # Disk /dev/mmcblk0: 14.8 GiB, 15833497600 bytes, 30924800 sectors
 # Units: sectors of 1 * 512 = 512 bytes
@@ -481,7 +487,10 @@ EOF
 # /dev/mmcblk0p2       532480  5863281  5330802  2.6G 83 Linux
 # /dev/mmcblk0p3      5863424 30924799 25061376   12G 83 Linux
 
-
+# To backup this image on the Mac based on the partition table above
+# - diskutil list  # gets the partition table, look for the SD card!!
+# - diskutil unmountDisk /dev/disk2  # Comes up as disk2 for me
+# - sudo dd if=/dev/disk2 of=frosti-base.img bs=2862k count=1k
 
 # TODO for a production installation:
 #   - Not sure if frosti source needs to actually be owned by frosti??

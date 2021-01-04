@@ -52,8 +52,6 @@
                 "/home/mbtowns/2020-12-02-raspios-buster-armhf-lite.img",
                 "--output",
                 "/home/mbtowns/test.img",
-                "--wifi",
-                "umbatu/umbatu5c7cbfee",
                 "--hostname",
                 "frosti-dev",
                 "--debug",

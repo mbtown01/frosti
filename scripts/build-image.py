@@ -137,8 +137,11 @@ class ImageBuilder:
         if self.args.wifi is not None:
             ssid, passphrase = self.args.wifi.split('/')
             setupArgs = \
-                f"'--wait 90 --ssid={ssid}' '--passphrase={passphrase}'"
+                f"{setupArgs} '--ssid={ssid}' '--passphrase={passphrase}'"
         setupCmd = f"/etc/setup.sh {setupArgs} || exit 1"
+
+        if self.args.hostname is not None:
+            setupArgs = f"{setupArgs} '--hostname={args.hostname}'"
 
         modFile(
             f"{mount_root}/etc/rc.local",
