@@ -9,7 +9,7 @@ from logging.handlers import QueueHandler, RotatingFileHandler
 logging.basicConfig(
     level=logging.DEBUG,
     format='[%(asctime)s] %(module)s %(levelname)s - %(message)s',
-    handlers=[RotatingFileHandler('frosti.log')],
+    # handlers=[RotatingFileHandler('frosti.log')],
 )
 
 # create logger

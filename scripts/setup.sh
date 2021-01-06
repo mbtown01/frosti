@@ -18,8 +18,10 @@ OPT_DEVICE=/dev/mmcblk0
 
 read -r -d '' FROSTI_PACKAGES <<-EOLIST
 	curl
+  dnsmaskq
 	fonts-hack-ttf
 	fonts-mplus
+  hostapd
 	libfreetype6-dev
 	libfribidi-dev
 	libharfbuzz-dev
@@ -184,8 +186,11 @@ do_setup_services() {
   raspi-config nonint do_spi 0
   raspi-config nonint do_i2c 0
   raspi-config nonint do_ssh 0
-  systemctl enable ssh
-  service ssh restart
+  systemctl enable ssh || return 1
+  service ssh restart || return 1
+
+  # this still somehow does not work need to investigate
+  # apt install -y htpdate || return 1
 }
 
 do_setup_users() {
@@ -197,6 +202,7 @@ do_setup_users() {
   cp -R /home/pi/.ssh /home/frosti || return 1
   chown -R frosti:frosti /home/frosti/.ssh || return 1
   passwd -l pi || return 1
+  echo "frosti	ALL=(root) NOPASSWD:/usr/sbin/service" >> /etc/sudoers || return 1
 
   return 0
 }
@@ -226,6 +232,8 @@ do_install_frosti_source() {
   git clone https://github.com/mbtown01/frosti.git ${FROSTI_HOME}
   ln -s /dev/null frosti.log
   chown frosti:frosti -R ${FROSTI_HOME}
+  cp /etc/frosti.service /etc/systemd/system
+  sudo systemctl enable frosti.service
 }
 
 do_install_packages() {
@@ -258,6 +266,53 @@ do_install_docker() {
   # Install Docker Compose from pip (using Python3)
   python3 -m pip install docker-compose || return 1
   usermod --groups docker --append pi || return 1
+
+}
+
+do_setup_hostapd() {
+  # Taken from parts of 
+  # https://www.raspberrypi.org/documentation/configuration/wireless/access-point-routed.md
+  cat > /etc/hostapd/hostapd.conf <<EOF
+interface=wlan0
+ssid=frosti-setup
+
+channel=6
+hw_mode=g
+macaddr_acl=0
+auth_algs=3
+ignore_broadcast_ssid=0
+
+wpa=2
+wpa_passphrase=frosti-setup
+wpa_key_mgmt=WPA-PSK
+wpa_pairwise=TKIP
+rsn_pairwise=CCMP
+EOF
+
+  cat > /etc/dnsmasq.conf <<EOF
+interface=wlan0
+dhcp-range=192.168.4.2,192.168.4.20,255.255.255.0,24h
+domain=local# Local wireless DNS domain
+address=/frosti.local/192.168.4.1
+EOF
+
+  cat >> /etc/dhcpcd.conf <<EOF
+interface wlan0
+    static ip_address=192.168.4.1/24
+    nohook wpa_supplicant
+EOF
+
+  # We don't want these starting unless we say so
+  systemctl disable hostapd.service 
+  systemctl disable dnsmasq.service
+  # Neeeded to do this before I could make anything use wlan0
+  rfkill unblock wlan
+  # Needed this the first time I ran??
+  sudo systemctl unmask hostapd.service
+  sudo drtbivr hostapd start
+
+  # Need to figure out how to tell whether we enable the hotspot or if we 
+  # connect to the WIFI network at boot...  
 
 }
 
@@ -471,6 +526,7 @@ if is_pi; then
   # (e.g. restart policy)
   cd /usr/local/frosti || return 1
   docker-compose --file docker/docker-compose-arm.yaml up -d grafana || return 1
+  ln -s /dev/null frosti.log
   sudo --user frosti python3 -m frosti
 fi
 

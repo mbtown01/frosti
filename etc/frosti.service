@@ -7,11 +7,12 @@ Requires=docker.service
 After=docker.service
 
 [Service]
-Type=oneshot
-RemainAfterExit=true
+ExecStart=python3 -m frosti
 WorkingDirectory=/usr/local/frosti
-ExecStart= /usr/local/bin/docker-compose --file docker/docker-compose-arm.yaml up -d frosti-daemon
-ExecStop= /usr/local/bin/docker-compose --file docker/docker-compose-arm.yaml down
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=frosti
 
 [Install]
 WantedBy=multi-user.target
