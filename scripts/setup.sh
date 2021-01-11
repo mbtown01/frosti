@@ -15,13 +15,18 @@ OPT_WIFI_COUNTRY='US'
 OPT_ROOT_END=3002
 OPT_DEVICE=/dev/mmcblk0
 
+read -r -d '' FROSTI_PACKAGES_CORE <<-EOLIST
+	curl
+	dnsmasq
+	git
+	hostapd
+	python3 
+	python3-pip  
+EOLIST
 
 read -r -d '' FROSTI_PACKAGES <<-EOLIST
-	curl
-  dnsmaskq
 	fonts-hack-ttf
 	fonts-mplus
-  hostapd
 	libfreetype6-dev
 	libfribidi-dev
 	libharfbuzz-dev
@@ -201,8 +206,10 @@ do_setup_users() {
   usermod --groups frosti,i2c,gpio,spi frosti || return 1
   cp -R /home/pi/.ssh /home/frosti || return 1
   chown -R frosti:frosti /home/frosti/.ssh || return 1
-  passwd -l pi || return 1
-  echo "frosti	ALL=(root) NOPASSWD:/usr/sbin/service" >> /etc/sudoers || return 1
+  # passwd -l pi || return 1
+  cat >>/etc/sudoers <<EOF
+frosti	ALL=(root) NOPASSWD:/usr/sbin/service,/u
+EOF
 
   return 0
 }
@@ -219,21 +226,21 @@ do_setup_hostname() {
 }
 
 do_install_packages_core() {
-  # Install the core packages we need to get things going
-  apt update && apt upgrade -y
-  apt update && apt upgrade -y || return 1
-  apt install -y git python3 python3-pip || return 1
+  # Had some problems getting update/upgrade working on the first try, 
+  # so repeated calls below are nothing more than paranoia
+  apt update || apt update || apt update || return 1
+  apt upgrade -y || apt upgrade -y || apt upgrade -y || return 1
+  apt install -y ${FROSTI_PACKAGES_CORE} || return 1
 }
 
 do_install_frosti_source() {
   # Once things are setup, can now pull down frosti and start configuring
   # the environment
-  mkdir -pf ${FROSTI_HOME}
+  mkdir -p ${FROSTI_HOME}
   git clone https://github.com/mbtown01/frosti.git ${FROSTI_HOME}
-  ln -s /dev/null frosti.log
   chown frosti:frosti -R ${FROSTI_HOME}
-  cp /etc/frosti.service /etc/systemd/system
-  sudo systemctl enable frosti.service
+  cp ${FROSTI_HOME}/etc/frosti.service /etc/systemd/system
+  sudo systemctl enable frosti
 }
 
 do_install_packages() {
@@ -269,7 +276,7 @@ do_install_docker() {
 
 }
 
-do_setup_hostapd() {
+do_start_config_wifi() {
   # Taken from parts of 
   # https://www.raspberrypi.org/documentation/configuration/wireless/access-point-routed.md
   cat > /etc/hostapd/hostapd.conf <<EOF
@@ -307,13 +314,14 @@ EOF
   systemctl disable dnsmasq.service
   # Neeeded to do this before I could make anything use wlan0
   rfkill unblock wlan
+
   # Needed this the first time I ran??
-  sudo systemctl unmask hostapd.service
-  sudo drtbivr hostapd start
+  ifconfig wlan0 down
+  systemctl unmask hostapd
+  service hostapd start
 
   # Need to figure out how to tell whether we enable the hotspot or if we 
   # connect to the WIFI network at boot...  
-
 }
 
 do_set_readonly_filesystems() {
@@ -405,6 +413,7 @@ do_build_containers() {
   docker volume create postgres-data || return 1
   cd /usr/local/frosti || return 1  
   docker-compose --file docker/docker-compose-arm.yaml build grafana || return 1
+  docker-compose --file docker/docker-compose-arm.yaml pull postgres || return 1
 }
 
 ############################################################################
@@ -486,6 +495,7 @@ if is_pi; then
   # Do we need to re-connect to the internet now?  We at now use the display
   # so we could throw a link up and have someone connect!  
   run_and_mark_completed do_build_containers
+  # run_and_mark_completed do_start_config_wifi
 fi
 
 
@@ -520,17 +530,8 @@ API CONNECT at http://${zz_hostname}:5000
 
 EOF
 
-if is_pi; then
-  ## TODO: How do we start these so they re-start at boot time?  It could
-  # be an actual option in the docker-config section for each service 
-  # (e.g. restart policy)
-  cd /usr/local/frosti || return 1
-  docker-compose --file docker/docker-compose-arm.yaml up -d grafana || return 1
-  ln -s /dev/null frosti.log
-  sudo --user frosti python3 -m frosti
-fi
 
-
+# Below is an example from the 2020-12-02 release of Raspberry Pi OS
 # Disk /dev/mmcblk0: 14.8 GiB, 15833497600 bytes, 30924800 sectors
 # Units: sectors of 1 * 512 = 512 bytes
 # Sector size (logical/physical): 512 bytes / 512 bytes
@@ -559,7 +560,7 @@ fi
 #     * Need to check if /var is healthy at reboot and if it isn't, simply
 #       blow it away and start a fresh partition and then restore it.  
 
-# /var disk failur 
+# /var disk failures need to be dealt with
 
 
 # TODO for a container/development installation:

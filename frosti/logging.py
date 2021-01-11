@@ -3,7 +3,7 @@ from sys import exc_info
 from traceback import format_exception
 from queue import Queue
 
-from logging.handlers import QueueHandler, RotatingFileHandler
+from logging.handlers import QueueHandler
 
 # install the root logger
 logging.basicConfig(
