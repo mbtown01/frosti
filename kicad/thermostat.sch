@@ -32,8 +32,6 @@ Wire Wire Line
 	1400 2275 1500 2275
 Connection ~ 1400 2975
 Wire Wire Line
-	1300 1075 1500 1075
-Wire Wire Line
 	1400 1475 1500 1475
 Connection ~ 1400 2275
 Text Label 1500 1175 2    50   ~ 0
@@ -1571,18 +1569,14 @@ Text Label 9000 4825 2    50   ~ 0
 RING_GND
 Text Label 10075 4825 2    50   ~ 0
 GND
-Text Label 2000 1375 0    50   ~ 0
-MAIN_EINK_RST
-Text Label 1500 1975 2    50   ~ 0
-MAIN_EINK_MOSI
 Text Label 1500 2175 2    50   ~ 0
+MAIN_EINK_MOSI
+Text Label 1500 1975 2    50   ~ 0
 MAIN_EINK_SCLK
-Text Label 1500 1575 2    50   ~ 0
+Text Label 2000 2975 0    50   ~ 0
 MAIN_EINK_DC
-Text Label 1500 1375 2    50   ~ 0
+Text Label 2000 2575 0    50   ~ 0
 MAIN_EINK_CS
-Text Label 2000 1475 0    50   ~ 0
-MAIN_EINK_BUSY
 Text Label 4175 2625 0    50   ~ 0
 PWR_3.3V
 Text Label 4175 2725 0    50   ~ 0
@@ -1599,20 +1593,31 @@ Text Label 4175 2825 0    50   ~ 0
 MAIN_EINK_MOSI
 Text Label 4175 2925 0    50   ~ 0
 MAIN_EINK_SCLK
-Text Label 1500 2875 2    50   ~ 0
-MAIN_FAN_RIGHT
-Text Label 1500 2575 2    50   ~ 0
-MAIN_HEAT_LEFT
-Text Label 1500 2675 2    50   ~ 0
-MAIN_HEAT_RIGHT
-Text Label 1500 2775 2    50   ~ 0
-MAIN_COOL_RIGHT
-Text Label 1500 2475 2    50   ~ 0
-MAIN_COOL_LEFT
 Wire Wire Line
 	1400 1475 1400 2275
 Wire Wire Line
 	2100 1975 2100 2475
+Text Label 2000 2175 0    50   ~ 0
+MAIN_BTN1
+Text Label 2000 2275 0    50   ~ 0
+MAIN_BTN2
+Text Label 2000 2375 0    50   ~ 0
+MAIN_BTN3
+Wire Wire Line
+	2100 1275 2100 1675
+Text Label 9500 2825 0    50   ~ 0
+PWR_5V
+$Comp
+L thermostat:Mounting_Hole-Mechanical MK1
+U 1 1 5FC21EBA
+P 7325 6275
+F 0 "MK1" H 7425 6321 50  0000 L CNN
+F 1 "Mounting_Hole-Mechanical" H 7425 6230 50  0000 L CNN
+F 2 "project_footprints:oshw-logo-8_silkscreen-front_8mm" H 7325 6275 50  0001 C CNN
+F 3 "" H 7325 6275 50  0001 C CNN
+	1    7325 6275
+	1    0    0    -1  
+$EndComp
 $Comp
 L Connector_Generic:Conn_02x20_Odd_Even CONN1
 U 1 1 59AD464A
@@ -1627,44 +1632,40 @@ F 6 "485-2243" H 1700 1975 50  0001 C CNN "MPN"
 	1    1700 1975
 	1    0    0    -1  
 $EndComp
-Text Label 2000 2575 0    50   ~ 0
-MAIN_FAN_LEFT
-Text Label 2000 2975 0    50   ~ 0
-MAIN_HEAT_FDBK
-Text Label 2000 2875 0    50   ~ 0
-MAIN_COOL_FDBK
-Text Label 2000 2775 0    50   ~ 0
-MAIN_FAN_FDBK
+Text Label 2000 1875 0    50   ~ 0
+MAIN_COOL_LEFT
 Text Label 2000 1775 0    50   ~ 0
-MAIN_BTN1
-Text Label 1500 1675 2    50   ~ 0
-MAIN_BTN2
-Text Label 1500 1775 2    50   ~ 0
-MAIN_BTN3
+MAIN_HEAT_LEFT
+Text Label 2000 1575 0    50   ~ 0
+MAIN_HEAT_RIGHT
+Text Label 2000 1475 0    50   ~ 0
+MAIN_COOL_RIGHT
 Wire Wire Line
-	2100 1275 2100 1975
-Text Label 9500 2825 0    50   ~ 0
-PWR_5V
-Text Label 2000 2075 0    50   ~ 0
+	2000 1675 2100 1675
+Connection ~ 2100 1675
+Wire Wire Line
+	2100 1675 2100 1975
+Text Label 1500 2375 2    50   ~ 0
 MAIN_STRG_WP
-NoConn ~ 2000 1875
-NoConn ~ 2000 2175
-NoConn ~ 2000 2275
-NoConn ~ 2000 2375
-NoConn ~ 1500 2075
-NoConn ~ 1500 1875
-NoConn ~ 2000 1575
-NoConn ~ 2000 1675
-NoConn ~ 1500 2375
-$Comp
-L thermostat:Mounting_Hole-Mechanical MK1
-U 1 1 5FC21EBA
-P 7325 6275
-F 0 "MK1" H 7425 6321 50  0000 L CNN
-F 1 "Mounting_Hole-Mechanical" H 7425 6230 50  0000 L CNN
-F 2 "project_footprints:oshw-logo-8_silkscreen-front_8mm" H 7325 6275 50  0001 C CNN
-F 3 "" H 7325 6275 50  0001 C CNN
-	1    7325 6275
-	1    0    0    -1  
-$EndComp
+Text Label 2000 2075 0    50   ~ 0
+MAIN_FAN_LEFT
+Text Label 2000 2775 0    50   ~ 0
+MAIN_EINK_BUSY
+Text Label 2000 2875 0    50   ~ 0
+MAIN_EINK_RST
+Wire Wire Line
+	1300 1075 1500 1075
+Wire Wire Line
+	1300 1075 1300 1875
+Wire Wire Line
+	1300 1875 1500 1875
+Connection ~ 1300 1075
+Text Label 2000 1375 0    50   ~ 0
+MAIN_FAN_RIGHT
+Text Label 1500 1575 2    50   ~ 0
+MAIN_HEAT_FDBK
+Text Label 1500 1675 2    50   ~ 0
+MAIN_COOL_FDBK
+Text Label 1500 1775 2    50   ~ 0
+MAIN_FAN_FDBK
 $EndSCHEMATC
