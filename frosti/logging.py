@@ -26,15 +26,13 @@ logging.getLogger('sqlalchemy.orm').setLevel(logging.WARNING)
 
 
 def setupLogging(queue: Queue = None):
-    if queue is None:
-        handler = logging.StreamHandler()
-    else:
-        handler = QueueHandler(queue)
+    pass
+    # handler = logging.StreamHandler()
 
-    handler.setLevel(logging.DEBUG)
-    handler.setFormatter(logging.Formatter(
-        '[%(asctime)s] %(module)s %(levelname)s - %(message)s'))
-    logging.getLogger('').addHandler(handler)
+    # handler.setLevel(logging.DEBUG)
+    # handler.setFormatter(logging.Formatter(
+    #     '[%(asctime)s] %(module)s %(levelname)s - %(message)s'))
+    # logging.getLogger('').addHandler(handler)
 
 
 def handleException(origin: str):

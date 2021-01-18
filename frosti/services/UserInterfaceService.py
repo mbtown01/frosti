@@ -319,7 +319,7 @@ class HomeScreen(Screen):
         ormManagementService = self._getService(OrmManagementService)
         minutesInChart = 6*60
         minutesInSample = 15
-        now = datetime.now()
+        now = datetime.now().astimezone()
         earliestTime = now - timedelta(minutes=minutesInChart)
 
         vPad = 8
@@ -333,8 +333,8 @@ class HomeScreen(Screen):
         priceList = list(
             (a.time, a.price) for a in ormManagementService.session
             .query(OrmGriddyUpdate).order_by(OrmGriddyUpdate.time)
-            .filter(OrmGriddyUpdate.time > earliestTime))
-        # priceList = priceList[-10:]
+            .filter(OrmGriddyUpdate.time > earliestTime)
+            .filter(OrmGriddyUpdate.time <= now))
         if len(priceList):
             totalSamples = minutesInChart // minutesInSample
             priceRangeList = [(None, None)] * totalSamples

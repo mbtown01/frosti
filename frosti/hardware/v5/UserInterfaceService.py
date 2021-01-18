@@ -75,15 +75,15 @@ class UserInterfaceService(BaseUserInterfaceService):
         log.debug(f"Button press detected for {button}")
         if HardwareButton.ENTER == button:
             self._ledRingDriver.breathe(
-                rgbColorList=[0xffffff], cycles=2, rate=0.005, brightMin=0,
+                rgbColorList=[0xffffff], cycles=1, rate=0.005, brightMin=0,
                 brightMax=160)
         elif HardwareButton.UP == button:
             self._ledRingDriver.breathe(
-                rgbColorList=[0xffffff], cycles=2, rate=0.005, brightMin=0,
+                rgbColorList=[0xffffff], cycles=1, rate=0.005, brightMin=0,
                 brightMax=160)
         elif HardwareButton.DOWN == button:
             self._ledRingDriver.breathe(
-                rgbColorList=[0xffffff], cycles=2, rate=0.005, brightMin=0,
+                rgbColorList=[0xffffff], cycles=1, rate=0.005, brightMin=0,
                 brightMax=160)
         else:
             raise RuntimeError(f"Unknown button: {button}")

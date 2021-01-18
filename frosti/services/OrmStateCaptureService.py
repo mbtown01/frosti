@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from .ThermostatService import ThermostatService
 from .OrmManagementService import OrmManagementService
 from frosti.core import ServiceProvider, ServiceConsumer, EventBus, \
@@ -34,6 +36,7 @@ class OrmStateCaptureService(ServiceConsumer):
         ormManagementService = self._getService(OrmManagementService)
 
         entity = OrmGriddyUpdate()
+        entity.time = datetime.now().astimezone()
         entity.price = event.price
 
         ormManagementService.session.add(entity)
@@ -44,6 +47,7 @@ class OrmStateCaptureService(ServiceConsumer):
         thermostatService = self._getService(ThermostatService)
 
         entity = OrmThermostatTargets()
+        entity.time = datetime.now().astimezone()
         entity.mode = self.MODE_CODES[thermostatService.mode]
         entity.comfort_max = thermostatService.comfortMax
         entity.comfort_min = thermostatService.comfortMin
@@ -55,6 +59,7 @@ class OrmStateCaptureService(ServiceConsumer):
         ormManagementService = self._getService(OrmManagementService)
 
         entity = OrmThermostatState()
+        entity.time = datetime.now().astimezone()
         entity.cooling = 1 if ThermostatState.COOLING == event.state else 0
         entity.heating = 1 if ThermostatState.HEATING == event.state else 0
         entity.fan = 1 if ThermostatState.FAN == event.state else 0
@@ -66,6 +71,7 @@ class OrmStateCaptureService(ServiceConsumer):
         ormManagementService = self._getService(OrmManagementService)
 
         entity = OrmSensorReading()
+        entity.time = datetime.now().astimezone()
         entity.temperature = event.temperature
         entity.pressure = event.pressure
         entity.humidity = event.humidity
