@@ -12,7 +12,7 @@ OPT_HOSTNAME=''
 OPT_SSID=''
 OPT_PASSPHRASE=''
 OPT_WIFI_COUNTRY='US'
-OPT_ROOT_END=3002
+OPT_ROOT_END=4096
 OPT_DEVICE=/dev/mmcblk0
 
 read -r -d '' FROSTI_PACKAGES_CORE <<-EOLIST
@@ -187,7 +187,7 @@ do_setup_root() {
   resize2fs "${OPT_DEVICE}p2"
 }
 
-do_setup_services() {
+do_setup_rpi_services() {
   raspi-config nonint do_spi 0
   raspi-config nonint do_i2c 0
   raspi-config nonint do_ssh 0
@@ -199,16 +199,13 @@ do_setup_services() {
 }
 
 do_setup_users() {
-  # Create a frosti account
-  # Add frosti to docker
-  # remove the password on the 'pi' account so only SSH works
   useradd --create-home frosti || return 1
   usermod --groups frosti,i2c,gpio,spi frosti || return 1
   cp -R /home/pi/.ssh /home/frosti || return 1
   chown -R frosti:frosti /home/frosti/.ssh || return 1
   # passwd -l pi || return 1
   cat >>/etc/sudoers <<EOF
-frosti	ALL=(root) NOPASSWD:/usr/sbin/service,/u
+frosti	ALL=(root) NOPASSWD:/usr/sbin/service
 EOF
 
   return 0
@@ -239,7 +236,48 @@ do_install_frosti_source() {
   mkdir -p ${FROSTI_HOME}
   git clone https://github.com/mbtown01/frosti.git ${FROSTI_HOME}
   chown frosti:frosti -R ${FROSTI_HOME}
-  cp ${FROSTI_HOME}/etc/frosti.service /etc/systemd/system
+}
+
+do_setup_frosti_services() {
+  cat > /etc/systemd/system/frosti-deps.service << EOF
+[Unit]
+Description=FROSTI Container Dependencies
+Requires=docker.service
+After=docker.service
+
+[Service]
+ExecStart=docker-compose --file docker/docker-compose-arm.yaml up grafana
+ExecStop=docker-compose --file docker/docker-compose-arm.yaml down
+WorkingDirectory=/usr/local/frosti
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+
+  cat > /etc/systemd/system/frosti.service << EOF
+[Unit]
+Description=FROSTI Thermostat Service
+Requires=frosti-deps.service
+After=frosti-deps.service
+
+[Service]
+ExecStartPre=sleep 3
+ExecStart=/usr/bin/python3 -m frosti
+WorkingDirectory=/usr/local/frosti
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=frosti
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+  sudo systemctl enable frosti-deps
   sudo systemctl enable frosti
 }
 
@@ -412,8 +450,8 @@ do_build_containers() {
   docker volume create grafana-data || return 1
   docker volume create postgres-data || return 1
   cd /usr/local/frosti || return 1  
-  docker-compose --file docker/docker-compose-arm.yaml build grafana || return 1
   docker-compose --file docker/docker-compose-arm.yaml pull postgres || return 1
+  docker-compose --file docker/docker-compose-arm.yaml build grafana || return 1
 }
 
 ############################################################################
@@ -470,7 +508,7 @@ if is_pi; then
     run_and_mark_completed do_setup_hostname
   fi
 
-  run_and_mark_completed do_setup_services
+  run_and_mark_completed do_setup_rpi_services
   run_and_mark_completed do_setup_users
   run_and_mark_completed do_localize_us
   run_and_mark_completed do_setup_root
@@ -478,13 +516,14 @@ fi
 
 run_and_mark_completed do_install_packages_core
 run_and_mark_completed do_install_frosti_source
-run_and_mark_completed do_install_packages
+run_and_mark_completed --reboot do_install_packages
 
 if is_pi; then
   # At this point, a clean image has been created that can be written to an 
   # IMG file and used later!!  At first boot, this script will continue
   # to the lines after
   run_and_mark_completed --reboot do_install_docker
+  run_and_mark_completed do_setup_frosti_services
   
   # At this point, we'll need to expand /var to fill the card since 
   # we've likely started from an image!!

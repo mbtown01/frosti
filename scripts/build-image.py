@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 import os
-import stat
 import argparse
 import subprocess
 from io import StringIO
@@ -138,7 +137,8 @@ class ImageBuilder:
             ssid, passphrase = self.args.wifi.split('/')
             setupArgs = \
                 f"{setupArgs} '--ssid={ssid}' '--passphrase={passphrase}'"
-        setupCmd = f"/etc/setup.sh {setupArgs} || exit 1"
+        setupCmd = f"/etc/setup.sh {setupArgs} 2>&1 | " \
+            f"tee --append /var/cache/frosti-setup.log"
 
         if self.args.hostname is not None:
             setupArgs = f"{setupArgs} '--hostname={args.hostname}'"
