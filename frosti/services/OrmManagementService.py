@@ -60,6 +60,9 @@ class OrmManagementService(ServiceConsumer):
                 filter(OrmConfig.name == name):
             return configEntry.value
 
+        if default is not None:
+            return default
+
         raise RuntimeError(f'Config key "{name}" is not defined')
 
     def getConfigInt(self, name: str, default: str = None):

@@ -298,7 +298,7 @@ class HomeScreen(Screen):
         #####################################################################
         # Draw the current price
         if self._lastPrice is not None:
-            priceStr = f"${self._lastPrice:.4f}/kW*h"
+            priceStr = f"{100*self._lastPrice:.1f} ¢/kW*h"
             fontPrice = ImageFont.truetype(fontName, 14)
             fontPriceMetrics = getMetrics(priceStr, fontPrice)
             fontPriceBox = (

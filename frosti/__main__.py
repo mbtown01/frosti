@@ -1,6 +1,7 @@
-from os import path
+from os import path, system, getpid
 import yaml
 import argparse
+from subprocess import run
 
 from frosti.logging import log, setupLogging, handleException
 from frosti.core import EventBus, ServiceProvider
@@ -24,6 +25,9 @@ class RootDriver(ServiceProvider):
         parser.add_argument(
             '--diagnostics', default=False, action='store_true',
             help='Run hardware diagnostics and exit')
+        parser.add_argument(
+            '--watchdog', default=None, type=int,
+            help='Call systemd-notify every *n* seconds')
         self.__args = parser.parse_args()
 
     def __detectHardware(self):
@@ -124,6 +128,21 @@ class RootDriver(ServiceProvider):
         except ConnectionError:
             log.warning("Unable to reach GoGriddy")
 
+        # If the watchdog has been requested and the binary exists, install a
+        # recurring timer to 'pet the dog'
+        if self.__args.watchdog is not None:
+            if path.exists('/usr/bin/systemd-notify'):
+                def watchdogTimerHandler():
+                    return run(['/usr/bin/systemd-notify',
+                                '--pid', f"{getpid()}",
+                                'WATCHDOG=1'])
+
+                log.info(
+                    f"Watchdog update process every {self.__args.watchdog}s")
+                self.__eventBus.installTimer(
+                    frequency=self.__args.watchdog,
+                    handler=watchdogTimerHandler)
+
         try:
             log.info('Entering into standard operation')
             self.__eventBus.fireEvent(SettingsChangedEvent())
@@ -134,6 +153,26 @@ class RootDriver(ServiceProvider):
 
 if __name__ == '__main__':
     log.info('Starting thermostat main thread')
+
+    # import RPi.GPIO as GPIO
+    # import smbus
+
+    # GPIO.setmode(GPIO.BCM)
+
+    # addr = 0x50
+    # bus = smbus.SMBus(1)
+
+    # # write protect for EEPROM is GPIO0 (pin 27)
+    # def write(memory_address, data):
+    #     cmd = memory_address >> 8
+    #     bytes = [memory_address & 0xff] + data
+    #     print(f"writing to {memory_address} len={len(data)}")
+    #     return bus.write_i2c_block_data(addr, cmd, bytes)
+
+    # def read(memory_address, count):
+    #     bus.write_byte(addr, memory_address >> 8)
+    #     bus.write_byte(addr, memory_address & 0xff)
+    #     return list(bus.read_byte(addr) for _ in range(count))
 
     try:
         rootDriver = RootDriver()

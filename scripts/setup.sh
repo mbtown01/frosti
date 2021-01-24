@@ -21,7 +21,8 @@ read -r -d '' FROSTI_PACKAGES_CORE <<-EOLIST
 	git
 	hostapd
 	python3 
-	python3-pip  
+	python3-pip
+  watchdog
 EOLIST
 
 read -r -d '' FROSTI_PACKAGES <<-EOLIST
@@ -191,6 +192,7 @@ do_setup_rpi_services() {
   raspi-config nonint do_spi 0
   raspi-config nonint do_i2c 0
   raspi-config nonint do_ssh 0
+  systemctl enable watchdog || return 1
   systemctl enable ssh || return 1
   service ssh restart || return 1
 
@@ -266,12 +268,14 @@ After=frosti-deps.service
 
 [Service]
 ExecStartPre=sleep 3
-ExecStart=/usr/bin/python3 -m frosti
+ExecStart=/usr/bin/python3 -m frosti --watchdog 30
 WorkingDirectory=/usr/local/frosti
 StandardOutput=inherit
 StandardError=inherit
 Restart=always
 User=frosti
+WatchdogSec=60
+NotifyAccess=all
 
 [Install]
 WantedBy=multi-user.target

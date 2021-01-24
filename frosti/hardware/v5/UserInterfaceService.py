@@ -10,6 +10,7 @@ from frosti.core import ServiceProvider, EventBus
 from frosti.hardware.epd2in9 import EPD
 from frosti.hardware.LedRingDriver import LedRingDriver
 from frosti.logging import log
+from frosti.services.OrmManagementService import OrmManagementService
 
 
 class UserInterfaceService(BaseUserInterfaceService):
@@ -68,8 +69,15 @@ class UserInterfaceService(BaseUserInterfaceService):
         super().setServiceProvider(provider)
         self._eventBus = self._getService(EventBus)
 
+        ormManagementService = self._getService(OrmManagementService)
+        self._epaperFullRefreshFrequency = \
+            ormManagementService.getConfigInt('ui.fullRefreshFrequency', 3600)
+
         self._epaperTimeoutInvoker = self._eventBus.installTimer(
             frequency=10, handler=self._epaperTimeout, oneShot=True)
+        self._epaperFullRefreshInvoker = self._eventBus.installTimer(
+            frequency=self._epaperFullRefreshFrequency,
+            handler=self._epaperFullRefresh)
 
     def buttonPressed(self, button: HardwareButton):
         log.debug(f"Button press detected for {button}")
@@ -89,6 +97,12 @@ class UserInterfaceService(BaseUserInterfaceService):
             raise RuntimeError(f"Unknown button: {button}")
 
         super().buttonPressed(button)
+
+    def _epaperFullRefresh(self):
+        self._epd.init(self._epd.lut_full_update)
+        self._epd.display(self._displayBuf)
+        self._epd.init(self._epd.lut_partial_update)
+        log.debug('Doing full screen refresh')
 
     def _epaperTimeout(self):
         log.debug('Putting epaper display to sleep...')
