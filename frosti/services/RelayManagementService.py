@@ -18,5 +18,5 @@ class RelayManagementService(ServiceConsumer):
     def closeRelay(self, state: ThermostatState):
         raise NotImplementedError()
 
-    def getRelayStatus(self, state: ThermostatState):
+    def isRelayOpen(self, state: ThermostatState):
         raise NotImplementedError()

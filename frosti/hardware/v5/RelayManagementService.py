@@ -30,7 +30,7 @@ class RelayManagementService(RelayManagementService):
         """ Open the relay associated with the provided state """
         pass
 
-    def getRelayStatus(self, state: ThermostatState):
+    def isRelayOpen(self, state: ThermostatState):
         """ Returns boolean representing whether relay is open, or None if
         relay state is undefined """
         pass

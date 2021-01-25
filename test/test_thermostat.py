@@ -6,7 +6,8 @@ from frosti.core import EventBus, ServiceConsumer, ServiceProvider, \
     ThermostatState, ThermostatMode
 from frosti.services import ThermostatService, RelayManagementService, \
     OrmManagementService, ApiDataBrokerService
-from frosti.core.events import ThermostatStateChangedEvent, SensorDataChangedEvent
+from frosti.core.events import ThermostatStateChangedEvent, \
+    SensorDataChangedEvent
 
 
 yamlText = """
@@ -65,6 +66,22 @@ class Test_Thermostat(unittest.TestCase):
         def _thermostatStateChanged(self, event: ThermostatStateChangedEvent):
             self.__lastState = event.state
 
+    class TestRelayManagementService(RelayManagementService):
+
+        def __init__(self):
+            self._stateMap = {a: False for a in ThermostatState}
+
+            super().__init__()
+
+        def openRelay(self, state: ThermostatState):
+            self._stateMap[state] = True
+
+        def closeRelay(self, state: ThermostatState):
+            self._stateMap[state] = False
+
+        def isRelayOpen(self, state: ThermostatState):
+            return self._stateMap.get(state)
+
     def setup_method(self, method):
         # This is a Tuesday FYI, day '1' of 7 [0-6], built manually in UTC
         # time to represent 8:01 AM in the America/Chicago time zone
@@ -73,7 +90,7 @@ class Test_Thermostat(unittest.TestCase):
         self.serviceProvider = ServiceProvider()
         self.eventBus = EventBus(now=mktime(testTime))
         self.serviceProvider.installService(EventBus, self.eventBus)
-        self.relayManagement = RelayManagementService()
+        self.relayManagement = Test_Thermostat.TestRelayManagementService()
         self.relayManagement.setServiceProvider(self.serviceProvider)
         self.serviceProvider.installService(
             RelayManagementService, self.relayManagement)
@@ -116,35 +133,35 @@ class Test_Thermostat(unittest.TestCase):
         for checkState in states:
             if checkState == state:
                 self.assertFalse(
-                    self.relayManagement.getRelayStatus(checkState),
+                    self.relayManagement.isRelayOpen(checkState),
                     f"Relay {state} should be closed for state {state}")
             elif checkState == ThermostatState.FAN and \
                     state.shouldAlsoRunFan:
                 self.assertFalse(
-                    self.relayManagement.getRelayStatus(checkState),
+                    self.relayManagement.isRelayOpen(checkState),
                     f"Relay FAN should be closed for state {state}")
             elif checkState == ThermostatState.FAN:
                 pass
 
         if state == ThermostatState.FAN:
             self.assertFalse(
-                self.relayManagement.getRelayStatus(ThermostatState.FAN),
+                self.relayManagement.isRelayOpen(ThermostatState.FAN),
                 "Relay FAN should be closed for state FAN")
             self.assertTrue(
-                self.relayManagement.getRelayStatus(ThermostatState.COOLING),
+                self.relayManagement.isRelayOpen(ThermostatState.COOLING),
                 "Relay COOLING should be open for state OFF")
             self.assertTrue(
-                self.relayManagement.getRelayStatus(ThermostatState.HEATING),
+                self.relayManagement.isRelayOpen(ThermostatState.HEATING),
                 "Relay HEATING should be open for state OFF")
         if state == ThermostatState.OFF:
             self.assertTrue(
-                self.relayManagement.getRelayStatus(ThermostatState.FAN),
+                self.relayManagement.isRelayOpen(ThermostatState.FAN),
                 "Relay FAN should be open for state OFF")
             self.assertTrue(
-                self.relayManagement.getRelayStatus(ThermostatState.COOLING),
+                self.relayManagement.isRelayOpen(ThermostatState.COOLING),
                 "Relay COOLING should be open for state OFF")
             self.assertTrue(
-                self.relayManagement.getRelayStatus(ThermostatState.HEATING),
+                self.relayManagement.isRelayOpen(ThermostatState.HEATING),
                 "Relay HEATING should be open for state OFF")
 
     def test_stateChangedCooling(self):

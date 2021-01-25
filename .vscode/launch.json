@@ -12,10 +12,10 @@
             "module": "frosti",
             "console": "integratedTerminal",
             "stopOnEntry": false,
-            "args": [
-                "--watchdog",
-                "5",
-            ],
+            // "args": [
+            //     "--watchdog",
+            //     "5",
+            // ],
         },
         {
             "name": "Python: Build Image",
