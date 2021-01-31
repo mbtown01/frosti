@@ -34,8 +34,8 @@
 # Is this chip the SSD1608??
 
 import logging
-from . import epdconfig
 import time
+from . import epdconfig
 
 # Display resolution
 EPD_WIDTH = 128
@@ -44,10 +44,6 @@ EPD_HEIGHT = 296
 
 class EPD:
     def __init__(self):
-        self.reset_pin = epdconfig.RST_PIN
-        self.dc_pin = epdconfig.DC_PIN
-        self.busy_pin = epdconfig.BUSY_PIN
-        self.cs_pin = epdconfig.CS_PIN
         self.width = EPD_WIDTH
         self.height = EPD_HEIGHT
 
@@ -69,31 +65,31 @@ class EPD:
 
     # Hardware reset
     def reset(self):
-        epdconfig.digital_write(self.reset_pin, 1)
+        epdconfig.digital_write(epdconfig.RST_PIN, 1)
         epdconfig.delay_ms(200)
-        epdconfig.digital_write(self.reset_pin, 0)
+        epdconfig.digital_write(epdconfig.RST_PIN, 0)
         epdconfig.delay_ms(10)
-        epdconfig.digital_write(self.reset_pin, 1)
+        epdconfig.digital_write(epdconfig.RST_PIN, 1)
         epdconfig.delay_ms(200)
 
     def send_command(self, command):
-        epdconfig.digital_write(self.dc_pin, 0)
-        epdconfig.digital_write(self.cs_pin, 0)
+        epdconfig.digital_write(epdconfig.DC_PIN, 0)
+        epdconfig.digital_write(epdconfig.CS_PIN, 0)
         epdconfig.spi_writebyte([command])
-        epdconfig.digital_write(self.cs_pin, 1)
+        epdconfig.digital_write(epdconfig.CS_PIN, 1)
 
     def send_buffer(self, data):
-        epdconfig.digital_write(self.dc_pin, 1)
-        epdconfig.digital_write(self.cs_pin, 0)
+        epdconfig.digital_write(epdconfig.DC_PIN, 1)
+        epdconfig.digital_write(epdconfig.CS_PIN, 0)
         epdconfig.spi_writebyte(data)
-        epdconfig.digital_write(self.cs_pin, 1)
+        epdconfig.digital_write(epdconfig.CS_PIN, 1)
 
     def send_data(self, data):
         self.send_buffer([data])
 
     def ReadBusy(self):
         start = time.time_ns()
-        while(epdconfig.digital_read(self.busy_pin) == 1):  # 0: idle, 1: busy
+        while(epdconfig.digital_read(epdconfig.BUSY_PIN) == 1):  # 0: idle, 1: busy
             epdconfig.delay_ms(50)
         logging.debug(f"e-Paper busy for {(time.time_ns()-start)/1e6} ms")
 

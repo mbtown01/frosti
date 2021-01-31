@@ -65,6 +65,8 @@ read -r -d '' FROSTI_REQUIREMENTS <<-EOLIST
 	certifi
 	chardet
 	click
+  dash
+  dash-bootstrap-components
 	flake8
 	Flask
 	Flask-Cors

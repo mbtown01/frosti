@@ -61,6 +61,12 @@ class RaspberryPi:
     def spi_writebyte(self, data):
         self.SPI.writebytes(data)
 
+    def gpio_setup(self, rstPin: int, dcPin: int, csPin: int, busyPin: int):
+        self.RST_PIN = rstPin
+        self.DC_PIN = dcPin
+        self.CS_PIN = csPin
+        self.BUSY_PIN = busyPin
+
     def module_init(self):
         self.GPIO.setmode(self.GPIO.BCM)
         self.GPIO.setwarnings(False)
@@ -120,6 +126,12 @@ class JetsonNano:
 
     def spi_writebyte(self, data):
         self.SPI.SYSFS_software_spi_transfer(data[0])
+
+    def gpio_setup(self, rstPin: int, dcPin: int, csPin: int, busyPin: int):
+        self.RST_PIN = rstPin
+        self.DC_PIN = dcPin
+        self.CS_PIN = csPin
+        self.BUSY_PIN = busyPin
 
     def module_init(self):
         self.GPIO.setmode(self.GPIO.BCM)

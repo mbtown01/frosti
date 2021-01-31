@@ -8,7 +8,7 @@ from frosti.core import EventBus, ServiceProvider
 from frosti.services import ApiDataBrokerService, \
     GoGriddyPriceCheckService, OrmManagementService, ThermostatService, \
     OrmStateCaptureService, UserInterfaceService, EnvironmentSamplingService, \
-    RelayManagementService
+    RelayManagementService, DashApplicationService
 from frosti.core.events import SettingsChangedEvent
 
 
@@ -96,11 +96,11 @@ class RootDriver(ServiceProvider):
             log.info(f"Starting FROSTI on hardware {self.__args.hardware}")
 
         if self.__args.hardware == 'v5':
-            from frosti.hardware.v5.UserInterfaceService \
+            from frosti.hardware.v5 \
                 import UserInterfaceService as HardwareUserInterfaceService
-            from frosti.hardware.v5.RelayManagementService \
+            from frosti.hardware.v5 \
                 import RelayManagementService as HardwareRelayManagementService
-            from frosti.hardware.v5.EnvironmentSamplingService \
+            from frosti.hardware.v5 \
                 import EnvironmentSamplingService as \
                 HardwareEnvironmentSamplingService
 
@@ -127,6 +127,9 @@ class RootDriver(ServiceProvider):
             priceChecker.setServiceProvider(self)
         except ConnectionError:
             log.warning("Unable to reach GoGriddy")
+
+        dashApplicationService = DashApplicationService()
+        dashApplicationService.setServiceProvider(self)
 
         # If the watchdog has been requested and the binary exists, install a
         # recurring timer to 'pet the dog'

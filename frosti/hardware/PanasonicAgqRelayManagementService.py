@@ -1,26 +1,24 @@
 from frosti.core import ThermostatState
 from frosti.services import RelayManagementService
 
-import RPi.GPIO as GPIO
 
-
-class RelayManagementService(RelayManagementService):
+class PanasonicAgqRelayManagementService(RelayManagementService):
     """ Service interface for relay management.  Subclassed by code tied into
     whatever actual relay exists """
 
     def __init__(self):
         super().__init__()
 
-        # (left, right, check) = (12, 26, 16)     # FAN
-        # (left, right, check) = (6, 13, 21)      # HEAT
-        # (left, right, check) = (5, 19, 20)      # COOL
-        allPins = [12, 26, 6, 13, 5, 19]
+        self._pinConfig = dict()
 
-        for pin in allPins:
-            GPIO.setup(pin, GPIO.OUT)
-            GPIO.output(pin, 0)
+    def _configState(self, state: ThermostatState,
+                     pinLow: int, pinHi: int, pinCheck: int):
 
-        # GPIO.setup(check, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        self._pinConfig[state] = dict(
+            pinLow=pinLow,
+            pinHi=pinHi,
+            pinCheck=pinCheck
+        )
 
     def openRelay(self, state: ThermostatState):
         """ Open the relay associated with the provided state """

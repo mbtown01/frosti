@@ -5,7 +5,7 @@ import adafruit_bme280
 from frosti.services import EnvironmentSamplingService
 
 
-class EnvironmentSamplingService(EnvironmentSamplingService):
+class Bme280EnvironmentSamplingService(EnvironmentSamplingService):
     """ Holds a GenericEnvironmentSensor and at a specified frequency
     takes a sampling and fires a SensorDataChangedEvent """
 

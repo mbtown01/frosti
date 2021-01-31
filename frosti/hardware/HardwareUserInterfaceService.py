@@ -11,11 +11,17 @@ from frosti.hardware.epd2in9 import EPD
 from frosti.hardware.LedRingDriver import LedRingDriver
 from frosti.logging import log
 from frosti.services.OrmManagementService import OrmManagementService
+import frosti.hardware.epdconfig as epdconfig
 
 
-class UserInterfaceService(BaseUserInterfaceService):
+class HardwareUserInterfaceService(BaseUserInterfaceService):
 
-    def __init__(self):
+    def __init__(self,
+                 scrnRstPin, scrnDcPin, scrnCsPin, scrnBusyPin,
+                 btnUpPin, btnDownPin, btnEnterPin):
+
+        epdconfig.gpio_setup(rstPin=scrnRstPin, dcPin=scrnDcPin,
+                             csPin=scrnCsPin, busyPin=scrnBusyPin)
         self._epd = EPD()
         self._epd.init(self._epd.lut_partial_update)
         self._epd.Clear(0xFF)
@@ -54,9 +60,9 @@ class UserInterfaceService(BaseUserInterfaceService):
         self._displayBuf = [0xFF] * (int(self._epd.width/8) * self._epd.height)
 
         self._buttonMap = {
-            23: HardwareButton.UP,
-            27: HardwareButton.ENTER,
-            22: HardwareButton.DOWN,
+            btnUpPin: HardwareButton.UP,
+            btnEnterPin: HardwareButton.ENTER,
+            btnDownPin: HardwareButton.DOWN,
         }
 
         for pin in self._buttonMap.keys():
