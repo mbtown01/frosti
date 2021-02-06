@@ -11,7 +11,7 @@ from frosti.hardware.epd2in9 import EPD
 from frosti.hardware.LedRingDriver import LedRingDriver
 from frosti.logging import log
 from frosti.services.OrmManagementService import OrmManagementService
-import frosti.hardware.epdconfig as epdconfig
+from frosti.hardware.epdconfig import RaspberryPi
 
 
 class HardwareUserInterfaceService(BaseUserInterfaceService):
@@ -20,9 +20,10 @@ class HardwareUserInterfaceService(BaseUserInterfaceService):
                  scrnRstPin, scrnDcPin, scrnCsPin, scrnBusyPin,
                  btnUpPin, btnDownPin, btnEnterPin):
 
+        epdconfig = RaspberryPi()
         epdconfig.gpio_setup(rstPin=scrnRstPin, dcPin=scrnDcPin,
                              csPin=scrnCsPin, busyPin=scrnBusyPin)
-        self._epd = EPD()
+        self._epd = EPD(epdconfig)
         self._epd.init(self._epd.lut_partial_update)
         self._epd.Clear(0xFF)
         self._epd.Clear(0x00)

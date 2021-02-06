@@ -10,6 +10,7 @@ from frosti.services import ApiDataBrokerService, \
     OrmStateCaptureService, UserInterfaceService, EnvironmentSamplingService, \
     RelayManagementService, DashApplicationService
 from frosti.core.events import SettingsChangedEvent
+from frosti.hardware import hardware_init
 
 
 class RootDriver(ServiceProvider):
@@ -20,7 +21,7 @@ class RootDriver(ServiceProvider):
         parser = argparse.ArgumentParser(
             description='FROSTI main process')
         parser.add_argument(
-            '--hardware', choices=['v5', 'auto'], default='auto',
+            '--hardware', choices=['v5', 'v6', 'auto'], default='auto',
             help='Pick the underlying hardware supporting operations')
         parser.add_argument(
             '--diagnostics', default=False, action='store_true',
@@ -38,7 +39,7 @@ class RootDriver(ServiceProvider):
 
         # Hardware v5 the two 5024 chips at 0x28 and 0x29
         if 0x28 in results and 0x29 in results:
-            return "v5"
+            return "v6"
 
         raise RuntimeError("We just don't support hardware older than v5")
 
@@ -95,30 +96,7 @@ class RootDriver(ServiceProvider):
             self.__args.hardware = self.__detectHardware()
             log.info(f"Starting FROSTI on hardware {self.__args.hardware}")
 
-        if self.__args.hardware == 'v5':
-            from frosti.hardware.v5 \
-                import UserInterfaceService as HardwareUserInterfaceService
-            from frosti.hardware.v5 \
-                import RelayManagementService as HardwareRelayManagementService
-            from frosti.hardware.v5 \
-                import EnvironmentSamplingService as \
-                HardwareEnvironmentSamplingService
-
-            service = HardwareRelayManagementService()
-            service.setServiceProvider(self)
-            self.installService(RelayManagementService, service)
-
-            service = HardwareEnvironmentSamplingService()
-            service.setServiceProvider(self)
-            self.installService(EnvironmentSamplingService, service)
-
-            service = HardwareUserInterfaceService()
-            service.setServiceProvider(self)
-            self.installService(UserInterfaceService, service)
-
-        else:
-            raise RuntimeError(
-                f'Hardware option {self.__args.hardware} not supported')
+        hardware_init(self, self.__args.hardware)
 
         # Setup the power price handler after the other services have
         # been created so they get the first power events

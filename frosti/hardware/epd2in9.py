@@ -35,7 +35,6 @@
 
 import logging
 import time
-from . import epdconfig
 
 # Display resolution
 EPD_WIDTH = 128
@@ -43,9 +42,10 @@ EPD_HEIGHT = 296
 
 
 class EPD:
-    def __init__(self):
+    def __init__(self, epdconfig):
         self.width = EPD_WIDTH
         self.height = EPD_HEIGHT
+        self.epdconfig = epdconfig
 
     lut_full_update = [
         0x50, 0xAA, 0x55, 0xAA, 0x11, 0x00,
@@ -65,32 +65,33 @@ class EPD:
 
     # Hardware reset
     def reset(self):
-        epdconfig.digital_write(epdconfig.RST_PIN, 1)
-        epdconfig.delay_ms(200)
-        epdconfig.digital_write(epdconfig.RST_PIN, 0)
-        epdconfig.delay_ms(10)
-        epdconfig.digital_write(epdconfig.RST_PIN, 1)
-        epdconfig.delay_ms(200)
+        self.epdconfig.digital_write(self.epdconfig.RST_PIN, 1)
+        self.epdconfig.delay_ms(200)
+        self.epdconfig.digital_write(self.epdconfig.RST_PIN, 0)
+        self.epdconfig.delay_ms(10)
+        self.epdconfig.digital_write(self.epdconfig.RST_PIN, 1)
+        self.epdconfig.delay_ms(200)
 
     def send_command(self, command):
-        epdconfig.digital_write(epdconfig.DC_PIN, 0)
-        epdconfig.digital_write(epdconfig.CS_PIN, 0)
-        epdconfig.spi_writebyte([command])
-        epdconfig.digital_write(epdconfig.CS_PIN, 1)
+        self.epdconfig.digital_write(self.epdconfig.DC_PIN, 0)
+        self.epdconfig.digital_write(self.epdconfig.CS_PIN, 0)
+        self.epdconfig.spi_writebyte([command])
+        self.epdconfig.digital_write(self.epdconfig.CS_PIN, 1)
 
     def send_buffer(self, data):
-        epdconfig.digital_write(epdconfig.DC_PIN, 1)
-        epdconfig.digital_write(epdconfig.CS_PIN, 0)
-        epdconfig.spi_writebyte(data)
-        epdconfig.digital_write(epdconfig.CS_PIN, 1)
+        self.epdconfig.digital_write(self.epdconfig.DC_PIN, 1)
+        self.epdconfig.digital_write(self.epdconfig.CS_PIN, 0)
+        self.epdconfig.spi_writebyte(data)
+        self.epdconfig.digital_write(self.epdconfig.CS_PIN, 1)
 
     def send_data(self, data):
         self.send_buffer([data])
 
     def ReadBusy(self):
         start = time.time_ns()
-        while(epdconfig.digital_read(epdconfig.BUSY_PIN) == 1):  # 0: idle, 1: busy
-            epdconfig.delay_ms(50)
+        # 0: idle, 1: busy
+        while(self.epdconfig.digital_read(self.epdconfig.BUSY_PIN) == 1):
+            self.epdconfig.delay_ms(50)
         logging.debug(f"e-Paper busy for {(time.time_ns()-start)/1e6} ms")
 
     def TurnOnDisplay(self):
@@ -121,7 +122,7 @@ class EPD:
         # self.ReadBusy()
 
     def init(self, lut):
-        if (epdconfig.module_init() != 0):
+        if (self.epdconfig.module_init() != 0):
             return -1
         # EPD hardware init start
         self.reset()
@@ -153,29 +154,6 @@ class EPD:
             self.send_data(lut[i])
         # EPD hardware init end
         return 0
-
-    # def getbuffer(self, image):
-    #     start = time.time_ns()
-    #     buf = [0xFF] * (int(self.width/8) * self.height)
-    #     image_monocolor = image.convert('1')
-    #     imwidth, imheight = image_monocolor.size
-    #     pixels = image_monocolor.load()
-    #     if(imwidth == self.width and imheight == self.height):
-    #         for y in range(imheight):
-    #             for x in range(imwidth):
-    #                 if pixels[x, y] == 0:
-    #                     buf[int((x + y * self.width) / 8)
-    #                         ] &= ~(0x80 >> (x % 8))
-    #     elif(imwidth == self.height and imheight == self.width):
-    #         for y in range(imheight):
-    #             mask = ~(0x80 >> (y % 8))
-    #             newx = y
-    #             for x in range(imwidth):
-    #                 newy = self.height - x - 1
-    #                 if pixels[x, y] == 0:
-    #                     buf[(newx + newy*self.width) // 8] &= mask
-    #     logging.debug(f"getBuffer() took {(time.time_ns()-start)/1e6} ms")
-    #     return buf
 
     def display(self, image):
         if image is not None:
@@ -209,18 +187,9 @@ class EPD:
             #     self.send_data(color)
         self.TurnOnDisplay()
 
-    # def ClearWin(self, x1, y1, x2, y2, color):
-    #     self.SetWindow(x1, y1, x2, y2)
-    #     width = x2 - x1 + 1
-    #     for j in range(y1, y2+1):
-    #         self.SetCursor(x1, j)
-    #         self.send_command(0x24)  # WRITE_RAM
-    #         self.send_buffer([color]*(width//8))
-    #     self.TurnOnDisplay()
-
     def sleep(self):
         self.send_command(0x10)  # DEEP_SLEEP_MODE
         self.send_data(0x01)
 
     def Dev_exit(self):
-        epdconfig.module_exit()
+        self.epdconfig.module_exit()
